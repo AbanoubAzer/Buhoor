@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SellerType {
+  DEVELOPER
+  INDIVIDUAL
+}
+
+enum DeliveryStatus {
+  READY
+  UNDER_CONSTRUCTION
+}
+
+enum UnitStatus {
+  APPROVED
+  SOLD
+  HIDDEN
+  PENDING_REVIEW
+  REJECTED
+}
+
+model Developer {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(150)
+  slug      String   @unique @db.VarChar(150)
+  logoUrl   String   @map("logo_url")
+  bio       String?
+  phone     String?  @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  projects Project[]
+  units    Unit[]
+
+  @@map("developers")
+}
+
+model Project {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  developerId String    @map("developer_id") @db.Uuid
+  developer   Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  name        String    @db.VarChar(150)
+  location    String    @db.VarChar(100)
+  description String?
+  coverImage  String    @map("cover_image")
+  images      String[]  @default([])
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  units Unit[]
+
+  @@index([developerId], name: "idx_projects_developer")
+  @@index([createdAt], name: "idx_projects_created_at")
+  @@map("projects")
+}
+
+model Location {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  units Unit[]
+
+  @@map("locations")
+}
+
+model UnitTypeModel {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  units Unit[]
+
+  @@map("unit_types")
+}
+
+model Admin {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique @db.VarChar(150)
+  password  String   @db.VarChar(255)
+  name      String   @db.VarChar(150)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("admins")
+}
+
+model Unit {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code       String?    @unique @db.VarChar(50)
+  title      String     @db.VarChar(255)
+  sellerType SellerType @map("seller_type")
+
+  projectId String?  @map("project_id") @db.Uuid
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  developerId String?    @map("developer_id") @db.Uuid
+  developer   Developer? @relation(fields: [developerId], references: [id], onDelete: SetNull)
+
+  locationId String   @map("location_id") @db.Uuid
+  location   Location @relation(fields: [locationId], references: [id])
+
+  unitTypeId String        @map("unit_type_id") @db.Uuid
+  unitType   UnitTypeModel @relation(fields: [unitTypeId], references: [id])
+
+  area            Decimal @db.Decimal(8, 2)
+  floor           Int?
+  bedrooms        Int
+  bathrooms       Int
+  finishingStatus String? @map("finishing_status") @db.VarChar(50)
+
+  // الأرقام والجدول المالي
+  isCashOnly             Boolean  @default(false) @map("is_cash_only")
+  cashDiscountPercentage Decimal? @map("cash_discount_percentage") @db.Decimal(5, 2)
+
+  totalPrice             Decimal?       @map("total_price") @db.Decimal(14, 2)
+  installmentsCount      Int?           @map("installments_count")
+  installmentFrequency   String?        @map("installment_frequency") @db.VarChar(50)
+
+  originalContractPrice        Decimal        @map("original_contract_price") @db.Decimal(14, 2)
+  cashPaidToSeller             Decimal        @map("cash_paid_to_seller") @db.Decimal(14, 2)
+  remainingInstallments        Decimal        @map("remaining_installments") @db.Decimal(14, 2)
+  monthlyEquivalentInstallment Decimal        @map("monthly_equivalent_installment") @db.Decimal(14, 2)
+  contractYear                 Int            @map("contract_year")
+  deliveryStatus               DeliveryStatus @map("delivery_status")
+  deliveryYear                 Int            @map("delivery_year")
+
+  coverImage String?  @map("cover_image")
+  images     String[] @default([])
+  videos     String[] @default([])
+  isVerified Boolean? @default(false) @map("is_verified")
+
+  submittedByName  String? @map("submitted_by_name") @db.VarChar(100)
+  submittedByPhone String? @map("submitted_by_phone") @db.VarChar(20)
+
+  status    UnitStatus? @default(APPROVED)
+  deletedAt DateTime?   @map("deleted_at") @db.Timestamptz
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([status, locationId], name: "idx_units_status_location")
+  @@index([cashPaidToSeller, monthlyEquivalentInstallment], name: "idx_units_pricing")
+  @@index([deletedAt], name: "idx_units_deleted_at")
+  @@index([projectId], name: "idx_units_project")
+  @@index([developerId], name: "idx_units_developer")
+  @@index([sellerType], name: "idx_units_seller_type")
+  @@index([createdAt], name: "idx_units_created_at")
+  @@map("units")
+}
+
+model HeroSlide {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  image             String
+  title             String
+  subtitle          String
+  desc              String
+  projectName       String
+  projectLocation   String
+  projectLocationAr String
+  projectType       String
+  projectArea       String
+  projectPrice      String
+  projectLink       String   @default("/projects") @map("project_link")
+  isActive          Boolean  @default(true) @map("is_active")
+  order             Int      @default(0)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("hero_slides")
+}
