@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data: https://images.unsplash.com https://api.bohoorrealty.com http://localhost:3333 https://res.cloudinary.com https://drive.google.com https://*.googleusercontent.com; frame-src 'self' https://www.youtube.com; connect-src 'self' http://localhost:3333 https://api.bohoorrealty.com https://script.google.com https://script.googleusercontent.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data: https://images.unsplash.com https://api.bohoorrealty.com http://localhost:3333 https://buhoor.vercel.app https://res.cloudinary.com https://drive.google.com https://*.googleusercontent.com; frame-src 'self' https://www.youtube.com; connect-src 'self' http://localhost:3333 https://buhoor.vercel.app https://api.bohoorrealty.com https://script.google.com https://script.googleusercontent.com;",
           },
         ],
       },
