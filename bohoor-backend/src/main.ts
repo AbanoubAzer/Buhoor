@@ -43,6 +43,7 @@ export async function setupApp(app: INestApplication) {
     'http://127.0.0.1:5173',
     'http://localhost:3000',
     'https://buhoor-web.vercel.app',
+    'https://buhoor-admin-rouge.vercel.app',
     ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : []),
   ];
 
