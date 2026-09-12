@@ -1,7 +1,7 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AdminsService {
