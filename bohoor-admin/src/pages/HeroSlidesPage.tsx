@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { PlusIcon, PencilIcon, TrashIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import ImageUpload from '../components/ImageUpload';
 import toast from 'react-hot-toast';
 
