@@ -24,7 +24,11 @@ export class LocationsController {
     return this.locationsService.findOne(id);
   }
 
-
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateLocationDto: UpdateLocationDto) {
+    return this.locationsService.update(id, updateLocationDto);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')

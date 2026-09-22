@@ -166,6 +166,12 @@ export const api = {
     getAll: async () => {
       return request('/locations');
     },
+    update: async (id: string, data: any) => {
+      return request(`/locations/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+    remove: async (id: string) => {
+      return request(`/locations/${id}`, { method: 'DELETE' });
+    },
   },
   unitTypes: {
     create: async (data: any) => {

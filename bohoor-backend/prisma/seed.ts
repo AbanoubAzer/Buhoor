@@ -29,34 +29,132 @@ async function main() {
   // ═══════════════════════════════════════════════════════
   // 2. Locations
   // ═══════════════════════════════════════════════════════
-  const [locGouna, locZayed, locSahel, locNasr, locTajammu, locAdm, locNewCairo, locMaadi, locAlexandria, locHurghada] =
-    await Promise.all([
-      prisma.location.create({ data: { name: 'الجونة' } }),
-      prisma.location.create({ data: { name: 'الشيخ زايد' } }),
-      prisma.location.create({ data: { name: 'الساحل الشمالي' } }),
-      prisma.location.create({ data: { name: 'مدينة نصر' } }),
-      prisma.location.create({ data: { name: 'التجمع الخامس' } }),
-      prisma.location.create({ data: { name: 'العاصمة الإدارية' } }),
-      prisma.location.create({ data: { name: 'القاهرة الجديدة' } }),
-      prisma.location.create({ data: { name: 'المعادي' } }),
-      prisma.location.create({ data: { name: 'الإسكندرية' } }),
-      prisma.location.create({ data: { name: 'الغردقة' } }),
-    ]);
+  const locGouna = await prisma.location.create({
+    data: {
+      name: 'الجونة',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locZayed = await prisma.location.create({
+    data: {
+      name: 'الشيخ زايد',
+      governorate: 'الجيزة',
+      imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locSahel = await prisma.location.create({
+    data: {
+      name: 'الساحل الشمالي',
+      governorate: 'مطروح',
+      imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locNasr = await prisma.location.create({
+    data: {
+      name: 'مدينة نصر',
+      governorate: 'القاهرة',
+      imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locTajammu = await prisma.location.create({
+    data: {
+      name: 'التجمع الخامس',
+      governorate: 'القاهرة',
+      imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locAdm = await prisma.location.create({
+    data: {
+      name: 'العاصمة الإدارية',
+      governorate: 'القاهرة',
+      imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locNewCairo = await prisma.location.create({
+    data: {
+      name: 'القاهرة الجديدة',
+      governorate: 'القاهرة',
+      imageUrl: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locMaadi = await prisma.location.create({
+    data: {
+      name: 'المعادي',
+      governorate: 'القاهرة',
+      imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locAlexandria = await prisma.location.create({
+    data: {
+      name: 'الإسكندرية',
+      governorate: 'الإسكندرية',
+      imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locHurghada = await prisma.location.create({
+    data: {
+      name: 'الغردقة',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locSahlHasheesh = await prisma.location.create({
+    data: {
+      name: 'سهل حشيش',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1572913017567-02f06497ceea?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locSomaBay = await prisma.location.create({
+    data: {
+      name: 'سوما باي',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1534068590799-09895a709e86?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locMakadi = await prisma.location.create({
+    data: {
+      name: 'مكادي هايتس',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locMarsaAlam = await prisma.location.create({
+    data: {
+      name: 'مرسى علم',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locSokhna = await prisma.location.create({
+    data: {
+      name: 'العين السخنة',
+      governorate: 'السويس',
+      imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  const locPortGhalib = await prisma.location.create({
+    data: {
+      name: 'بورت غالب',
+      governorate: 'البحر الأحمر',
+      imageUrl: 'https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?auto=format&fit=crop&q=80&w=1000',
+    },
+  });
+  console.log('✅ تم إضافة المناطق مع صورها والمحافظات التابعة لها');
 
   // ═══════════════════════════════════════════════════════
   // 3. Unit Types
   // ═══════════════════════════════════════════════════════
-  const [typeChalet, typeVilla, typeApt, typeDuplex, typePenthouse, typeTownhouse, typeStudio, typeTwin] =
-    await Promise.all([
-      prisma.unitTypeModel.create({ data: { name: 'شاليه' } }),
-      prisma.unitTypeModel.create({ data: { name: 'فيلا مستقلة' } }),
-      prisma.unitTypeModel.create({ data: { name: 'شقة سكنية' } }),
-      prisma.unitTypeModel.create({ data: { name: 'دوبلكس' } }),
-      prisma.unitTypeModel.create({ data: { name: 'بنتهاوس' } }),
-      prisma.unitTypeModel.create({ data: { name: 'تاون هاوس' } }),
-      prisma.unitTypeModel.create({ data: { name: 'استوديو' } }),
-      prisma.unitTypeModel.create({ data: { name: 'توين هاوس' } }),
-    ]);
+  const typeChalet = await prisma.unitTypeModel.create({ data: { name: 'شاليه' } });
+  const typeVilla = await prisma.unitTypeModel.create({ data: { name: 'فيلا مستقلة' } });
+  const typeApt = await prisma.unitTypeModel.create({ data: { name: 'شقة سكنية' } });
+  const typeDuplex = await prisma.unitTypeModel.create({ data: { name: 'دوبلكس' } });
+  const typePenthouse = await prisma.unitTypeModel.create({ data: { name: 'بنتهاوس' } });
+  const typeTownhouse = await prisma.unitTypeModel.create({ data: { name: 'تاون هاوس' } });
+  const typeStudio = await prisma.unitTypeModel.create({ data: { name: 'استوديو' } });
+  const typeTwin = await prisma.unitTypeModel.create({ data: { name: 'توين هاوس' } });
+  console.log('✅ تم إضافة أنواع الوحدات');
 
   // ═══════════════════════════════════════════════════════
   // 4. Developers (8 مطورين)
