@@ -18,16 +18,25 @@ import {
 export const revalidate = 60; // Revalidate page every 60 seconds
 
 export default async function Home() {
-  const [unitsData, projectsData, devsData, heroSlides] = await Promise.all([
+  const [unitsData, projectsData, devsData, heroSlides, locationsData] = await Promise.all([
     api.units.getAll({ limit: 6, status: 'APPROVED' }),
     api.projects.getAll(),
     api.developers.getAll(),
-    api.heroSlides.getAll().catch(() => []) // Fallback to empty array if fails
+    api.heroSlides.getAll().catch(() => []), // Fallback to empty array if fails
+    api.locations.getAll().catch(() => []),
   ]);
 
   const units = unitsData.data || unitsData || [];
   const projects = projectsData.slice(0, 6) || [];
   const developers = devsData.slice(0, 8) || [];
+  const locations = (Array.isArray(locationsData) ? locationsData : locationsData?.data || []).slice(0, 6);
+
+  const fallbackAreaImages = [
+    "https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1572913017567-02f06497ceea?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1534068590799-09895a709e86?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
+  ];
 
   return (
     <div className="flex flex-col gap-20 pb-16">
@@ -170,29 +179,42 @@ export default async function Home() {
 
       {/* 4. Top Areas */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <h2 className="text-3xl font-bold font-cairo text-gray-900 mb-8">المناطق <span className="text-primary">الأكثر طلباً</span></h2>
+        <div className="flex justify-between items-end mb-8">
+          <h2 className="text-3xl font-bold font-cairo text-gray-900">المناطق <span className="text-primary">الأكثر طلباً</span></h2>
+          <Link href="/areas" className="text-primary hover:text-accent font-bold transition">جميع المناطق &larr;</Link>
+        </div>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { name: "القاهرة الجديدة", count: "1,646", img: "https://images.unsplash.com/photo-1572913017567-02f06497ceea" },
-            { name: "الشيخ زايد", count: "996", img: "https://images.unsplash.com/photo-1534068590799-09895a709e86" },
-            { name: "الساحل الشمالي", count: "487", img: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2" },
-          ].map((area, i) => (
-            <Link href={`/areas/${area.name}`} key={i} className="relative h-64 rounded-3xl overflow-hidden group">
-              <Image src={area.img} alt={area.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/30 to-transparent" />
+          {locations.map((loc: any, i: number) => (
+            <Link href={`/units?locationId=${loc.id}`} key={loc.id || i} className="relative h-64 rounded-3xl overflow-hidden group shadow-sm hover:shadow-xl transition-all block">
+              <Image 
+                src={loc.imageUrl || loc.image || fallbackAreaImages[i % fallbackAreaImages.length]} 
+                alt={loc.name} 
+                fill 
+                className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/40 to-transparent" />
+              
+              {loc.governorate && (
+                <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-gray-900 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                  {loc.governorate}
+                </span>
+              )}
+
               <div className="absolute bottom-6 right-6 text-white">
-                <h3 className="text-2xl font-bold mb-1">{area.name}</h3>
-                <p className="text-sm text-gray-300">{area.count} عقار</p>
+                <h3 className="text-2xl font-bold font-cairo mb-1">{loc.name}</h3>
+                <p className="text-sm text-gray-300">استكشف العقارات المتاحة &larr;</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* 5. Latest Units */}
+      {/* 5. Featured Units */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex justify-between items-end mb-8">
-          <h2 className="text-3xl font-bold font-cairo text-gray-900">أحدث <span className="text-primary">العقارات</span></h2>
+          <h2 className="text-3xl font-bold font-cairo text-gray-900">عقارات <span className="text-primary">مختارة ومميزة</span></h2>
           <Link href="/units" className="text-primary hover:text-accent font-bold transition">عرض الكل &larr;</Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -206,8 +228,20 @@ export default async function Home() {
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full font-bold text-primary shadow-sm">
-                  {Number(unit.originalContractPrice || unit.price || 0).toLocaleString()} ج.م
+                <div className="absolute top-4 right-4 flex flex-col gap-1.5 items-end">
+                  {unit.isVerified && (
+                    <span className="bg-amber-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
+                      ⭐ موثق
+                    </span>
+                  )}
+                  {unit.expectedRentalRoi > 0 && (
+                    <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
+                      💰 عائد {Number(unit.expectedRentalRoi)}%
+                    </span>
+                  )}
+                  <div className="bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full font-bold text-xs text-primary shadow-sm">
+                    {Number(unit.cashPaidToSeller || unit.originalContractPrice || unit.price || 0).toLocaleString()} ج.م
+                  </div>
                 </div>
               </div>
               <div className="p-6 flex-1 flex flex-col justify-between">

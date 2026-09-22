@@ -72,7 +72,7 @@ export const api = {
       return request(path, { cache: 'no-store' });
     },
     getOne: async (id: string) => {
-      return request(`/units/${id}`, { next: { revalidate: 30 } });
+      return request(`/units/${id}`, { cache: 'no-store' });
     },
   },
   locations: {

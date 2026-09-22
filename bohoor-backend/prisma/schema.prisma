@@ -118,6 +118,8 @@ model Unit {
   // الأرقام والجدول المالي
   isCashOnly             Boolean  @default(false) @map("is_cash_only")
   cashDiscountPercentage Decimal? @map("cash_discount_percentage") @db.Decimal(5, 2)
+  expectedRentalRoi      Decimal? @default(10.0) @map("expected_rental_roi") @db.Decimal(5, 2)
+  isSeaView              Boolean  @default(false) @map("is_sea_view")
 
   totalPrice             Decimal?       @map("total_price") @db.Decimal(14, 2)
   installmentsCount      Int?           @map("installments_count")
@@ -131,10 +133,12 @@ model Unit {
   deliveryStatus               DeliveryStatus @map("delivery_status")
   deliveryYear                 Int            @map("delivery_year")
 
+  description                  String?
   coverImage String?  @map("cover_image")
   images     String[] @default([])
   videos     String[] @default([])
-  isVerified Boolean? @default(false) @map("is_verified")
+  isVerified   Boolean? @default(false) @map("is_verified")
+  displayOrder Int?     @default(0) @map("display_order")
 
   submittedByName  String? @map("submitted_by_name") @db.VarChar(100)
   submittedByPhone String? @map("submitted_by_phone") @db.VarChar(20)
@@ -150,6 +154,7 @@ model Unit {
   @@index([developerId], name: "idx_units_developer")
   @@index([sellerType], name: "idx_units_seller_type")
   @@index([createdAt], name: "idx_units_created_at")
+  @@index([displayOrder], name: "idx_units_display_order")
   @@map("units")
 }
 
@@ -171,4 +176,14 @@ model HeroSlide {
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   @@map("hero_slides")
+}
+
+model Setting {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key       String   @unique @db.VarChar(100)
+  value     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("settings")
 }

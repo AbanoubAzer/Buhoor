@@ -13,6 +13,7 @@ import { AdminsModule } from './admins/admins.module.js';
 import { StatsModule } from './stats/stats.module.js';
 import { HeroSlidesModule } from './hero-slides/hero-slides.module.js';
 import { UploadModule } from './upload/upload.module.js';
+import { SettingsModule } from './settings/settings.module.js';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UploadModule } from './upload/upload.module.js';
     StatsModule,
     HeroSlidesModule,
     UploadModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

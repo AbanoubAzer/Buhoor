@@ -21,10 +21,11 @@ export default function Header() {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex gap-6 items-center">
             <Link href="/" className="text-gray-600 hover:text-accent font-medium transition">الرئيسية</Link>
+                        <Link href="/units" className="text-gray-600 hover:text-accent font-medium transition">العقارات</Link>
+
             <Link href="/projects" className="text-gray-600 hover:text-accent font-medium transition">المشاريع</Link>
             <Link href="/areas" className="text-gray-600 hover:text-accent font-medium transition">المناطق</Link>
             <Link href="/developers" className="text-gray-600 hover:text-accent font-medium transition">المطورين</Link>
-            <Link href="/units" className="text-gray-600 hover:text-accent font-medium transition">العقارات</Link>
           </nav>
 
           <div className="flex items-center gap-3">

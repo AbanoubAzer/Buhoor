@@ -164,7 +164,7 @@ export default function AddPropertyTab() {
             <TextInput style={styles.input} placeholder="مثال: مدينتي، التجمع الخامس" value={formData.projectLocation} onChangeText={t => updateForm('projectLocation', t)} textAlign="right" />
 
             <Text style={styles.label}>نوع الوحدة</Text>
-            <TextInput style={styles.input} placeholder="مثال: شقة، فيلا، شاليه" value={formData.unitType} onChangeText={t => updateForm('unitType', t)} textAlign="right" />
+            <TextInput style={styles.input} placeholder="مثال: شقة، فيلا، شاليه، استوديو" value={formData.unitType} onChangeText={t => updateForm('unitType', t)} textAlign="right" />
 
             <Text style={styles.label}>المساحة (م²)</Text>
             <TextInput style={styles.input} placeholder="مثال: 120" value={formData.area} onChangeText={t => updateForm('area', t)} keyboardType="numeric" textAlign="right" />

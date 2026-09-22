@@ -36,17 +36,9 @@ export default async function DeveloperDetailsPage({ params }: { params: Promise
         </div>
         <div className="text-center md:text-right flex-1">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{developer.name}</h1>
-          <p className="text-gray-600 leading-relaxed mb-6">
+          <p className="text-gray-600 leading-relaxed mb-2">
             {developer.bio || 'لا يوجد وصف متاح.'}
           </p>
-          <div className="flex flex-wrap justify-center md:justify-start gap-4">
-            <span className="bg-gray-50 px-4 py-2 rounded-xl text-gray-600 font-medium border border-gray-100">
-              📞 {developer.phone}
-            </span>
-            <span className="bg-gray-50 px-4 py-2 rounded-xl text-gray-600 font-medium border border-gray-100">
-              📧 {developer.email}
-            </span>
-          </div>
         </div>
       </div>
 

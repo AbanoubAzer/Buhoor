@@ -107,6 +107,22 @@ export const api = {
         data.videos = [];
       }
 
+      const sanitizeNumericValues = (target: Record<string, any>) => {
+        const numericKeys = [
+          'area', 'bedrooms', 'bathrooms', 'originalContractPrice', 'cashPaidToSeller',
+          'remainingInstallments', 'monthlyEquivalentInstallment', 'contractYear', 'deliveryYear',
+          'cashDiscountPercentage', 'totalPrice', 'installmentsCount', 'expectedRentalRoi', 'floor', 'displayOrder'
+        ];
+        numericKeys.forEach(k => {
+          if (target[k] !== undefined && target[k] !== null && target[k] !== '') {
+            const parsed = Number(target[k]);
+            if (!isNaN(parsed)) {
+              target[k] = Math.max(0, parsed);
+            }
+          }
+        });
+      };
+
       if (data.isCashOnly) {
         data.remainingInstallments = 0;
         data.monthlyEquivalentInstallment = 0;
@@ -118,6 +134,7 @@ export const api = {
         delete data.projectId;
       }
 
+      sanitizeNumericValues(data);
       return request('/units', { method: 'POST', body: JSON.stringify(data) });
     },
     getAll: async (params?: Record<string, any>) => {
@@ -135,16 +152,43 @@ export const api = {
       return request(path);
     },
     update: async (id: string, data: any) => {
-      if (data.isCashOnly) {
-        data.remainingInstallments = 0;
-        data.monthlyEquivalentInstallment = 0;
+      const payload = { ...data };
+      delete payload.id;
+      delete payload.createdAt;
+      delete payload.deletedAt;
+      delete payload.location;
+      delete payload.unitType;
+      delete payload.developer;
+      delete payload.project;
+
+      if (payload.isCashOnly) {
+        payload.remainingInstallments = 0;
+        payload.monthlyEquivalentInstallment = 0;
       }
-      if (!data.projectId) data.projectId = null;
-      if (!data.developerId || data.sellerType === 'INDIVIDUAL') {
-        data.developerId = null;
-        data.projectId = null;
+      if (!payload.projectId) payload.projectId = null;
+      if (!payload.developerId || payload.sellerType === 'INDIVIDUAL') {
+        payload.developerId = null;
+        payload.projectId = null;
       }
-      return request(`/units/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+
+      const sanitizeNumericValues = (target: Record<string, any>) => {
+        const numericKeys = [
+          'area', 'bedrooms', 'bathrooms', 'originalContractPrice', 'cashPaidToSeller',
+          'remainingInstallments', 'monthlyEquivalentInstallment', 'contractYear', 'deliveryYear',
+          'cashDiscountPercentage', 'totalPrice', 'installmentsCount', 'expectedRentalRoi', 'floor', 'displayOrder'
+        ];
+        numericKeys.forEach(k => {
+          if (target[k] !== undefined && target[k] !== null && target[k] !== '') {
+            const parsed = Number(target[k]);
+            if (!isNaN(parsed)) {
+              target[k] = Math.max(0, parsed);
+            }
+          }
+        });
+      };
+
+      sanitizeNumericValues(payload);
+      return request(`/units/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
     },
     approve: async (id: string) => {
       return request(`/units/${id}/approve`, { method: 'PATCH' });
@@ -154,6 +198,9 @@ export const api = {
     },
     updateStatus: async (id: string, status: string) => {
       return request(`/units/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    },
+    updateOrder: async (id: string, displayOrder: number | null) => {
+      return request(`/units/${id}`, { method: 'PATCH', body: JSON.stringify({ displayOrder }) });
     },
     remove: async (id: string) => {
       return request(`/units/${id}`, { method: 'DELETE' });
@@ -223,6 +270,14 @@ export const api = {
     },
     remove: async (id: string) => {
       return request(`/hero-slides/${id}`, { method: 'DELETE' });
+    },
+  },
+  settings: {
+    getDefaultSort: async (): Promise<{ defaultSort: string }> => {
+      return request('/settings/default-sort');
+    },
+    updateDefaultSort: async (defaultSort: string): Promise<{ defaultSort: string }> => {
+      return request('/settings/default-sort', { method: 'PATCH', body: JSON.stringify({ defaultSort }) });
     },
   },
 };

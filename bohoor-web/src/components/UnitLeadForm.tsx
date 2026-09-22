@@ -73,7 +73,7 @@ export default function UnitLeadForm({ unitPrice, unitId }: { unitPrice: number,
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
       <h3 className="text-xl font-bold text-primary mb-2">عايز تلحق تحجز الفرصة ديه؟</h3>
       <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-        سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك المطلوب كاش والأقساط اللي بعده — بنكلّم اللي جاهز يتحرّك على الوحدة دي بالتحديد.
+        سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -113,8 +113,7 @@ export default function UnitLeadForm({ unitPrice, unitId }: { unitPrice: number,
             className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary bg-gray-50 text-sm outline-none"
             placeholder="مثلاً: الوحدة في أنهي دور؟ الاستلام إمتاي بالظبط؟ ينفع أعاين قبل التنازل؟ فيه متأخرات على الوحدة؟"
           />
-          <p className="text-xs text-gray-400 mt-1">أسئلتك بتوصل لفريقنا وإحنا بنسألها للبايع ونرجعلك بالرد — أي وسيلة تواصل مكتوبة بتتشال تلقائيًا</p>
-        </div>
+<p className="text-xs text-gray-400 mt-1">أسئلتك بتوصل لفريقنا وإحنا بنسألها للبايع ونرجعلك بالرد</p>        </div>
 
         <div className="space-y-3">
           <label className="block text-sm font-bold text-gray-700">إنت جاهز للتنفيذ لأي درجة؟ <span className="text-red-500">*</span></label>
@@ -122,7 +121,7 @@ export default function UnitLeadForm({ unitPrice, unitId }: { unitPrice: number,
           
           <label className="flex items-start gap-3 cursor-pointer p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
             <input type="radio" name="readiness" required value="ready_48h" onChange={e => setReadiness(e.target.value)} className="mt-1 w-4 h-4 text-primary focus:ring-primary" />
-            <span className="text-sm text-gray-700">مستعد أستلم مكالمة النهاردة وأحدد معاينة خلال ٤٨ ساعة</span>
+            <span className="text-sm text-gray-700">مستعد أستلم مكالمة النهاردة وأحدد معاينة خلال ٤٨ ساعة وجاهز لاتمام عملية الشراء في هذا الأسبوع</span>
           </label>
           
           <label className="flex items-start gap-3 cursor-pointer p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
