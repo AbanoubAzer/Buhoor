@@ -142,7 +142,11 @@ export default function ShareButton({
     <>
       <button 
         type="button"
-        onClick={handleNativeShare}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleNativeShare(e);
+        }}
         className={`${getButtonStyles()} ${className}`}
         title="مشاركة"
         aria-label="مشاركة"

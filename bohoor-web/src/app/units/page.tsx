@@ -208,7 +208,7 @@ export default async function UnitsPage({
                           />
                           
                           {/* Share button on card */}
-                          <div className="absolute top-3 left-3 z-10" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                          <div className="absolute top-3 left-3 z-10">
                             <ShareButton 
                               title={unit.title}
                               priceText={`${(isTotalSort && displayTotal > 0 ? displayTotal : displayCash).toLocaleString()} ج.م`}
