@@ -25,11 +25,13 @@ import {
   RotateCcw, 
   Check, 
   Building2,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import Colors from '../../constants/Colors';
 import { useStore } from '../../store/useStore';
+import AiSearchModal from '../../components/AiSearchModal';
 
 const { height } = Dimensions.get('window');
 
@@ -71,6 +73,7 @@ export default function UnitsTab() {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [aiModalVisible, setAiModalVisible] = useState(false);
 
   // Advanced Filter States
   const [selectedGov, setSelectedGov] = useState<string>('');
@@ -306,6 +309,14 @@ export default function UnitsTab() {
       {/* Search Bar & Advanced Filter Button */}
       <View style={styles.searchContainer}>
         <View style={styles.searchRow}>
+          <TouchableOpacity 
+            style={styles.aiSearchBtn}
+            onPress={() => setAiModalVisible(true)}
+          >
+            <Sparkles size={16} color="#fff" />
+            <Text style={styles.aiSearchBtnText}>AI</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity 
             style={[styles.filterIconBtn, activeFiltersCount > 0 && styles.filterIconBtnActive]}
             onPress={() => setModalVisible(true)}
@@ -616,6 +627,12 @@ export default function UnitsTab() {
         </View>
       </Modal>
 
+      {/* AI Natural Language Search Modal */}
+      <AiSearchModal 
+        visible={aiModalVisible} 
+        onClose={() => setAiModalVisible(false)} 
+      />
+
     </View>
   );
 }
@@ -629,7 +646,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, 
     borderBottomColor: '#E5E7EB' 
   },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  aiSearchBtn: {
+    height: 44,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#4F46E5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    shadowColor: '#4F46E5',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  aiSearchBtnText: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
   filterIconBtn: {
     width: 44,
     height: 44,

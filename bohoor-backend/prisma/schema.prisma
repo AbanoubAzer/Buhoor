@@ -147,6 +147,8 @@ model Unit {
   deletedAt DateTime?   @map("deleted_at") @db.Timestamptz
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
 
+  searchMatches SearchMatch[]
+
   @@index([status, locationId], name: "idx_units_status_location")
   @@index([cashPaidToSeller, monthlyEquivalentInstallment], name: "idx_units_pricing")
   @@index([deletedAt], name: "idx_units_deleted_at")
@@ -186,4 +188,33 @@ model Setting {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   @@map("settings")
+}
+
+model UserSearch {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String?  @map("user_id") @db.VarChar(100)
+  customerName     String?  @map("customer_name") @db.VarChar(150)
+  customerPhone    String?  @map("customer_phone") @db.VarChar(50)
+  query            String   @db.Text
+  extractedFilters Json     @map("extracted_filters")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  matches SearchMatch[]
+
+  @@map("user_searches")
+}
+
+model SearchMatch {
+  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userSearchId    String     @map("user_search_id") @db.Uuid
+  userSearch      UserSearch @relation(fields: [userSearchId], references: [id], onDelete: Cascade)
+  unitId          String     @map("unit_id") @db.Uuid
+  unit            Unit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  matchScore      Float      @map("match_score")
+  matchedCriteria Json?      @map("matched_criteria")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([userSearchId], name: "idx_matches_search")
+  @@index([unitId], name: "idx_matches_unit")
+  @@map("search_matches")
 }

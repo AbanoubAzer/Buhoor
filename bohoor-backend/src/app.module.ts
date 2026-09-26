@@ -14,6 +14,7 @@ import { StatsModule } from './stats/stats.module.js';
 import { HeroSlidesModule } from './hero-slides/hero-slides.module.js';
 import { UploadModule } from './upload/upload.module.js';
 import { SettingsModule } from './settings/settings.module.js';
+import { AiSearchModule } from './ai-search/ai-search.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SettingsModule } from './settings/settings.module.js';
     HeroSlidesModule,
     UploadModule,
     SettingsModule,
+    AiSearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -90,4 +90,19 @@ export const api = {
       return request('/hero-slides', { next: { revalidate: 60 } });
     },
   },
+  aiSearch: {
+    match: async (data: { query: string; customerName?: string; customerPhone?: string; userId?: string }) => {
+      return request('/ai-search', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    getAllSearches: async () => {
+      return request('/ai-search/admin/searches', { cache: 'no-store' });
+    },
+    getExportUrl: () => {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3333'}/ai-search/admin/export-excel`;
+    },
+  },
 };
+
