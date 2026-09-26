@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { useLanguage } from "@/context/LanguageContext";
 
 interface UnitLeadFormProps {
   unitPrice: number;
@@ -11,6 +12,7 @@ interface UnitLeadFormProps {
 }
 
 export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPER' }: UnitLeadFormProps) {
+  const { t, isRTL, language } = useLanguage();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [questions, setQuestions] = useState("");
@@ -22,7 +24,7 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
   const isDeveloper = sellerType === 'DEVELOPER';
 
   // Calculate 1.25% commission only for individuals/resale
-  const commission = isDeveloper ? "0" : (unitPrice ? (unitPrice * 0.0125).toLocaleString() : "0");
+  const commission = isDeveloper ? "0" : (unitPrice ? (unitPrice * 0.0125).toLocaleString(isRTL ? 'ar-EG' : 'en-US') : "0");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +39,8 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
         phone: phone.startsWith('+') ? phone : `+${phone}`,
         readiness,
         questions,
-        commission: isDeveloper ? "0 (مطور - بدون عمولة للمشتري)" : `${commission} ج.م (1.25% إعادة بيع أفراد)`
+        language,
+        commission: isDeveloper ? "0 (Direct Developer - 0% Commission)" : `${commission} EGP (1.25% Resale)`
       };
 
       await fetch(
@@ -55,7 +58,7 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
       setSuccess(true);
     } catch (error: any) {
       console.error(error);
-      alert(`حدث خطأ أثناء الإرسال: ${error?.message || "يرجى المحاولة مرة أخرى."}`);
+      alert(isRTL ? `حدث خطأ أثناء الإرسال: ${error?.message || "يرجى المحاولة مرة أخرى."}` : `Error sending request: ${error?.message || "Please try again."}`);
     } finally {
       setLoading(false);
     }
@@ -63,12 +66,16 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
 
   if (success) {
     return (
-      <div className="bg-emerald-50 p-6 rounded-3xl text-center border border-emerald-100 shadow-sm">
+      <div className="bg-emerald-50 p-6 rounded-3xl text-center border border-emerald-100 shadow-sm" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
           ✓
         </div>
-        <h3 className="text-xl font-bold text-emerald-800 mb-2">تم استلام طلبك بنجاح!</h3>
-        <p className="text-emerald-700 text-sm">سيقوم فريقنا بالتواصل معك في أقرب وقت لترتيب المعاينة وتفاصيل الحجز.</p>
+        <h3 className="text-xl font-bold text-emerald-800 mb-2">
+          {isRTL ? "تم استلام طلبك بنجاح!" : "Request Received Successfully!"}
+        </h3>
+        <p className="text-emerald-700 text-sm">
+          {isRTL ? "سيقوم فريقنا بالتواصل معك في أقرب وقت لترتيب المعاينة وتفاصيل الحجز." : "Our team will contact you shortly to arrange a viewing and booking details."}
+        </p>
       </div>
     );
   }
@@ -78,14 +85,18 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
       {loading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
           <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4"></div>
-          <p className="text-lg font-bold text-primary">جاري إرسال طلبك...</p>
+          <p className="text-lg font-bold text-primary">{isRTL ? "جاري إرسال طلبك..." : "Sending your request..."}</p>
         </div>
       )}
       
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
-        <h3 className="text-xl font-bold text-primary mb-2">عايز تلحق تحجز الفرصة ديه؟</h3>
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 sticky top-24" dir={isRTL ? 'rtl' : 'ltr'}>
+        <h3 className="text-xl font-bold text-primary mb-2">
+          {isRTL ? "عايز تلحق تحجز الفرصة ديه؟" : "Want to secure this opportunity?"}
+        </h3>
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">
-          سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك كل التفاصيل.
+          {isRTL 
+            ? "سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك كل التفاصيل."
+            : "Leave your name and WhatsApp number, and our team will contact you to review all details."}
         </p>
 
         {/* Commission Banner */}
@@ -93,9 +104,13 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
           <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 mb-5 flex items-start gap-2.5">
             <span className="text-xl leading-none">🎉</span>
             <div>
-              <p className="text-xs font-bold text-emerald-900 mb-0.5">بدون أي عمولة من المشتري (0% عمولة)</p>
+              <p className="text-xs font-bold text-emerald-900 mb-0.5">
+                {isRTL ? "بدون أي عمولة من المشتري (0% عمولة)" : "No Buyer Commission (0% Commission)"}
+              </p>
               <p className="text-[11px] text-emerald-700 leading-relaxed font-medium">
-                العقار معروض مباشرة من المطور العقاري وبنفس أسعار الشركة. لا توجد أي عمولات أو رسوم يتحملها المشتري.
+                {isRTL 
+                  ? "العقار معروض مباشرة من المطور العقاري وبنفس أسعار الشركة. لا توجد أي عمولات أو رسوم يتحملها المشتري."
+                  : "Directly listed from the developer at official company rates. No commission or hidden fees for the buyer."}
               </p>
             </div>
           </div>
@@ -103,9 +118,13 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 mb-5 flex items-start gap-2.5">
             <span className="text-xl leading-none">ℹ️</span>
             <div>
-              <p className="text-xs font-bold text-amber-900 mb-0.5">عمولة إعادة البيع (الأفراد)</p>
+              <p className="text-xs font-bold text-amber-900 mb-0.5">
+                {isRTL ? "عمولة إعادة البيع (الأفراد)" : "Resale Commission (Individual)"}
+              </p>
               <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-                عمولة منصة بحور للمشتري هي 1.25% فقط ({commission} ج.م) تُدفع عند إتمام التنازل بنجاح. البائع لا يدفع أي عمولة.
+                {isRTL 
+                  ? `عمولة منصة بحور للمشتري هي 1.25% فقط (${commission} ج.م) تُدفع عند إتمام التنازل بنجاح. البائع لا يدفع أي عمولة.`
+                  : `Bohoor buyer commission is 1.25% only (${commission} EGP), payable upon successful transfer. The seller pays 0%.`}
               </p>
             </div>
           </div>
@@ -113,24 +132,28 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="block text-sm font-bold text-gray-700">الاسم <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-bold text-gray-700">
+              {isRTL ? "الاسم" : "Full Name"} <span className="text-red-500">*</span>
+            </label>
             <input 
               type="text" 
               required 
               value={name}
               onChange={e => setName(e.target.value)}
               className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary bg-gray-50 text-sm outline-none" 
-              placeholder="الاسم الكامل" 
+              placeholder={isRTL ? "الاسم الكامل" : "Your Full Name"} 
             />
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-bold text-gray-700">رقم الواتساب <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-bold text-gray-700">
+              {isRTL ? "رقم الواتساب" : "WhatsApp Number"} <span className="text-red-500">*</span>
+            </label>
             <div dir="ltr">
               <PhoneInput
                 country={'eg'}
                 enableSearch={true}
-                searchPlaceholder="البحث عن الدولة..."
+                searchPlaceholder={isRTL ? "البحث عن الدولة..." : "Search country..."}
                 value={phone}
                 onChange={(p) => setPhone(p)}
                 inputStyle={{ width: '100%', height: '48px', borderRadius: '0.75rem', borderColor: '#e5e7eb', backgroundColor: '#f9fafb' }}
@@ -140,34 +163,52 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-bold text-gray-700">إيه الأسئلة أو الاستفسارات التي تود معرفتها؟</label>
+            <label className="block text-sm font-bold text-gray-700">
+              {isRTL ? "إيه الأسئلة أو الاستفسارات التي تود معرفتها؟" : "What questions or inquiries do you have?"}
+            </label>
             <textarea 
               rows={3}
               value={questions}
               onChange={e => setQuestions(e.target.value)}
               className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary bg-gray-50 text-sm outline-none"
-              placeholder={isDeveloper ? "مثلاً: مواعيد التسليم، أنظمة السداد، موعد المعاينة..." : "مثلاً: الوحدة في أنهي دور؟ الاستلام إمتا بالظبط؟ ينفع أعاين قبل التنازل؟"}
+              placeholder={isDeveloper 
+                ? (isRTL ? "مثلاً: مواعيد التسليم، أنظمة السداد، موعد المعاينة..." : "E.g., delivery date, payment plans, site visit schedule...") 
+                : (isRTL ? "مثلاً: الوحدة في أنهي دور؟ الاستلام إمتا بالظبط؟ ينفع أعاين قبل التنازل؟" : "E.g., floor number, exact delivery date, visit prior to transfer?")}
             />
-            <p className="text-xs text-gray-400 mt-1">أسئلتك بتوصل لفريقنا وبنتابعها معاك بدقة</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {isRTL ? "أسئلتك بتوصل لفريقنا وبنتابعها معاك بدقة" : "Your questions are shared with our advisors to guide you thoroughly"}
+            </p>
           </div>
 
           <div className="space-y-2 pt-2">
-            <label className="block text-sm font-bold text-gray-700">إنت جاهز للتنفيذ لأي درجة؟ <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-400 mb-2">بنرتّب أولوياتنا على الإجابة دي — اختار اللي ينفع معاك فعلاً.</p>
+            <label className="block text-sm font-bold text-gray-700">
+              {isRTL ? "إنت جاهز للتنفيذ لأي درجة؟" : "How soon are you ready to proceed?"} <span className="text-red-500">*</span>
+            </label>
+            <p className="text-xs text-gray-400 mb-2">
+              {isRTL ? "بنرتّب أولوياتنا على الإجابة دي — اختار اللي ينفع معاك فعلاً." : "We prioritize follow-ups based on this — choose what fits your situation."}
+            </p>
             
             <label className="flex items-start gap-3 cursor-pointer p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
               <input type="radio" name="readiness" required value="ready_48h" onChange={e => setReadiness(e.target.value)} className="mt-1 w-4 h-4 text-primary focus:ring-primary" />
-              <span className="text-sm text-gray-700">مستعد أستلم مكالمة النهاردة وأحدد معاينة خلال ٤٨ ساعة وجاهز للشراء هذا الأسبوع</span>
+              <span className="text-sm text-gray-700">
+                {isRTL 
+                  ? "مستعد أستلم مكالمة النهاردة وأحدد معاينة خلال ٤٨ ساعة وجاهز للشراء هذا الأسبوع" 
+                  : "Ready for a call today, schedule a visit within 48h, and ready to purchase this week"}
+              </span>
             </label>
             
             <label className="flex items-start gap-3 cursor-pointer p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
               <input type="radio" name="readiness" required value="ready_3m" onChange={e => setReadiness(e.target.value)} className="mt-1 w-4 h-4 text-primary focus:ring-primary" />
-              <span className="text-sm text-gray-700">جاهز خلال شهر لـ ٣ شهور</span>
+              <span className="text-sm text-gray-700">
+                {isRTL ? "جاهز خلال شهر لـ ٣ شهور" : "Ready within 1 to 3 months"}
+              </span>
             </label>
             
             <label className="flex items-start gap-3 cursor-pointer p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
               <input type="radio" name="readiness" required value="browsing" onChange={e => setReadiness(e.target.value)} className="mt-1 w-4 h-4 text-primary focus:ring-primary" />
-              <span className="text-sm text-gray-700">بتفرّج ومحتاج معلومات</span>
+              <span className="text-sm text-gray-700">
+                {isRTL ? "بتفرّج ومحتاج معلومات" : "Exploring and collecting information"}
+              </span>
             </label>
           </div>
 
@@ -183,7 +224,9 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
                   className="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded flex-shrink-0" 
                 />
                 <span className="text-sm text-gray-700 leading-snug">
-                  أؤكد رغبتي في التواصل لحجز ومعاينة الوحدة مباشرة من المطور <strong className="text-emerald-700">(بدون أي عمولة من المشتري — 0%)</strong>.
+                  {isRTL 
+                    ? <>أؤكد رغبتي في التواصل لحجز ومعاينة الوحدة مباشرة من المطور <strong className="text-emerald-700">(بدون أي عمولة من المشتري — 0%)</strong>.</>
+                    : <>I confirm my request to book and inspect the unit directly from the developer <strong className="text-emerald-700">(0% Buyer Commission)</strong>.</>}
                 </span>
               </label>
             ) : (
@@ -196,7 +239,9 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
                   className="mt-1 w-4 h-4 text-primary focus:ring-primary rounded flex-shrink-0" 
                 />
                 <span className="text-sm text-gray-600 leading-snug">
-                  أوافق على عمولة بحور العقارية الخاصة بيا كمشتري: 1.25% من قيمة التعاقد ({commission} ج.م) — تُدفع مني أنا فقط عند إتمام التنازل بنجاح. البايع مش بيدفع أي عمولة.
+                  {isRTL 
+                    ? <>أوافق على عمولة بحور العقارية الخاصة بيا كمشتري: 1.25% من قيمة التعاقد ({commission} ج.م) — تُدفع مني أنا فقط عند إتمام التنازل بنجاح. البايع مش بيدفع أي عمولة.</>
+                    : <>I agree to Bohoor's 1.25% buyer commission ({commission} EGP), payable only upon successful transfer. The seller pays 0%.</>}
                 </span>
               </label>
             )}
@@ -207,7 +252,7 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
             disabled={loading || !agreed || !phone || !readiness}
             className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition shadow-md shadow-primary/20"
           >
-            {loading ? "جاري الإرسال..." : "تأكيد الطلب"}
+            {loading ? (isRTL ? "جاري الإرسال..." : "Sending...") : (isRTL ? "تأكيد الطلب" : "Confirm Inquiry")}
           </button>
         </form>
       </div>

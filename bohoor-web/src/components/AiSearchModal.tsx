@@ -15,9 +15,11 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 import { api } from '@/api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AiSearchModal() {
   const router = useRouter();
+  const { t, language, isRTL } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -53,15 +55,24 @@ export default function AiSearchModal() {
   const [error, setError] = useState<string | null>(null);
 
   const budgetOptions = ['3,000,000', '5,000,000', '8,000,000', '12,000,000', '20,000,000+'];
-  const locationOptions = ['سهل حشيش', 'الجونة', 'الغردقة', 'الساحل الشمالي', 'القاهرة الجديدة', 'الشيخ زايد'];
-  const typeOptions = ['شاليه', 'شقة', 'فيلا', 'دوبلكس', 'استوديو'];
+  const locationOptions = isRTL 
+    ? ['سهل حشيش', 'الجونة', 'الغردقة', 'الساحل الشمالي', 'القاهرة الجديدة', 'الشيخ زايد']
+    : ['Sahl Hasheesh', 'El Gouna', 'Hurghada', 'North Coast', 'New Cairo', 'Sheikh Zayed'];
+  const typeOptions = isRTL 
+    ? ['شاليه', 'شقة', 'فيلا', 'دوبلكس', 'استوديو']
+    : ['Chalet', 'Apartment', 'Villa', 'Duplex', 'Studio'];
   const bedroomOptions = ['1', '2', '3', '4+'];
 
-  const quickPrompts = [
-    '2 bedroom apartment in Sahl Hasheesh, sea view',
+  const quickPrompts = isRTL ? [
     'شاليه غرفتين في الجونة على البحر',
     'شقة 3 غرف في التجمع الخامس تقسيط',
+    'استوديو في سهل حشيش استثمار Airbnb',
     'فيلا مستقلة استلام فوري',
+  ] : [
+    '2-bedroom chalet in El Gouna with sea view',
+    '3-bedroom apartment in New Cairo with installments',
+    'Studio in Sahl Hasheesh for Airbnb investment',
+    'Standalone villa ready for delivery',
   ];
 
   const handleSearch = async () => {
@@ -141,7 +152,7 @@ export default function AiSearchModal() {
         className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 shrink-0"
       >
         <SparklesIcon className="w-4 h-4 text-amber-300 animate-pulse" />
-        <span>البحث الذكي بالـ AI</span>
+        <span>{isRTL ? 'البحث الذكي بالـ AI' : 'AI Smart Search'}</span>
       </button>
 
       {/* Modal - Highly Responsive Portal Container */}
@@ -154,6 +165,7 @@ export default function AiSearchModal() {
           <div 
             className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] max-h-[90dvh] flex flex-col shadow-2xl overflow-hidden border border-indigo-100 font-cairo my-0 sm:my-auto"
             onClick={(e) => e.stopPropagation()}
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Sticky Header - Never Cut off */}
             <div className="shrink-0 flex items-center justify-between p-3.5 sm:p-5 border-b border-gray-100 bg-gradient-to-r from-indigo-50/90 via-purple-50/70 to-white sticky top-0 z-20">

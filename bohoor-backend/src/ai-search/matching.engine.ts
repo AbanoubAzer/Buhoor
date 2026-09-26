@@ -27,19 +27,24 @@ export function calculateUnitMatch(unit: any, filters: ExtractedFilters): Scored
     score += 30; // Default baseline if not constrained
     matchedCriteria.locationMatch = true;
   } else {
-    const locName = (unit.location?.name || '').toLowerCase();
-    const govName = (unit.location?.governorate || '').toLowerCase();
-    const title = (unit.title || '').toLowerCase();
+    const locNames = [
+      unit.location?.name,
+      unit.location?.nameAr,
+      unit.location?.nameEn,
+      unit.location?.governorate,
+      unit.location?.governorateAr,
+      unit.location?.governorateEn,
+      unit.title,
+      unit.titleAr,
+      unit.titleEn,
+    ]
+      .filter(Boolean)
+      .map((s: string) => s.toLowerCase());
+
     const reqLoc = filters.location.toLowerCase();
 
-    if (locName.includes(reqLoc) || reqLoc.includes(locName)) {
+    if (locNames.some((locStr: string) => locStr.includes(reqLoc) || reqLoc.includes(locStr))) {
       score += 35;
-      matchedCriteria.locationMatch = true;
-    } else if (govName.includes(reqLoc) || reqLoc.includes(govName)) {
-      score += 25;
-      matchedCriteria.locationMatch = true;
-    } else if (title.includes(reqLoc)) {
-      score += 30;
       matchedCriteria.locationMatch = true;
     } else {
       score += 5;
@@ -89,13 +94,33 @@ export function calculateUnitMatch(unit: any, filters: ExtractedFilters): Scored
   }
 
   // 4. Sea View (Weight: 15 points)
+  const searchableTexts = [
+    unit.location?.name,
+    unit.location?.nameAr,
+    unit.location?.nameEn,
+    unit.title,
+    unit.titleAr,
+    unit.titleEn,
+    unit.description,
+    unit.descriptionAr,
+    unit.descriptionEn,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
   const unitHasSea = Boolean(
     unit.isSeaView || 
-    unit.location?.name?.includes('جونة') ||
-    unit.location?.name?.includes('ساحل') ||
-    unit.location?.name?.includes('بحر') ||
-    unit.title?.includes('بحر') ||
-    unit.title?.includes('شاطئ')
+    searchableTexts.includes('جونة') ||
+    searchableTexts.includes('gouna') ||
+    searchableTexts.includes('ساحل') ||
+    searchableTexts.includes('sahel') ||
+    searchableTexts.includes('بحر') ||
+    searchableTexts.includes('sea') ||
+    searchableTexts.includes('beach') ||
+    searchableTexts.includes('شاطئ') ||
+    searchableTexts.includes('lagoon') ||
+    searchableTexts.includes('لاجون')
   );
 
   if (filters.seaView) {
@@ -115,11 +140,20 @@ export function calculateUnitMatch(unit: any, filters: ExtractedFilters): Scored
     score += 10;
     matchedCriteria.typeMatch = true;
   } else {
-    const typeName = (unit.unitType?.name || '').toLowerCase();
-    const title = (unit.title || '').toLowerCase();
+    const typeStrings = [
+      unit.unitType?.name,
+      unit.unitType?.nameAr,
+      unit.unitType?.nameEn,
+      unit.title,
+      unit.titleAr,
+      unit.titleEn,
+    ]
+      .filter(Boolean)
+      .map((s: string) => s.toLowerCase());
+
     const reqType = filters.propertyType.toLowerCase();
 
-    if (typeName.includes(reqType) || title.includes(reqType)) {
+    if (typeStrings.some((tStr: string) => tStr.includes(reqType) || reqType.includes(tStr))) {
       score += 10;
       matchedCriteria.typeMatch = true;
     } else {

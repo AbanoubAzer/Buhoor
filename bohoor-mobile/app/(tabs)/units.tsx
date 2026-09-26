@@ -66,8 +66,12 @@ export default function UnitsTab() {
     developers, 
     fetchMetadata,
     toggleFavorite, 
-    isFavorite 
+    isFavorite,
+    language,
+    t,
+    getLocalized
   } = useStore();
+  const isRtl = language === 'ar';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
@@ -214,7 +218,14 @@ export default function UnitsTab() {
     const isFav = isFavorite(unit.id);
     const cover = unit.coverImage || (unit.images && unit.images[0]);
     const price = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
-    const locName = unit.location?.name || unit.project?.location || '';
+    const unitTitle = getLocalized(unit, 'title');
+    const locName = getLocalized(unit, 'location') || getLocalized(unit.project, 'location') || '';
+    const govName = unit.location 
+      ? (isRtl ? (unit.location.governorateAr || unit.location.governorate) : (unit.location.governorateEn || unit.location.governorate)) 
+      : '';
+    const fullLoc = govName && locName ? `${govName}، ${locName}` : (govName || locName);
+    const unitTypeName = getLocalized(unit.unitType, 'name');
+
     const isSea = Boolean(
       unit.isSeaView ||
       unit.location?.name?.includes('جونة') ||
@@ -230,7 +241,7 @@ export default function UnitsTab() {
             <Image source={{ uri: getDirectImageUrl(cover) }} contentFit="cover" style={styles.image} transition={200} />
           ) : (
             <View style={[styles.image, styles.placeholder]}>
-              <Text style={styles.placeholderText}>لا توجد صورة</Text>
+              <Text style={styles.placeholderText}>{t('noCoverImage')}</Text>
             </View>
           )}
           
@@ -244,58 +255,62 @@ export default function UnitsTab() {
 
           <View style={styles.cardBody}>
             {/* Top Badges */}
-            <View style={styles.topMeta}>
+            <View style={[styles.topMeta, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <Text style={unit.sellerType === 'DEVELOPER' ? styles.devBadge : styles.typeBadge}>
-                {unit.sellerType === 'DEVELOPER' ? '🏢 مطور مباشر (0% عمولة)' : '👤 أفراد'}
+                {unit.sellerType === 'DEVELOPER' ? t('developerBadge') : t('resaleBadge')}
               </Text>
-              {isSea && <Text style={styles.seaBadge}>🌊 إطلالة بحر</Text>}
+              {isSea && <Text style={styles.seaBadge}>🌊 {t('seaView')}</Text>}
               <View style={styles.roiBadge}>
                 <TrendingUp size={11} color="#065F46" />
-                <Text style={styles.roiBadgeText}>عائد {roi}%</Text>
+                <Text style={styles.roiBadgeText}>{t('roi')} {roi}%</Text>
               </View>
             </View>
 
-            <Text style={styles.unitName} numberOfLines={1}>{unit.title}</Text>
+            <Text style={[styles.unitName, { textAlign: isRtl ? 'right' : 'left' }]} numberOfLines={1}>
+              {unitTitle}
+            </Text>
             
-            {locName ? (
-              <View style={styles.locRow}>
-                <Text style={styles.locText} numberOfLines={1}>
-                  {unit.location?.governorate ? `${unit.location.governorate}، ${locName}` : locName}
-                </Text>
+            {fullLoc ? (
+              <View style={[styles.locRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 <MapPin size={14} color={Colors.darkGray} />
+                <Text style={[styles.locText, { textAlign: isRtl ? 'right' : 'left' }]} numberOfLines={1}>
+                  {fullLoc}
+                </Text>
               </View>
             ) : null}
 
-            <View style={styles.specsRow}>
+            <View style={[styles.specsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               {unit.area ? (
-                <View style={styles.specItem}>
-                  <Text style={styles.specVal}>{unit.area} م²</Text>
+                <View style={[styles.specItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <Maximize2 size={12} color={Colors.darkGray} />
+                  <Text style={styles.specVal}>{unit.area} {t('sqm')}</Text>
                 </View>
               ) : null}
               {unit.bedrooms ? (
-                <View style={styles.specItem}>
-                  <Text style={styles.specVal}>{unit.bedrooms} غرف</Text>
+                <View style={[styles.specItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <BedDouble size={12} color={Colors.darkGray} />
+                  <Text style={styles.specVal}>{unit.bedrooms} {isRtl ? 'غرف' : 'beds'}</Text>
                 </View>
               ) : null}
-              {unit.unitType?.name ? (
-                <View style={styles.specItem}>
-                  <Text style={styles.specVal}>{unit.unitType.name}</Text>
+              {unitTypeName ? (
+                <View style={[styles.specItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <Building2 size={12} color={Colors.darkGray} />
+                  <Text style={styles.specVal}>{unitTypeName}</Text>
                 </View>
               ) : null}
             </View>
 
-            <View style={styles.priceRow}>
-              <View style={{ alignItems: 'flex-start' }}>
-                <Text style={styles.price}>{price.toLocaleString('ar-EG')} ج.م</Text>
+            <View style={[styles.priceRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+              <View style={{ alignItems: isRtl ? 'flex-end' : 'flex-start' }}>
+                <Text style={styles.price}>{price.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
                 {unit.sellerType === 'DEVELOPER' && unit.cashPaidToSeller && unit.totalPrice && unit.cashPaidToSeller !== unit.totalPrice ? (
-                  <Text style={styles.priceSub}>إجمالي: {Number(unit.totalPrice).toLocaleString('ar-EG')} ج</Text>
+                  <Text style={styles.priceSub}>
+                    {t('totalPrice')}: {Number(unit.totalPrice).toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}
+                  </Text>
                 ) : null}
               </View>
               <Text style={styles.priceLabel}>
-                {unit.sellerType === 'DEVELOPER' && unit.cashPaidToSeller ? 'المقدم المطلوب:' : 'المطلوب كاش:'}
+                {unit.sellerType === 'DEVELOPER' && unit.cashPaidToSeller ? `${t('downPayment')}:` : `${t('cash')}:`}
               </Text>
             </View>
           </View>
@@ -308,7 +323,7 @@ export default function UnitsTab() {
     <View style={styles.container}>
       {/* Search Bar & Advanced Filter Button */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchRow}>
+        <View style={[styles.searchRow, { flexDirection: isRtl ? 'row' : 'row-reverse' }]}>
           <TouchableOpacity 
             style={styles.aiSearchBtn}
             onPress={() => setAiModalVisible(true)}
@@ -329,16 +344,15 @@ export default function UnitsTab() {
             )}
           </TouchableOpacity>
 
-          <View style={styles.searchBar}>
+          <View style={[styles.searchBar, { flexDirection: isRtl ? 'row' : 'row-reverse' }]}>
             <TextInput 
-              style={styles.searchInput}
-              placeholder="ابحث عن عقار، منطقة، مطور..."
+              style={[styles.searchInput, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'ابحث عن عقار، منطقة، مطور...' : 'Search property, area, developer...'}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              textAlign="right"
               placeholderTextColor={Colors.darkGray}
             />
-            <Search color={Colors.darkGray} size={20} style={{ marginLeft: 8 }} />
+            <Search color={Colors.darkGray} size={20} style={{ marginHorizontal: 8 }} />
           </View>
         </View>
 
@@ -346,37 +360,47 @@ export default function UnitsTab() {
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterChipsContainer}
+          contentContainerStyle={[styles.filterChipsContainer, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
         >
           <TouchableOpacity 
             style={[styles.chip, quickFilter === 'ALL' && styles.activeChip]}
             onPress={() => setQuickFilter('ALL')}
           >
-            <Text style={[styles.chipText, quickFilter === 'ALL' && styles.activeChipText]}>الكل ({units.length})</Text>
+            <Text style={[styles.chipText, quickFilter === 'ALL' && styles.activeChipText]}>
+              {t('all')} ({units.length})
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.chip, quickFilter === 'CASH' && styles.activeChip]}
             onPress={() => setQuickFilter('CASH')}
           >
-            <Text style={[styles.chipText, quickFilter === 'CASH' && styles.activeChipText]}>💵 كاش فقط</Text>
+            <Text style={[styles.chipText, quickFilter === 'CASH' && styles.activeChipText]}>
+              💵 {t('cashOnly')}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.chip, quickFilter === 'INSTALLMENT' && styles.activeChip]}
             onPress={() => setQuickFilter('INSTALLMENT')}
           >
-            <Text style={[styles.chipText, quickFilter === 'INSTALLMENT' && styles.activeChipText]}>📅 تقسيط</Text>
+            <Text style={[styles.chipText, quickFilter === 'INSTALLMENT' && styles.activeChipText]}>
+              📅 {t('installments')}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.chip, quickFilter === 'DEVELOPER' && styles.activeChip]}
             onPress={() => setQuickFilter('DEVELOPER')}
           >
-            <Text style={[styles.chipText, quickFilter === 'DEVELOPER' && styles.activeChipText]}>🏢 مطورين (0% عمولة)</Text>
+            <Text style={[styles.chipText, quickFilter === 'DEVELOPER' && styles.activeChipText]}>
+              🏢 {isRtl ? 'مطورين (0% عمولة)' : 'Developers (0% Comm.)'}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.chip, quickFilter === 'INDIVIDUAL' && styles.activeChip]}
             onPress={() => setQuickFilter('INDIVIDUAL')}
           >
-            <Text style={[styles.chipText, quickFilter === 'INDIVIDUAL' && styles.activeChipText]}>👤 إعادة بيع</Text>
+            <Text style={[styles.chipText, quickFilter === 'INDIVIDUAL' && styles.activeChipText]}>
+              👤 {isRtl ? 'إعادة بيع' : 'Resale'}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </View>

@@ -18,12 +18,14 @@ import {
   MapPin, 
   MessageCircle, 
   ChevronLeft,
+  ChevronRight,
   User,
   Phone,
   DollarSign
 } from 'lucide-react-native';
 import axios from 'axios';
 import Colors from '../constants/Colors';
+import { useStore } from '../store/useStore';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://buhoor.vercel.app';
 const { height } = Dimensions.get('window');
@@ -34,6 +36,9 @@ interface AiSearchModalProps {
 }
 
 export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) {
+  const { language, t, getLocalized } = useStore();
+  const isRtl = language === 'ar';
+
   // 1. User & Budget
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -51,23 +56,27 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
   const [error, setError] = useState<string | null>(null);
 
   const budgetOptions = ['3M', '5M', '8M', '12M', '20M+'];
-  const locationOptions = ['سهل حشيش', 'الجونة', 'الغردقة', 'الساحل الشمالي', 'التجمع', 'زايد'];
-  const typeOptions = ['شاليه', 'شقة', 'فيلا', 'دوبلكس'];
+  const locationOptions = isRtl 
+    ? ['سهل حشيش', 'الجونة', 'الغردقة', 'الساحل الشمالي', 'التجمع', 'زايد']
+    : ['Sahl Hasheesh', 'El Gouna', 'Hurghada', 'North Coast', 'New Cairo', 'Sheikh Zayed'];
+  const typeOptions = isRtl
+    ? ['شاليه', 'شقة', 'فيلا', 'دوبلكس']
+    : ['Chalet', 'Apartment', 'Villa', 'Duplex'];
   const bedroomOptions = ['1', '2', '3', '4+'];
 
   const handleSearch = async () => {
     // Mandatory Validation
     if (!customerName.trim()) {
-      setError('يرجى إدخال اسمك الكريم (مطلوب).');
+      setError(t('errNameReq'));
       return;
     }
     const cleanPhone = customerPhone.trim().replace(/[^0-9+]/g, '');
     if (!cleanPhone || cleanPhone.length < 8) {
-      setError('يرجى إدخال رقم هاتف صحيح للتواصل (مطلوب).');
+      setError(t('errPhoneReq'));
       return;
     }
     if (!budget.trim()) {
-      setError('يرجى إدخال الميزانية القصوى أو اختيار إحدى الميزانيات السريعة (مطلوب).');
+      setError(t('errBudgetReq'));
       return;
     }
 
@@ -75,15 +84,16 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
     const parts: string[] = [];
 
     if (selectedType) parts.push(selectedType);
-    if (selectedBedrooms) parts.push(`${selectedBedrooms} غرف`);
-    if (selectedLocation) parts.push(`في ${selectedLocation}`);
-    if (isSeaView) parts.push('إطلالة بحرية مباشرة صف أول');
-    parts.push(`ميزانية ${budget} ج.م`);
+    if (selectedBedrooms) parts.push(isRtl ? `${selectedBedrooms} غرف` : `${selectedBedrooms} beds`);
+    if (selectedLocation) parts.push(isRtl ? `في ${selectedLocation}` : `in ${selectedLocation}`);
+    if (isSeaView) parts.push(isRtl ? 'إطلالة بحرية مباشرة صف أول' : 'direct sea view frontline');
+    parts.push(isRtl ? `ميزانية ${budget} ج.م` : `budget ${budget} EGP`);
 
+    const separator = isRtl ? '، ' : ', ';
     if (combinedQuery) {
-      combinedQuery = `${combinedQuery} (${parts.join('، ')})`;
+      combinedQuery = `${combinedQuery} (${parts.join(separator)})`;
     } else {
-      combinedQuery = parts.join('، ');
+      combinedQuery = parts.join(separator);
     }
 
     setLoading(true);
@@ -97,14 +107,17 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
       setResult(response.data);
     } catch (err: any) {
       console.error('Mobile AI Search Error:', err);
-      setError('تعذر استخراج التطابقات، يرجى التأكد من اتصال الإنترنت والمحاولة ثانية.');
+      setError(t('errSearchFail'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleWhatsApp = (unit: any) => {
-    const text = encodeURI(`مرحباً بُحور، أستفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})`);
+    const title = getLocalized(unit, 'title');
+    const text = isRtl
+      ? encodeURI(`مرحباً بُحور، أستفسر عن العقار المتطابق: ${title} (كود: ${unit.code || unit.id})`)
+      : encodeURI(`Hello Buhoor, inquiring about matching property: ${title} (Code: ${unit.code || unit.id})`);
     Linking.openURL(`https://wa.me/201000000000?text=${text}`).catch(() => {});
   };
 
@@ -119,16 +132,16 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
         <View style={styles.content}>
           
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { flexDirection: isRtl ? 'row' : 'row-reverse' }]}>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <X size={22} color={Colors.primary} />
             </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <View style={styles.headerPill}>
+            <View style={[styles.headerTitleContainer, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+              <View style={[styles.headerPill, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 <Sparkles size={14} color="#D97706" />
-                <Text style={styles.headerPillText}>AI Search & Matching</Text>
+                <Text style={styles.headerPillText}>{t('aiSearchSubtitle')}</Text>
               </View>
-              <Text style={styles.title}>البحث الذكي ومطابقة العقارات</Text>
+              <Text style={styles.title}>{t('aiSearchTitle')}</Text>
             </View>
           </View>
 
@@ -136,52 +149,49 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
             
             {/* STEP 1: Name, Phone & Budget */}
             <View style={styles.stepBox}>
-              <View style={styles.stepHeader}>
-                <Text style={styles.stepPill}>الخطوة 1</Text>
-                <Text style={styles.stepTitle}>بيانات التواصل والميزانية</Text>
+              <View style={[styles.stepHeader, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                <Text style={styles.stepPill}>{t('aiStep')} 1</Text>
+                <Text style={styles.stepTitle}>{t('aiStep1Title')}</Text>
               </View>
 
-              <View style={styles.inputsRow}>
+              <View style={[styles.inputsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>رقم الهاتف</Text>
+                  <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('phoneNumber')}</Text>
                   <TextInput
-                    style={styles.input}
-                    placeholder="010xxxxxxxx"
+                    style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+                    placeholder={t('phonePlaceholder')}
                     placeholderTextColor={Colors.darkGray}
                     keyboardType="phone-pad"
                     value={customerPhone}
                     onChangeText={setCustomerPhone}
-                    textAlign="right"
                   />
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>الاسم الكريم</Text>
+                  <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('fullName')}</Text>
                   <TextInput
-                    style={styles.input}
-                    placeholder="أحمد محمد"
+                    style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+                    placeholder={t('namePlaceholder')}
                     placeholderTextColor={Colors.darkGray}
                     value={customerName}
                     onChangeText={setCustomerName}
-                    textAlign="right"
                   />
                 </View>
               </View>
 
               <View style={{ marginTop: 8 }}>
-                <Text style={styles.label}>الميزانية القصوى (ج.م)</Text>
+                <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('budgetLabel')}</Text>
                 <TextInput
-                  style={[styles.input, { fontWeight: 'bold' }]}
-                  placeholder="مثال: 5000000"
+                  style={[styles.input, { fontWeight: 'bold', textAlign: isRtl ? 'right' : 'left' }]}
+                  placeholder={t('budgetPlaceholder')}
                   placeholderTextColor={Colors.darkGray}
                   keyboardType="numeric"
                   value={budget}
                   onChangeText={setBudget}
-                  textAlign="right"
                 />
                 
                 {/* Budget quick chips */}
-                <View style={styles.budgetChipsRow}>
+                <View style={[styles.budgetChipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   {budgetOptions.map((b) => (
                     <TouchableOpacity
                       key={b}
@@ -202,27 +212,26 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
 
             {/* STEP 2: Quick Search or Pick Options */}
             <View style={styles.stepBox}>
-              <View style={styles.stepHeader}>
-                <Text style={[styles.stepPill, { backgroundColor: '#059669' }]}>الخطوة 2</Text>
-                <Text style={styles.stepTitle}>البحث السريع أو اختيار المواصفات</Text>
+              <View style={[styles.stepHeader, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                <Text style={[styles.stepPill, { backgroundColor: '#059669' }]}>{t('aiStep')} 2</Text>
+                <Text style={styles.stepTitle}>{t('aiStep2Title')}</Text>
               </View>
 
               {/* Free text prompt */}
               <TextInput
-                style={styles.promptInput}
+                style={[styles.promptInput, { textAlign: isRtl ? 'right' : 'left' }]}
                 multiline
                 numberOfLines={2}
-                placeholder="اكتب مواصفاتك، مثال: شاليه غرفتين في سهل حشيش على البحر..."
+                placeholder={t('aiPromptPlaceholder')}
                 placeholderTextColor={Colors.darkGray}
                 value={query}
                 onChangeText={setQuery}
-                textAlign="right"
               />
 
               {/* Pick Location */}
               <View style={styles.optionsSection}>
-                <Text style={styles.optionsLabel}>الموقع:</Text>
-                <View style={styles.optionsRow}>
+                <Text style={[styles.optionsLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{t('aiLocationLabel')}</Text>
+                <View style={[styles.optionsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   {locationOptions.map((loc) => (
                     <TouchableOpacity
                       key={loc}
@@ -239,16 +248,16 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
 
               {/* Pick Type & Bedrooms */}
               <View style={styles.optionsSection}>
-                <Text style={styles.optionsLabel}>نوع الوحدة والغرف:</Text>
-                <View style={styles.optionsRow}>
-                  {typeOptions.map((t) => (
+                <Text style={[styles.optionsLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{t('aiTypeAndBedsLabel')}</Text>
+                <View style={[styles.optionsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                  {typeOptions.map((tp) => (
                     <TouchableOpacity
-                      key={t}
-                      onPress={() => setSelectedType(selectedType === t ? '' : t)}
-                      style={[styles.optionPill, selectedType === t && styles.optionPillActive]}
+                      key={tp}
+                      onPress={() => setSelectedType(selectedType === tp ? '' : tp)}
+                      style={[styles.optionPill, selectedType === tp && styles.optionPillActive]}
                     >
-                      <Text style={[styles.optionPillText, selectedType === t && styles.optionPillTextActive]}>
-                        {t}
+                      <Text style={[styles.optionPillText, selectedType === tp && styles.optionPillTextActive]}>
+                        {tp}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -259,7 +268,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                       style={[styles.optionPill, selectedBedrooms === b && styles.optionPillActive]}
                     >
                       <Text style={[styles.optionPillText, selectedBedrooms === b && styles.optionPillTextActive]}>
-                        {b} غرف
+                        {b} {isRtl ? 'غرف' : 'beds'}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -269,10 +278,10 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
               {/* Sea View Toggle */}
               <TouchableOpacity
                 onPress={() => setIsSeaView(!isSeaView)}
-                style={[styles.seaBtn, isSeaView && styles.seaBtnActive]}
+                style={[styles.seaBtn, isSeaView && styles.seaBtnActive, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
               >
                 <Text style={[styles.seaBtnText, isSeaView && styles.seaBtnTextActive]}>
-                  🌊 إطلالة بحرية مباشرة
+                  {t('aiSeaViewDirect')}
                 </Text>
                 <View style={[styles.seaCheckbox, isSeaView && styles.seaCheckboxActive]}>
                   {isSeaView && <Text style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>✓</Text>}
@@ -281,7 +290,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
 
               {/* Submit Search */}
               <TouchableOpacity
-                style={[styles.searchBtn, loading && styles.searchBtnDisabled]}
+                style={[styles.searchBtn, loading && styles.searchBtnDisabled, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
                 onPress={handleSearch}
                 disabled={loading}
               >
@@ -289,7 +298,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <>
-                    <Text style={styles.searchBtnText}>بدء المطابقة الذكية بالـ AI</Text>
+                    <Text style={styles.searchBtnText}>{t('aiStartMatching')}</Text>
                     <Sparkles size={18} color="#fff" />
                   </>
                 )}
@@ -298,7 +307,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
 
             {error && (
               <View style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={[styles.errorText, { textAlign: isRtl ? 'right' : 'left' }]}>{error}</Text>
               </View>
             )}
 
@@ -309,8 +318,8 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                 {/* Extracted Filters Card */}
                 {result.extractedFilters && (
                   <View style={styles.extractedCard}>
-                    <Text style={styles.extractedTitle}>💡 الفلاتر المستخرجة بالـ AI:</Text>
-                    <View style={styles.filtersPillsRow}>
+                    <Text style={[styles.extractedTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('aiExtractedFilters')}</Text>
+                    <View style={[styles.filtersPillsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                       {result.extractedFilters.location && (
                         <View style={styles.extractedPill}>
                           <Text style={styles.extractedPillText}>📍 {result.extractedFilters.location}</Text>
@@ -319,13 +328,15 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                       {result.extractedFilters.maxPrice && (
                         <View style={styles.extractedPill}>
                           <Text style={styles.extractedPillText}>
-                            💰 {Number(result.extractedFilters.maxPrice).toLocaleString('ar-EG')} ج
+                            💰 {Number(result.extractedFilters.maxPrice).toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}
                           </Text>
                         </View>
                       )}
                       {result.extractedFilters.bedrooms && (
                         <View style={styles.extractedPill}>
-                          <Text style={styles.extractedPillText}>🛏️ {result.extractedFilters.bedrooms} غرف</Text>
+                          <Text style={styles.extractedPillText}>
+                            🛏️ {result.extractedFilters.bedrooms} {isRtl ? 'غرف' : 'beds'}
+                          </Text>
                         </View>
                       )}
                       {result.extractedFilters.propertyType && (
@@ -335,7 +346,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                       )}
                       {result.extractedFilters.seaView && (
                         <View style={styles.extractedPill}>
-                          <Text style={styles.extractedPillText}>🌊 إطلالة بحر</Text>
+                          <Text style={styles.extractedPillText}>🌊 {t('seaView')}</Text>
                         </View>
                       )}
                     </View>
@@ -344,17 +355,19 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
 
                 {/* Matches List */}
                 <View style={styles.matchesList}>
-                  <Text style={styles.matchesTitle}>
-                    العقارات المتطابقة ({result.matches?.length || 0})
+                  <Text style={[styles.matchesTitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+                    {t('aiMatchingUnits')} ({result.matches?.length || 0})
                   </Text>
 
                   {result.matches?.length === 0 ? (
-                    <Text style={styles.emptyText}>لم نجد عقارات مطابقة، جرب تعديل الميزانية أو خيارات البحث.</Text>
+                    <Text style={[styles.emptyText, { textAlign: isRtl ? 'right' : 'left' }]}>{t('aiNoMatches')}</Text>
                   ) : (
                     result.matches.map((item: any, idx: number) => {
                       const unit = item.unit;
                       const score = item.matchScore;
                       const price = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
+                      const unitTitle = getLocalized(unit, 'title');
+                      const unitLocation = getLocalized(unit, 'location');
 
                       let scoreColor = '#065F46';
                       let scoreBg = '#DCFCE7';
@@ -365,32 +378,32 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
 
                       return (
                         <View key={unit.id || idx} style={styles.matchCard}>
-                          <View style={styles.matchCardTop}>
+                          <View style={[styles.matchCardTop, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                             <View style={[styles.scoreBadge, { backgroundColor: scoreBg }]}>
                               <Text style={[styles.scoreBadgeText, { color: scoreColor }]}>
-                                {score}% تطابق
+                                {score}% {t('aiMatchScore')}
                               </Text>
                             </View>
-                            <Text style={styles.matchUnitTitle} numberOfLines={1}>
-                              {unit.title}
+                            <Text style={[styles.matchUnitTitle, { textAlign: isRtl ? 'right' : 'left' }]} numberOfLines={1}>
+                              {unitTitle}
                             </Text>
                           </View>
 
-                          <View style={styles.matchLocRow}>
-                            <Text style={styles.matchLocText}>
-                              {unit.location?.name || unit.location?.governorate || '-'}
-                            </Text>
+                          <View style={[styles.matchLocRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                             <MapPin size={13} color={Colors.darkGray} />
+                            <Text style={styles.matchLocText}>
+                              {unitLocation || '-'}
+                            </Text>
                           </View>
 
-                          <View style={styles.matchBottomRow}>
-                            <View style={styles.matchActions}>
+                          <View style={[styles.matchBottomRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                            <View style={[styles.matchActions, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                               <TouchableOpacity 
-                                style={styles.waMiniBtn}
+                                style={[styles.waMiniBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
                                 onPress={() => handleWhatsApp(unit)}
                               >
                                 <MessageCircle size={16} color="#fff" />
-                                <Text style={styles.waMiniBtnText}>واتساب</Text>
+                                <Text style={styles.waMiniBtnText}>{t('contactWhatsApp')}</Text>
                               </TouchableOpacity>
 
                               <Link 
@@ -398,15 +411,19 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                                 asChild
                                 onPress={onClose}
                               >
-                                <TouchableOpacity style={styles.viewMiniBtn}>
-                                  <Text style={styles.viewMiniBtnText}>عرض</Text>
-                                  <ChevronLeft size={16} color={Colors.primary} />
+                                <TouchableOpacity style={[styles.viewMiniBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                                  <Text style={styles.viewMiniBtnText}>{t('view')}</Text>
+                                  {isRtl ? (
+                                    <ChevronLeft size={16} color={Colors.primary} />
+                                  ) : (
+                                    <ChevronRight size={16} color={Colors.primary} />
+                                  )}
                                 </TouchableOpacity>
                               </Link>
                             </View>
 
                             <Text style={styles.matchPrice}>
-                              {price.toLocaleString('ar-EG')} ج.م
+                              {price.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}
                             </Text>
                           </View>
                         </View>

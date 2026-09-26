@@ -20,6 +20,7 @@ import {
 } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import UnitLeadForm from '../../components/UnitLeadForm';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useStore } from '../../store/useStore';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://buhoor.vercel.app';
@@ -38,7 +39,7 @@ export default function UnitDetails() {
   const { id } = useLocalSearchParams();
   const [unit, setUnit] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { toggleFavorite, isFavorite } = useStore();
+  const { toggleFavorite, isFavorite, language, t, getLocalized } = useStore();
 
   useEffect(() => {
     fetchUnitDetails();
@@ -136,18 +137,22 @@ export default function UnitDetails() {
     Linking.openURL('tel:+201000000000').catch(() => {});
   };
 
+  const title = getLocalized(unit, 'title') || unit.title;
+  const description = getLocalized(unit, 'description') || unit.description;
+  const locName = getLocalized(unit, 'location') || unit.location?.name;
+
   const handleShare = async () => {
     if (!unit) return;
     const webUrl = `https://buhoor-web.vercel.app/units/${unit.id}`;
-    const priceText = totalPrice > 0 ? `${totalPrice.toLocaleString('ar-EG')} ج.م` : '';
-    const locText = unit.location?.name ? `\n📍 الموقع: ${unit.location.name}` : '';
-    const shareMessage = `🏡 ${unit.title}${priceText ? `\n💰 السعر: ${priceText}` : ''}${locText}\n\n🔗 شاهد التفاصيل والصور كاملة على منصة بُحور:\n${webUrl}`;
+    const priceText = totalPrice > 0 ? `${totalPrice.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')} ${t('currency')}` : '';
+    const locText = locName ? `\n📍 ${locName}` : '';
+    const shareMessage = `🏡 ${title}${priceText ? `\n💰 ${priceText}` : ''}${locText}\n\n🔗 ${webUrl}`;
 
     try {
       await Share.share({
         message: shareMessage,
         url: webUrl,
-        title: unit.title,
+        title: title,
       });
     } catch (error) {
       console.error('Error sharing unit:', error);
@@ -158,18 +163,19 @@ export default function UnitDetails() {
     <>
       <Stack.Screen 
         options={{ 
-          title: unit.title || 'تفاصيل العقار', 
-          headerBackTitle: 'عودة',
+          title: title || t('units'), 
+          headerBackTitle: t('back'),
           headerRight: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <TouchableOpacity onPress={handleShare} style={{ padding: 6 }} accessibilityLabel="مشاركة">
-                <Share2 color={Colors.primary} size={22} />
+              <LanguageSwitcher />
+              <TouchableOpacity onPress={handleShare} style={{ padding: 6 }} accessibilityLabel={t('share')}>
+                <Share2 color={Colors.primary} size={20} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => toggleFavorite(unit.id)} style={{ padding: 6 }} accessibilityLabel="المفضلة">
+              <TouchableOpacity onPress={() => toggleFavorite(unit.id)} style={{ padding: 6 }} accessibilityLabel="Favorites">
                 <Heart 
                   color={isFav ? Colors.accent : Colors.primary} 
                   fill={isFav ? Colors.accent : 'transparent'} 
-                  size={24} 
+                  size={22} 
                 />
               </TouchableOpacity>
             </View>
@@ -275,37 +281,37 @@ export default function UnitDetails() {
           <View style={styles.actionsBar}>
             <TouchableOpacity style={styles.waBtn} onPress={handleWhatsApp}>
               <MessageCircle size={18} color="#fff" />
-              <Text style={styles.waBtnText}>واتساب</Text>
+              <Text style={styles.waBtnText}>{t('contactWhatsApp')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
               <Phone size={18} color={Colors.primary} />
-              <Text style={styles.callBtnText}>اتصال</Text>
+              <Text style={styles.callBtnText}>{t('callPhone')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.shareActionBtn} onPress={handleShare}>
               <Share2 size={18} color={Colors.primary} />
-              <Text style={styles.shareActionBtnText}>مشاركة</Text>
+              <Text style={styles.shareActionBtnText}>{t('shareProperty')}</Text>
             </TouchableOpacity>
           </View>
           
           {/* Specifications Grid */}
           <View style={styles.featuresRow}>
             <View style={styles.featureBox}>
-              <Text style={styles.featureLabel}>المساحة</Text>
-              <Text style={styles.featureValue}>{unit.area} م²</Text>
+              <Text style={styles.featureLabel}>{t('area')}</Text>
+              <Text style={styles.featureValue}>{unit.area} {t('sqm')}</Text>
             </View>
             <View style={styles.featureBox}>
-              <Text style={styles.featureLabel}>الغرف</Text>
+              <Text style={styles.featureLabel}>{t('bedrooms')}</Text>
               <Text style={styles.featureValue}>{unit.bedrooms || '-'}</Text>
             </View>
             <View style={styles.featureBox}>
-              <Text style={styles.featureLabel}>الحمامات</Text>
+              <Text style={styles.featureLabel}>{t('bathrooms')}</Text>
               <Text style={styles.featureValue}>{unit.bathrooms || '-'}</Text>
             </View>
             <View style={styles.featureBox}>
-              <Text style={styles.featureLabel}>نوع الوحدة</Text>
-              <Text style={styles.featureValue}>{unit.unitType?.name || '-'}</Text>
+              <Text style={styles.featureLabel}>{t('unitType') || (language === 'ar' ? 'نوع الوحدة' : 'Type')}</Text>
+              <Text style={styles.featureValue}>{getLocalized(unit, 'unitType') || unit.unitType?.name || '-'}</Text>
             </View>
           </View>
 

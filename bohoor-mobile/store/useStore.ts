@@ -2,10 +2,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { Language, translations, getLocalized as getLocalizedHelper } from '../constants/translations';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://buhoor.vercel.app';
 
 interface AppState {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
+  t: (key: keyof typeof translations.ar) => string;
+  getLocalized: (item: any, field: string) => string;
   projects: any[];
   units: any[];
   heroSlides: any[];
@@ -29,6 +35,18 @@ interface AppState {
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
+      language: 'ar',
+      setLanguage: (lang: Language) => set({ language: lang }),
+      toggleLanguage: () => set((state) => ({ language: state.language === 'ar' ? 'en' : 'ar' })),
+      t: (key: keyof typeof translations.ar) => {
+        const lang = get().language || 'ar';
+        const dict = translations[lang] || translations.ar;
+        return dict[key] || translations.ar[key] || (key as string);
+      },
+      getLocalized: (item: any, field: string) => {
+        const lang = get().language || 'ar';
+        return getLocalizedHelper(item, field, lang);
+      },
       projects: [],
       units: [],
       heroSlides: [],

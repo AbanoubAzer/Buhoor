@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Linking, Pressable, FlatList, Share, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Linking, Pressable, Share, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, Stack, Link } from 'expo-router';
 import { Image } from 'expo-image';
 import axios from 'axios';
 import { PlayCircle, MapPin, Building, Key, Share2 } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
+import { useStore } from '../../store/useStore';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://buhoor.vercel.app';
 
@@ -19,6 +21,9 @@ const getDirectImageUrl = (url: string) => {
 
 export default function ProjectDetails() {
   const { id } = useLocalSearchParams();
+  const { language, t, getLocalized } = useStore();
+  const isRtl = language === 'ar';
+
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,18 +42,29 @@ export default function ProjectDetails() {
     }
   };
 
+  const projectName = project ? getLocalized(project, 'name') : '';
+  const projectLocation = project ? getLocalized(project, 'location') : '';
+  const projectDescription = project ? getLocalized(project, 'description') : '';
+  const developerName = project?.developer ? getLocalized(project.developer, 'name') : '';
+
   const handleShare = async () => {
     if (!project) return;
     const webUrl = `https://buhoor-web.vercel.app/projects/${project.id}`;
-    const devText = project.developer?.name ? `\n🏢 المطور: ${project.developer.name}` : '';
-    const locText = project.location ? `\n📍 الموقع: ${project.location}` : '';
-    const shareMessage = `🏢 مشروع: ${project.name}${devText}${locText}\n\n🔗 شاهد تفاصيل المشروع والوحدات المتاحة:\n${webUrl}`;
+    const devText = developerName 
+      ? `\n🏢 ${isRtl ? 'المطور' : 'Developer'}: ${developerName}` 
+      : '';
+    const locText = projectLocation 
+      ? `\n📍 ${isRtl ? 'الموقع' : 'Location'}: ${projectLocation}` 
+      : '';
+    const shareMessage = isRtl
+      ? `🏢 مشروع: ${projectName}${devText}${locText}\n\n🔗 شاهد تفاصيل المشروع والوحدات المتاحة:\n${webUrl}`
+      : `🏢 Project: ${projectName}${devText}${locText}\n\n🔗 Explore project details & available units:\n${webUrl}`;
 
     try {
       await Share.share({
         message: shareMessage,
         url: webUrl,
-        title: project.name,
+        title: projectName,
       });
     } catch (error) {
       console.error('Error sharing project:', error);
@@ -59,6 +75,7 @@ export default function ProjectDetails() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={Colors.accent} />
+        <Text style={{ marginTop: 12, color: Colors.darkGray }}>{t('loading')}</Text>
       </View>
     );
   }
@@ -66,7 +83,7 @@ export default function ProjectDetails() {
   if (!project) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>المشروع غير موجود</Text>
+        <Text style={styles.errorText}>{t('projectNotFound')}</Text>
       </View>
     );
   }
@@ -78,12 +95,15 @@ export default function ProjectDetails() {
     <>
       <Stack.Screen 
         options={{ 
-          title: project.name || 'تفاصيل المشروع', 
-          headerBackTitle: 'عودة',
+          title: projectName || t('projectDetails'), 
+          headerBackTitle: t('back'),
           headerRight: () => (
-            <TouchableOpacity onPress={handleShare} style={{ padding: 8 }} accessibilityLabel="مشاركة المشروع">
-              <Share2 color={Colors.primary} size={22} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }}>
+              <LanguageSwitcher />
+              <TouchableOpacity onPress={handleShare} style={{ padding: 6 }} accessibilityLabel={t('share')}>
+                <Share2 color={Colors.primary} size={22} />
+              </TouchableOpacity>
+            </View>
           )
         }} 
       />
@@ -92,43 +112,48 @@ export default function ProjectDetails() {
           <Image source={{ uri: getDirectImageUrl(cover) }} contentFit="cover" style={styles.coverImage} />
         ) : (
           <View style={[styles.coverImage, styles.placeholder]}>
-            <Text style={styles.placeholderText}>لا توجد صورة غلاف</Text>
+            <Text style={styles.placeholderText}>{t('noCoverImage')}</Text>
           </View>
         )}
         
         <View style={styles.content}>
-          {project.developer?.name && (
-            <View style={styles.devRow}>
-              <Text style={styles.devName}>{project.developer.name}</Text>
+          {developerName ? (
+            <View style={[styles.devRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <Building size={14} color={Colors.darkGray} />
+              <Text style={styles.devName}>{developerName}</Text>
             </View>
-          )}
+          ) : null}
 
-          <Text style={styles.title}>{project.name}</Text>
+          <Text style={[styles.title, { textAlign: isRtl ? 'right' : 'left' }]}>{projectName}</Text>
           
-          <View style={styles.locRow}>
-            <Text style={styles.location}>{project.location}</Text>
-            <MapPin size={16} color={Colors.darkGray} />
-          </View>
+          {projectLocation ? (
+            <View style={[styles.locRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+              <MapPin size={16} color={Colors.darkGray} />
+              <Text style={[styles.location, { textAlign: isRtl ? 'right' : 'left' }]}>{projectLocation}</Text>
+            </View>
+          ) : null}
           
-          {project.description ? (
+          {projectDescription ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>نبذة عن المشروع</Text>
-              <Text style={styles.description}>{project.description}</Text>
+              <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('projectOverview')}</Text>
+              <Text style={[styles.description, { textAlign: isRtl ? 'right' : 'left' }]}>{projectDescription}</Text>
             </View>
           ) : null}
 
           {projectUnits.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>الوحدات المتاحة بالمشروع ({projectUnits.length})</Text>
+              <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+                {t('availableUnits')} ({projectUnits.length})
+              </Text>
               <View style={styles.unitsGrid}>
                 {projectUnits.map((unit: any) => {
                   const unitCover = unit.coverImage || (unit.images && unit.images[0]);
                   const unitPrice = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
+                  const unitTitle = getLocalized(unit, 'title');
 
                   return (
                     <Link href={`/unit/${unit.id}`} key={unit.id} asChild>
-                      <Pressable style={styles.unitCard}>
+                      <Pressable style={[styles.unitCard, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                         {unitCover ? (
                           <Image source={{ uri: getDirectImageUrl(unitCover) }} contentFit="cover" style={styles.unitImg} />
                         ) : (
@@ -137,8 +162,10 @@ export default function ProjectDetails() {
                           </View>
                         )}
                         <View style={styles.unitCardContent}>
-                          <Text style={styles.unitTitle} numberOfLines={1}>{unit.title}</Text>
-                          <Text style={styles.unitPrice}>{unitPrice.toLocaleString('ar-EG')} ج.م</Text>
+                          <Text style={[styles.unitTitle, { textAlign: isRtl ? 'right' : 'left' }]} numberOfLines={1}>{unitTitle}</Text>
+                          <Text style={[styles.unitPrice, { textAlign: isRtl ? 'right' : 'left' }]}>
+                            {unitPrice.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}
+                          </Text>
                         </View>
                       </Pressable>
                     </Link>
@@ -150,10 +177,13 @@ export default function ProjectDetails() {
 
           {project.videoUrl && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>فيديو توضيحي</Text>
-              <Pressable style={styles.videoButton} onPress={() => Linking.openURL(project.videoUrl).catch(() => {})}>
-                <PlayCircle color={Colors.accent} size={30} />
-                <Text style={styles.videoText}>مشاهدة الفيديو التعريفي</Text>
+              <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('videos')}</Text>
+              <Pressable 
+                style={[styles.videoButton, { flexDirection: isRtl ? 'row-reverse' : 'row' }]} 
+                onPress={() => Linking.openURL(project.videoUrl).catch(() => {})}
+              >
+                <PlayCircle color={Colors.accent} size={28} />
+                <Text style={styles.videoText}>{t('watchVideo')}</Text>
               </Pressable>
             </View>
           )}
@@ -171,20 +201,20 @@ const styles = StyleSheet.create({
   placeholder: { justifyContent: 'center', alignItems: 'center', backgroundColor: '#E5E7EB' },
   placeholderText: { color: Colors.darkGray, fontSize: 13 },
   content: { padding: 20, backgroundColor: Colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -24, shadowColor: Colors.text, shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
-  devRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 6, marginBottom: 4 },
+  devRow: { alignItems: 'center', gap: 6, marginBottom: 6 },
   devName: { fontSize: 13, color: Colors.darkGray, fontWeight: 'bold' },
-  title: { fontSize: 24, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 6 },
-  locRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 6, marginBottom: 20 },
-  location: { fontSize: 14, color: Colors.darkGray, textAlign: 'right' },
+  title: { fontSize: 24, fontWeight: 'bold', color: Colors.primary, marginBottom: 6 },
+  locRow: { alignItems: 'center', gap: 6, marginBottom: 20 },
+  location: { fontSize: 14, color: Colors.darkGray },
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 12 },
-  description: { fontSize: 15, color: Colors.text, textAlign: 'right', lineHeight: 24 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.primary, marginBottom: 12 },
+  description: { fontSize: 15, color: Colors.text, lineHeight: 24 },
   unitsGrid: { gap: 12 },
-  unitCard: { flexDirection: 'row-reverse', backgroundColor: Colors.gray, borderRadius: 12, overflow: 'hidden', padding: 10, alignItems: 'center', gap: 12 },
+  unitCard: { backgroundColor: Colors.gray, borderRadius: 12, overflow: 'hidden', padding: 10, alignItems: 'center', gap: 12 },
   unitImg: { width: 70, height: 70, borderRadius: 8, backgroundColor: '#D1D5DB' },
   unitCardContent: { flex: 1 },
-  unitTitle: { fontSize: 15, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 4 },
-  unitPrice: { fontSize: 14, fontWeight: 'bold', color: Colors.accent, textAlign: 'right' },
-  videoButton: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: Colors.gray, padding: 14, borderRadius: 12, gap: 12 },
-  videoText: { fontSize: 16, color: Colors.primary, fontWeight: 'bold' },
+  unitTitle: { fontSize: 15, fontWeight: 'bold', color: Colors.primary, marginBottom: 4 },
+  unitPrice: { fontSize: 14, fontWeight: 'bold', color: Colors.accent },
+  videoButton: { alignItems: 'center', backgroundColor: Colors.gray, padding: 14, borderRadius: 12, gap: 12 },
+  videoText: { fontSize: 15, color: Colors.primary, fontWeight: 'bold' },
 });

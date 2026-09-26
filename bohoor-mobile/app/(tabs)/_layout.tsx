@@ -2,6 +2,8 @@ import { Tabs } from 'expo-router';
 import { Home, Building2, Key, Heart, PlusCircle } from 'lucide-react-native';
 import { Image, View } from 'react-native';
 import Colors from '../../constants/Colors';
+import { useStore } from '../../store/useStore';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 
 function LogoHeader() {
   return (
@@ -15,6 +17,8 @@ function LogoHeader() {
 }
 
 export default function TabLayout() {
+  const { t } = useStore();
+
   return (
     <Tabs
       screenOptions={{
@@ -23,6 +27,11 @@ export default function TabLayout() {
         },
         headerTitleAlign: 'center',
         headerTitle: () => <LogoHeader />,
+        headerRight: () => (
+          <View style={{ paddingHorizontal: 12 }}>
+            <LanguageSwitcher />
+          </View>
+        ),
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.darkGray,
         tabBarStyle: {
@@ -34,38 +43,39 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'الرئيسية',
+          title: t('home'),
           tabBarIcon: ({ color }) => <Home color={color} size={24} />,
         }}
       />
       <Tabs.Screen
         name="projects"
         options={{
-          title: 'المشاريع',
+          title: t('projects'),
           tabBarIcon: ({ color }) => <Building2 color={color} size={24} />,
         }}
       />
       <Tabs.Screen
         name="units"
         options={{
-          title: 'العقارات',
+          title: t('units'),
           tabBarIcon: ({ color }) => <Key color={color} size={24} />,
         }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
-          title: 'المفضلة',
+          title: t('favorites'),
           tabBarIcon: ({ color }) => <Heart color={color} size={24} />,
         }}
       />
       <Tabs.Screen
         name="add"
         options={{
-          title: 'أضف عقارك',
+          title: t('addProperty'),
           tabBarIcon: ({ color }) => <PlusCircle color={color} size={24} />,
         }}
       />
     </Tabs>
   );
 }
+

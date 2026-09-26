@@ -16,7 +16,9 @@ const getDirectImageUrl = (url: string) => {
 };
 
 export default function ProjectsTab() {
-  const { projects, loadingProjects, fetchProjects } = useStore();
+  const { projects, loadingProjects, fetchProjects, language, t, getLocalized } = useStore();
+  const isRtl = language === 'ar';
+
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,6 +37,9 @@ export default function ProjectsTab() {
   const renderProject = ({ item: project }: { item: any }) => {
     const cover = project.coverImage || (project.images && project.images[0]);
     const unitsCount = project._count?.units || (project.units ? project.units.length : 0);
+    const projectName = getLocalized(project, 'name');
+    const projectLocation = getLocalized(project, 'location');
+    const devName = project.developer ? getLocalized(project.developer, 'name') : '';
 
     return (
       <Link href={`/project/${project.id}`} asChild>
@@ -43,53 +48,59 @@ export default function ProjectsTab() {
             <Image source={{ uri: getDirectImageUrl(cover) }} contentFit="cover" style={styles.image} transition={200} />
           ) : (
             <View style={[styles.image, styles.placeholder]}>
-              <Text style={styles.placeholderText}>لا توجد صورة</Text>
+              <Text style={styles.placeholderText}>{t('noCoverImage')}</Text>
             </View>
           )}
 
           {unitsCount > 0 && (
-            <View style={styles.unitBadge}>
-              <Text style={styles.unitBadgeText}>{unitsCount} وحدات متاحة</Text>
+            <View style={[styles.unitBadge, isRtl ? { right: 12 } : { left: 12 }]}>
+              <Text style={styles.unitBadgeText}>
+                {unitsCount} {isRtl ? 'وحدات متاحة' : 'units available'}
+              </Text>
             </View>
           )}
 
           <View style={styles.cardBody}>
-            {project.developer?.name && (
-              <View style={styles.devRow}>
-                <Text style={styles.devName}>{project.developer.name}</Text>
+            {devName ? (
+              <View style={[styles.devRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 <Building size={12} color={Colors.darkGray} />
+                <Text style={styles.devName}>{devName}</Text>
               </View>
-            )}
-            <Text style={styles.projectName}>{project.name}</Text>
-            <View style={styles.locRow}>
-              <Text style={styles.projectLocation}>{project.location}</Text>
-              <MapPin size={14} color={Colors.darkGray} />
-            </View>
+            ) : null}
+            <Text style={[styles.projectName, { textAlign: isRtl ? 'right' : 'left' }]}>{projectName}</Text>
+            {projectLocation ? (
+              <View style={[styles.locRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                <MapPin size={14} color={Colors.darkGray} />
+                <Text style={[styles.projectLocation, { textAlign: isRtl ? 'right' : 'left' }]}>{projectLocation}</Text>
+              </View>
+            ) : null}
           </View>
         </Pressable>
       </Link>
     );
   };
 
-  const filteredProjects = projects.filter(project => 
-    project.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (project.location && project.location.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (project.developer?.name && project.developer.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredProjects = projects.filter(project => {
+    const name = getLocalized(project, 'name').toLowerCase();
+    const loc = getLocalized(project, 'location').toLowerCase();
+    const dev = (project.developer ? getLocalized(project.developer, 'name') : '').toLowerCase();
+    const q = searchQuery.toLowerCase();
+
+    return name.includes(q) || loc.includes(q) || dev.includes(q);
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, { flexDirection: isRtl ? 'row' : 'row-reverse' }]}>
           <TextInput 
-            style={styles.searchInput}
-            placeholder="ابحث عن مشروع أو منطقة أو مطور..."
+            style={[styles.searchInput, { textAlign: isRtl ? 'right' : 'left' }]}
+            placeholder={isRtl ? 'ابحث عن مشروع أو منطقة أو مطور...' : 'Search by project, area, or developer...'}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            textAlign="right"
             placeholderTextColor={Colors.darkGray}
           />
-          <Search color={Colors.darkGray} size={20} style={{ marginLeft: 8 }} />
+          <Search color={Colors.darkGray} size={20} style={{ marginHorizontal: 8 }} />
         </View>
       </View>
 
@@ -109,7 +120,7 @@ export default function ProjectsTab() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>لم نجد مشاريع مطابقة</Text>
+              <Text style={styles.emptyTitle}>{t('projectNotFound')}</Text>
             </View>
           }
         />
@@ -122,21 +133,21 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
   container: { flex: 1, backgroundColor: Colors.gray },
   searchContainer: { padding: 14, backgroundColor: Colors.background, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.gray, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#E5E7EB' },
+  searchBar: { alignItems: 'center', backgroundColor: Colors.gray, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#E5E7EB' },
   searchInput: { flex: 1, fontSize: 15, color: Colors.primary },
   content: { padding: 16 },
   card: { backgroundColor: Colors.background, borderRadius: 16, marginBottom: 16, overflow: 'hidden', elevation: 2, borderWidth: 1, borderColor: '#E5E7EB', position: 'relative' },
   image: { width: '100%', height: 200, backgroundColor: Colors.gray },
   placeholder: { justifyContent: 'center', alignItems: 'center' },
   placeholderText: { color: Colors.darkGray },
-  unitBadge: { position: 'absolute', top: 12, right: 12, backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, zIndex: 10 },
+  unitBadge: { position: 'absolute', top: 12, backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, zIndex: 10 },
   unitBadgeText: { color: Colors.background, fontSize: 11, fontWeight: 'bold' },
   cardBody: { padding: 16 },
-  devRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, marginBottom: 4 },
+  devRow: { alignItems: 'center', gap: 4, marginBottom: 4 },
   devName: { fontSize: 12, color: Colors.darkGray, fontWeight: '600' },
-  projectName: { fontSize: 18, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 6 },
-  locRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4 },
-  projectLocation: { fontSize: 13, color: Colors.darkGray, textAlign: 'right' },
+  projectName: { fontSize: 18, fontWeight: 'bold', color: Colors.primary, marginBottom: 6 },
+  locRow: { alignItems: 'center', gap: 4 },
+  projectLocation: { fontSize: 13, color: Colors.darkGray },
   emptyContainer: { padding: 40, alignItems: 'center' },
   emptyTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.primary },
 });

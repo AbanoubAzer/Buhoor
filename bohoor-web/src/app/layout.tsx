@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import { HomeIcon, MagnifyingGlassIcon, BuildingOffice2Icon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import Header from "@/components/Header";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -24,14 +25,14 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-cairo bg-gray-50 text-gray-900">
-        
-        {/* Header */}
-        <Header />
+        <LanguageProvider>
+          {/* Header */}
+          <Header />
 
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
+          {/* Main Content */}
+          <main className="flex-1 flex flex-col">
+            {children}
+          </main>
 
         <footer className="bg-primary text-white pt-0 pb-8 mt-auto rounded-t-[3rem] overflow-hidden">
           {/* Trust Banner */}
@@ -111,6 +112,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        </LanguageProvider>
 
       </body>
     </html>

@@ -42,15 +42,21 @@ model Developer {
 }
 
 model Project {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  developerId String    @map("developer_id") @db.Uuid
-  developer   Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  name        String    @db.VarChar(150)
-  location    String    @db.VarChar(100)
-  description String?
-  coverImage  String    @map("cover_image")
-  images      String[]  @default([])
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  developerId   String    @map("developer_id") @db.Uuid
+  developer     Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  name          String    @db.VarChar(150)
+  nameAr        String?   @map("name_ar") @db.VarChar(150)
+  nameEn        String?   @map("name_en") @db.VarChar(150)
+  location      String    @db.VarChar(100)
+  locationAr    String?   @map("location_ar") @db.VarChar(100)
+  locationEn    String?   @map("location_en") @db.VarChar(100)
+  description   String?
+  descriptionAr String?   @map("description_ar")
+  descriptionEn String?   @map("description_en")
+  coverImage    String    @map("cover_image")
+  images        String[]  @default([])
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
   units Unit[]
 
@@ -60,11 +66,15 @@ model Project {
 }
 
 model Location {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String   @unique @db.VarChar(100)
-  governorate String?  @db.VarChar(100)
-  imageUrl    String?  @map("image_url")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String   @unique @db.VarChar(100)
+  nameAr        String?  @map("name_ar") @db.VarChar(100)
+  nameEn        String?  @map("name_en") @db.VarChar(100)
+  governorate   String?  @db.VarChar(100)
+  governorateAr String?  @map("governorate_ar") @db.VarChar(100)
+  governorateEn String?  @map("governorate_en") @db.VarChar(100)
+  imageUrl      String?  @map("image_url")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   units Unit[]
 
@@ -74,6 +84,8 @@ model Location {
 model UnitTypeModel {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String   @unique @db.VarChar(100)
+  nameAr    String?  @map("name_ar") @db.VarChar(100)
+  nameEn    String?  @map("name_en") @db.VarChar(100)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   units Unit[]
@@ -95,6 +107,8 @@ model Unit {
   id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code       String?    @unique @db.VarChar(50)
   title      String     @db.VarChar(255)
+  titleAr    String?    @map("title_ar") @db.VarChar(255)
+  titleEn    String?    @map("title_en") @db.VarChar(255)
   sellerType SellerType @map("seller_type")
 
   projectId String?  @map("project_id") @db.Uuid
@@ -134,6 +148,8 @@ model Unit {
   deliveryYear                 Int            @map("delivery_year")
 
   description                  String?
+  descriptionAr                String?        @map("description_ar")
+  descriptionEn                String?        @map("description_en")
   coverImage String?  @map("cover_image")
   images     String[] @default([])
   videos     String[] @default([])
