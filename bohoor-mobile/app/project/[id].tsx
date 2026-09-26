@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Linking, Pressable, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Linking, Pressable, FlatList, Share, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, Stack, Link } from 'expo-router';
 import { Image } from 'expo-image';
 import axios from 'axios';
-import { PlayCircle, MapPin, Building, Key } from 'lucide-react-native';
+import { PlayCircle, MapPin, Building, Key, Share2 } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://buhoor.vercel.app';
@@ -37,6 +37,24 @@ export default function ProjectDetails() {
     }
   };
 
+  const handleShare = async () => {
+    if (!project) return;
+    const webUrl = `https://buhoor-web.vercel.app/projects/${project.id}`;
+    const devText = project.developer?.name ? `\n🏢 المطور: ${project.developer.name}` : '';
+    const locText = project.location ? `\n📍 الموقع: ${project.location}` : '';
+    const shareMessage = `🏢 مشروع: ${project.name}${devText}${locText}\n\n🔗 شاهد تفاصيل المشروع والوحدات المتاحة:\n${webUrl}`;
+
+    try {
+      await Share.share({
+        message: shareMessage,
+        url: webUrl,
+        title: project.name,
+      });
+    } catch (error) {
+      console.error('Error sharing project:', error);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -58,7 +76,17 @@ export default function ProjectDetails() {
 
   return (
     <>
-      <Stack.Screen options={{ title: project.name || 'تفاصيل المشروع', headerBackTitle: 'عودة' }} />
+      <Stack.Screen 
+        options={{ 
+          title: project.name || 'تفاصيل المشروع', 
+          headerBackTitle: 'عودة',
+          headerRight: () => (
+            <TouchableOpacity onPress={handleShare} style={{ padding: 8 }} accessibilityLabel="مشاركة المشروع">
+              <Share2 color={Colors.primary} size={22} />
+            </TouchableOpacity>
+          )
+        }} 
+      />
       <ScrollView style={styles.container} bounces={false}>
         {cover ? (
           <Image source={{ uri: getDirectImageUrl(cover) }} contentFit="cover" style={styles.coverImage} />

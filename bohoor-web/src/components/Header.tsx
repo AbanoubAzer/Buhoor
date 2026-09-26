@@ -66,9 +66,6 @@ export default function Header() {
               <Link onClick={() => setMobileMenuOpen(false)} href="/projects" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">المشاريع</Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/areas" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">المناطق</Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/developers" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">المطورين</Link>
-              <Link onClick={() => setMobileMenuOpen(false)} href="/admin/searches" className="block rounded-xl px-3 py-2.5 text-base font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
-                📊 طلبات العملاء والـ Excel (Business)
-              </Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/add-property" className="block sm:hidden mt-3 bg-accent hover:bg-orange-600 text-white text-center rounded-xl px-4 py-3 text-base font-bold shadow-md transition">
                 أضف عقارك مجاناً &larr;
               </Link>

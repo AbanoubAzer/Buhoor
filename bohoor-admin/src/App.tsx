@@ -14,6 +14,7 @@ const Admins = lazy(() => import('./pages/Admins'));
 const HeroSlides = lazy(() => import('./pages/HeroSlidesPage'));
 const Login = lazy(() => import('./pages/Login'));
 const Leads = lazy(() => import('./pages/Leads'));
+const Searches = lazy(() => import('./pages/Searches'));
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
@@ -49,6 +50,7 @@ function App() {
                 <Route path="/hero-slides" element={<HeroSlides />} />
                 <Route path="/admins" element={<Admins />} />
                 <Route path="/leads" element={<Leads />} />
+                <Route path="/searches" element={<Searches />} />
               </Route>
             </Route>
           </Routes>

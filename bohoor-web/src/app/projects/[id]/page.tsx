@@ -1,9 +1,76 @@
 import { api } from "@/api/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPinIcon, HomeModernIcon } from "@heroicons/react/24/outline";
+import { Metadata } from "next";
+import { MapPinIcon, HomeModernIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
+import ShareButton from "@/components/ShareButton";
+import OpenInAppBanner from "@/components/OpenInAppBanner";
 
 export const revalidate = 30;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const project = await api.projects.getOne(id);
+    if (!project) {
+      return {
+        title: 'مشروع غير موجود | منصة بُحور',
+        description: 'لم يتم العثور على المشروع المطلوب.',
+      };
+    }
+
+    const title = `مشروع ${project.name} | ${project.developer?.name || 'بُحور'}`;
+    const description = project.description 
+      ? project.description.slice(0, 160)
+      : `اكتشف مشروع ${project.name} في ${project.location || 'مصر'}. تفاصيل الوحدات والأسعار ومخططات المشروع على منصة بُحور.`;
+
+    const coverImage = project.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200';
+    const canonicalUrl = `https://buhoor-web.vercel.app/projects/${id}`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        title,
+        description,
+        url: canonicalUrl,
+        siteName: 'منصة بُحور العقارية | Bohoor',
+        images: [
+          {
+            url: coverImage,
+            width: 1200,
+            height: 630,
+            alt: project.name,
+          },
+        ],
+        locale: 'ar_EG',
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [coverImage],
+      },
+      other: {
+        'al:ios:url': `bohoor://projects/${id}`,
+        'al:ios:app_store_id': '123456789',
+        'al:ios:app_name': 'Bohoor',
+        'al:android:url': `bohoor://projects/${id}`,
+        'al:android:package': 'com.bohoor.app',
+        'al:android:app_name': 'Bohoor',
+      }
+    };
+  } catch {
+    return {
+      title: 'تفاصيل المشروع | منصة بُحور',
+      description: 'اكتشف أفضل المشاريع العقارية على منصة بُحور.',
+    };
+  }
+}
 
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,36 +89,51 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   const units = unitsRes.data || [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-      <nav className="flex mb-8 text-sm text-gray-500 font-medium">
-        <Link href="/" className="hover:text-primary transition">الرئيسية</Link>
-        <span className="mx-2">/</span>
-        <Link href={`/developers/${project.developerId}`} className="hover:text-primary transition">
-          {project.developer?.name || 'المطور'}
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-900">{project.name}</span>
-      </nav>
+    <>
+      <OpenInAppBanner path={`projects/${project.id}`} title={project.name} />
 
-      {/* Project Hero */}
-      <div className="relative rounded-[3rem] overflow-hidden mb-12 shadow-md">
-        <div className="absolute inset-0 bg-black/50 z-10" />
-        <img 
-          src={project.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200'} 
-          alt={project.name} 
-          className="w-full h-96 object-cover"
-        />
-        <div className="absolute inset-0 z-20 flex flex-col justify-end p-8 md:p-12 text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-cairo">{project.name}</h1>
-          <div className="flex items-center gap-2 text-lg text-gray-200 mb-6">
-            <MapPinIcon className="w-6 h-6" />
-            {project.location || 'موقع غير محدد'}
-          </div>
-          <p className="max-w-3xl text-gray-100 text-lg leading-relaxed">
-            {project.description}
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        {/* Navigation & Share */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <nav className="flex text-sm text-gray-500 font-medium items-center flex-wrap">
+            <Link href="/" className="hover:text-primary transition">الرئيسية</Link>
+            <span className="mx-2">/</span>
+            <Link href={`/developers/${project.developerId}`} className="hover:text-primary transition">
+              {project.developer?.name || 'المطور'}
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-900">{project.name}</span>
+          </nav>
+
+          <ShareButton 
+            title={`مشروع ${project.name}`}
+            description={`الموقع: ${project.location || 'مصر'} • المطور: ${project.developer?.name || 'بُحور'}`}
+            deepLinkPath={`projects/${project.id}`}
+            url={`https://buhoor-web.vercel.app/projects/${project.id}`}
+            buttonText="مشاركة المشروع"
+            variant="outline"
+          />
         </div>
-      </div>
+
+        {/* Project Hero */}
+        <div className="relative rounded-[3rem] overflow-hidden mb-12 shadow-md">
+          <div className="absolute inset-0 bg-black/50 z-10" />
+          <img 
+            src={project.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200'} 
+            alt={project.name} 
+            className="w-full h-96 object-cover"
+          />
+          <div className="absolute inset-0 z-20 flex flex-col justify-end p-8 md:p-12 text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-cairo">{project.name}</h1>
+            <div className="flex items-center gap-2 text-lg text-gray-200 mb-6">
+              <MapPinIcon className="w-6 h-6" />
+              {project.location || 'موقع غير محدد'}
+            </div>
+            <p className="max-w-3xl text-gray-100 text-lg leading-relaxed">
+              {project.description}
+            </p>
+          </div>
+        </div>
 
       {/* Project Units */}
       <div>
@@ -109,5 +191,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
       </div>
 
     </div>
+    </>
   );
 }

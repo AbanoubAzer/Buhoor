@@ -9,8 +9,7 @@ import {
   ScrollView, 
   ActivityIndicator, 
   Dimensions,
-  Linking,
-  Pressable
+  Linking
 } from 'react-native';
 import { Link } from 'expo-router';
 import { 
@@ -18,10 +17,10 @@ import {
   X, 
   MapPin, 
   MessageCircle, 
-  ChevronLeft, 
-  ArrowRight,
-  TrendingUp,
-  Building
+  ChevronLeft,
+  User,
+  Phone,
+  DollarSign
 } from 'lucide-react-native';
 import axios from 'axios';
 import Colors from '../constants/Colors';
@@ -35,28 +34,63 @@ interface AiSearchModalProps {
 }
 
 export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) {
-  const [query, setQuery] = useState('');
+  // 1. User & Budget
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [budget, setBudget] = useState('');
+
+  // 2. Query & Quick Options
+  const [query, setQuery] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedBedrooms, setSelectedBedrooms] = useState('');
+  const [isSeaView, setIsSeaView] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const exampleQueries = [
-    '2 bedroom apartment in Sahl Hasheesh, max 5M, sea view',
-    'شاليه غرفتين في الجونة على البحر أقل من 6 مليون',
-    'شقة 3 غرف في التجمع الخامس تقسيط ميزانية 4 مليون',
-  ];
+  const budgetOptions = ['3M', '5M', '8M', '12M', '20M+'];
+  const locationOptions = ['سهل حشيش', 'الجونة', 'الغردقة', 'الساحل الشمالي', 'التجمع', 'زايد'];
+  const typeOptions = ['شاليه', 'شقة', 'فيلا', 'دوبلكس'];
+  const bedroomOptions = ['1', '2', '3', '4+'];
 
-  const handleSearch = async (textToSearch?: string) => {
-    const q = textToSearch || query;
-    if (!q.trim()) return;
+  const handleSearch = async () => {
+    // Mandatory Validation
+    if (!customerName.trim()) {
+      setError('يرجى إدخال اسمك الكريم (مطلوب).');
+      return;
+    }
+    const cleanPhone = customerPhone.trim().replace(/[^0-9+]/g, '');
+    if (!cleanPhone || cleanPhone.length < 8) {
+      setError('يرجى إدخال رقم هاتف صحيح للتواصل (مطلوب).');
+      return;
+    }
+    if (!budget.trim()) {
+      setError('يرجى إدخال الميزانية القصوى أو اختيار إحدى الميزانيات السريعة (مطلوب).');
+      return;
+    }
+
+    let combinedQuery = query.trim();
+    const parts: string[] = [];
+
+    if (selectedType) parts.push(selectedType);
+    if (selectedBedrooms) parts.push(`${selectedBedrooms} غرف`);
+    if (selectedLocation) parts.push(`في ${selectedLocation}`);
+    if (isSeaView) parts.push('إطلالة بحرية مباشرة صف أول');
+    parts.push(`ميزانية ${budget} ج.م`);
+
+    if (combinedQuery) {
+      combinedQuery = `${combinedQuery} (${parts.join('، ')})`;
+    } else {
+      combinedQuery = parts.join('، ');
+    }
 
     setLoading(true);
     setError(null);
     try {
       const response = await axios.post(`${API_URL}/ai-search`, {
-        query: q,
+        query: combinedQuery,
         customerName: customerName.trim() || undefined,
         customerPhone: customerPhone.trim() || undefined,
       });
@@ -70,7 +104,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
   };
 
   const handleWhatsApp = (unit: any) => {
-    const text = encodeURI(`أستفسر عن العقار المتطابق عبر البحث الذكي: ${unit.title} (كود: ${unit.code || unit.id})`);
+    const text = encodeURI(`مرحباً بُحور، أستفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})`);
     Linking.openURL(`https://wa.me/201000000000?text=${text}`).catch(() => {});
   };
 
@@ -99,68 +133,163 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
           </View>
 
           <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-            {/* Query Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>اكتب طلبك بلغتك الطبيعية (عربي أو إنجليزي):</Text>
+            
+            {/* STEP 1: Name, Phone & Budget */}
+            <View style={styles.stepBox}>
+              <View style={styles.stepHeader}>
+                <Text style={styles.stepPill}>الخطوة 1</Text>
+                <Text style={styles.stepTitle}>بيانات التواصل والميزانية</Text>
+              </View>
+
+              <View style={styles.inputsRow}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>رقم الهاتف</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="010xxxxxxxx"
+                    placeholderTextColor={Colors.darkGray}
+                    keyboardType="phone-pad"
+                    value={customerPhone}
+                    onChangeText={setCustomerPhone}
+                    textAlign="right"
+                  />
+                </View>
+
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>الاسم الكريم</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="أحمد محمد"
+                    placeholderTextColor={Colors.darkGray}
+                    value={customerName}
+                    onChangeText={setCustomerName}
+                    textAlign="right"
+                  />
+                </View>
+              </View>
+
+              <View style={{ marginTop: 8 }}>
+                <Text style={styles.label}>الميزانية القصوى (ج.م)</Text>
+                <TextInput
+                  style={[styles.input, { fontWeight: 'bold' }]}
+                  placeholder="مثال: 5000000"
+                  placeholderTextColor={Colors.darkGray}
+                  keyboardType="numeric"
+                  value={budget}
+                  onChangeText={setBudget}
+                  textAlign="right"
+                />
+                
+                {/* Budget quick chips */}
+                <View style={styles.budgetChipsRow}>
+                  {budgetOptions.map((b) => (
+                    <TouchableOpacity
+                      key={b}
+                      onPress={() => setBudget(b.replace('M', '000000'))}
+                      style={[
+                        styles.chip,
+                        budget === b.replace('M', '000000') && styles.chipActive
+                      ]}
+                    >
+                      <Text style={[styles.chipText, budget === b.replace('M', '000000') && styles.chipTextActive]}>
+                        {b}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            {/* STEP 2: Quick Search or Pick Options */}
+            <View style={styles.stepBox}>
+              <View style={styles.stepHeader}>
+                <Text style={[styles.stepPill, { backgroundColor: '#059669' }]}>الخطوة 2</Text>
+                <Text style={styles.stepTitle}>البحث السريع أو اختيار المواصفات</Text>
+              </View>
+
+              {/* Free text prompt */}
               <TextInput
-                style={styles.textInput}
+                style={styles.promptInput}
                 multiline
-                numberOfLines={3}
-                placeholder="مثال: I need a 2 bedroom apartment in Sahl Hasheesh, max 5M, sea view..."
+                numberOfLines={2}
+                placeholder="اكتب مواصفاتك، مثال: شاليه غرفتين في سهل حشيش على البحر..."
                 placeholderTextColor={Colors.darkGray}
                 value={query}
                 onChangeText={setQuery}
                 textAlign="right"
               />
 
-              {/* Example Chips */}
-              <View style={styles.examplesRow}>
-                {exampleQueries.map((ex, i) => (
-                  <TouchableOpacity 
-                    key={i} 
-                    style={styles.exampleChip}
-                    onPress={() => {
-                      setQuery(ex);
-                      handleSearch(ex);
-                    }}
-                  >
-                    <Text style={styles.exampleText} numberOfLines={1}>{ex}</Text>
-                  </TouchableOpacity>
-                ))}
+              {/* Pick Location */}
+              <View style={styles.optionsSection}>
+                <Text style={styles.optionsLabel}>الموقع:</Text>
+                <View style={styles.optionsRow}>
+                  {locationOptions.map((loc) => (
+                    <TouchableOpacity
+                      key={loc}
+                      onPress={() => setSelectedLocation(selectedLocation === loc ? '' : loc)}
+                      style={[styles.optionPill, selectedLocation === loc && styles.optionPillActive]}
+                    >
+                      <Text style={[styles.optionPillText, selectedLocation === loc && styles.optionPillTextActive]}>
+                        {loc}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
 
-              {/* Optional Contact Inputs */}
-              <View style={styles.contactInputs}>
-                <TextInput
-                  style={styles.singleInput}
-                  placeholder="رقم الهاتف (اختياري لاستلام العروض)"
-                  placeholderTextColor={Colors.darkGray}
-                  keyboardType="phone-pad"
-                  value={customerPhone}
-                  onChangeText={setCustomerPhone}
-                  textAlign="right"
-                />
-                <TextInput
-                  style={styles.singleInput}
-                  placeholder="الاسم الكريم (اختياري)"
-                  placeholderTextColor={Colors.darkGray}
-                  value={customerName}
-                  onChangeText={setCustomerName}
-                  textAlign="right"
-                />
+              {/* Pick Type & Bedrooms */}
+              <View style={styles.optionsSection}>
+                <Text style={styles.optionsLabel}>نوع الوحدة والغرف:</Text>
+                <View style={styles.optionsRow}>
+                  {typeOptions.map((t) => (
+                    <TouchableOpacity
+                      key={t}
+                      onPress={() => setSelectedType(selectedType === t ? '' : t)}
+                      style={[styles.optionPill, selectedType === t && styles.optionPillActive]}
+                    >
+                      <Text style={[styles.optionPillText, selectedType === t && styles.optionPillTextActive]}>
+                        {t}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  {bedroomOptions.map((b) => (
+                    <TouchableOpacity
+                      key={b}
+                      onPress={() => setSelectedBedrooms(selectedBedrooms === b ? '' : b)}
+                      style={[styles.optionPill, selectedBedrooms === b && styles.optionPillActive]}
+                    >
+                      <Text style={[styles.optionPillText, selectedBedrooms === b && styles.optionPillTextActive]}>
+                        {b} غرف
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
 
-              {/* Search Button */}
+              {/* Sea View Toggle */}
               <TouchableOpacity
-                style={[styles.searchBtn, (!query.trim() || loading) && styles.searchBtnDisabled]}
-                onPress={() => handleSearch()}
-                disabled={!query.trim() || loading}
+                onPress={() => setIsSeaView(!isSeaView)}
+                style={[styles.seaBtn, isSeaView && styles.seaBtnActive]}
+              >
+                <Text style={[styles.seaBtnText, isSeaView && styles.seaBtnTextActive]}>
+                  🌊 إطلالة بحرية مباشرة
+                </Text>
+                <View style={[styles.seaCheckbox, isSeaView && styles.seaCheckboxActive]}>
+                  {isSeaView && <Text style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+
+              {/* Submit Search */}
+              <TouchableOpacity
+                style={[styles.searchBtn, loading && styles.searchBtnDisabled]}
+                onPress={handleSearch}
+                disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <>
-                    <Text style={styles.searchBtnText}>تحليل ومطابقة العقارات بالـ AI</Text>
+                    <Text style={styles.searchBtnText}>بدء المطابقة الذكية بالـ AI</Text>
                     <Sparkles size={18} color="#fff" />
                   </>
                 )}
@@ -180,7 +309,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                 {/* Extracted Filters Card */}
                 {result.extractedFilters && (
                   <View style={styles.extractedCard}>
-                    <Text style={styles.extractedTitle}>💡 تم استخراج الفلاتر كالتالي:</Text>
+                    <Text style={styles.extractedTitle}>💡 الفلاتر المستخرجة بالـ AI:</Text>
                     <View style={styles.filtersPillsRow}>
                       {result.extractedFilters.location && (
                         <View style={styles.extractedPill}>
@@ -190,7 +319,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                       {result.extractedFilters.maxPrice && (
                         <View style={styles.extractedPill}>
                           <Text style={styles.extractedPillText}>
-                            💰 ميزانية: {Number(result.extractedFilters.maxPrice).toLocaleString('ar-EG')} ج
+                            💰 {Number(result.extractedFilters.maxPrice).toLocaleString('ar-EG')} ج
                           </Text>
                         </View>
                       )}
@@ -206,7 +335,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                       )}
                       {result.extractedFilters.seaView && (
                         <View style={styles.extractedPill}>
-                          <Text style={styles.extractedPillText}>🌊 إطلالة بحرية</Text>
+                          <Text style={styles.extractedPillText}>🌊 إطلالة بحر</Text>
                         </View>
                       )}
                     </View>
@@ -220,7 +349,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                   </Text>
 
                   {result.matches?.length === 0 ? (
-                    <Text style={styles.emptyText}>لم نجد عقارات مطابقة بدقة، جرب توسيع معايير البحث.</Text>
+                    <Text style={styles.emptyText}>لم نجد عقارات مطابقة، جرب تعديل الميزانية أو خيارات البحث.</Text>
                   ) : (
                     result.matches.map((item: any, idx: number) => {
                       const unit = item.unit;
@@ -306,7 +435,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: height * 0.88,
+    maxHeight: height * 0.90,
     paddingTop: 16,
   },
   header: {
@@ -330,38 +459,39 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   headerPillText: { fontSize: 10, fontWeight: 'bold', color: '#B45309' },
-  title: { fontSize: 17, fontWeight: 'bold', color: Colors.primary },
+  title: { fontSize: 16, fontWeight: 'bold', color: Colors.primary },
   closeBtn: { padding: 6 },
   scroll: { paddingHorizontal: 20, paddingVertical: 14 },
 
-  inputContainer: { marginBottom: 16 },
-  inputLabel: { fontSize: 12, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 6 },
-  textInput: {
-    backgroundColor: Colors.gray,
-    borderRadius: 14,
+  stepBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 12,
-    fontSize: 13,
-    color: Colors.primary,
-    textAlignVertical: 'top',
-    minHeight: 80,
+    marginBottom: 14,
   },
-  examplesRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  exampleChip: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    maxWidth: '100%',
+  stepHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
   },
-  exampleText: { fontSize: 10, color: Colors.darkGray },
-  contactInputs: { flexDirection: 'row-reverse', gap: 8, marginTop: 10 },
-  singleInput: {
-    flex: 1,
-    backgroundColor: Colors.gray,
+  stepPill: {
+    backgroundColor: '#4F46E5',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  stepTitle: { fontSize: 13, fontWeight: 'bold', color: Colors.primary },
+  inputsRow: { flexDirection: 'row-reverse', gap: 8 },
+  inputWrapper: { flex: 1 },
+  label: { fontSize: 11, fontWeight: 'bold', color: Colors.darkGray, textAlign: 'right', marginBottom: 4 },
+  input: {
+    backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -370,6 +500,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.primary,
   },
+  budgetChipsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+  chip: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chipActive: { backgroundColor: '#4F46E5', borderColor: '#4F46E5' },
+  chipText: { fontSize: 11, color: Colors.text, fontWeight: 'bold' },
+  chipTextActive: { color: '#fff' },
+
+  promptInput: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 10,
+    fontSize: 12,
+    color: Colors.primary,
+    minHeight: 60,
+    textAlignVertical: 'top',
+    marginBottom: 10,
+  },
+  optionsSection: { marginBottom: 10 },
+  optionsLabel: { fontSize: 11, fontWeight: 'bold', color: Colors.darkGray, textAlign: 'right', marginBottom: 4 },
+  optionsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 6 },
+  optionPill: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  optionPillActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  optionPillText: { fontSize: 11, color: Colors.text },
+  optionPillTextActive: { color: '#fff', fontWeight: 'bold' },
+
+  seaBtn: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 12,
+  },
+  seaBtnActive: { backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' },
+  seaBtnText: { fontSize: 12, color: Colors.text, fontWeight: 'bold' },
+  seaBtnTextActive: { color: '#0369A1' },
+  seaCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  seaCheckboxActive: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
+
   searchBtn: {
     flexDirection: 'row-reverse',
     backgroundColor: '#4F46E5',
@@ -378,11 +574,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 12,
-    shadowColor: '#4F46E5',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
   },
   searchBtnDisabled: { opacity: 0.5 },
   searchBtnText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
@@ -390,44 +581,40 @@ const styles = StyleSheet.create({
   errorBox: { backgroundColor: '#FEE2E2', padding: 10, borderRadius: 10, marginBottom: 12 },
   errorText: { color: '#DC2626', fontSize: 12, textAlign: 'right' },
 
-  resultsContainer: { marginTop: 10, paddingBottom: 20 },
+  resultsContainer: { marginTop: 6, paddingBottom: 24 },
   extractedCard: {
     backgroundColor: '#EEF2FF',
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 12,
     borderWidth: 1,
     borderColor: '#C7D2FE',
-    marginBottom: 16,
+    marginBottom: 14,
   },
-  extractedTitle: { fontSize: 12, fontWeight: 'bold', color: '#3730A3', textAlign: 'right', marginBottom: 8 },
+  extractedTitle: { fontSize: 12, fontWeight: 'bold', color: '#3730A3', textAlign: 'right', marginBottom: 6 },
   filtersPillsRow: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 6 },
   extractedPill: {
     backgroundColor: '#fff',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#E0E7FF',
   },
   extractedPillText: { fontSize: 11, fontWeight: 'bold', color: '#4338CA' },
 
   matchesList: { gap: 10 },
-  matchesTitle: { fontSize: 15, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 4 },
-  emptyText: { textAlign: 'center', color: Colors.darkGray, fontSize: 13, marginVertical: 16 },
+  matchesTitle: { fontSize: 14, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 4 },
+  emptyText: { textAlign: 'center', color: Colors.darkGray, fontSize: 12, marginVertical: 14 },
   matchCard: {
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
   },
   matchCardTop: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   matchUnitTitle: { fontSize: 13, fontWeight: 'bold', color: Colors.primary, flex: 1, textAlign: 'right', marginLeft: 8 },
-  scoreBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  scoreBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   scoreBadgeText: { fontSize: 11, fontWeight: 'bold' },
   matchLocRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, marginBottom: 8 },
   matchLocText: { fontSize: 11, color: Colors.darkGray },

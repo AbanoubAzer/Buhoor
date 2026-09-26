@@ -1,12 +1,102 @@
 import { api } from "@/api/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPinIcon, HomeModernIcon, BuildingOffice2Icon, PhoneIcon } from "@heroicons/react/24/outline";
+import { Metadata } from "next";
+import { MapPinIcon, HomeModernIcon, BuildingOffice2Icon, PhoneIcon, ShareIcon } from "@heroicons/react/24/outline";
 import UnitLeadForm from "@/components/UnitLeadForm";
 import UnitGallery from "@/components/UnitGallery";
+import ShareButton from "@/components/ShareButton";
+import OpenInAppBanner from "@/components/OpenInAppBanner";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const unit = await api.units.getOne(id);
+    if (!unit) {
+      return {
+        title: 'عقار غير موجود | منصة بُحور',
+        description: 'لم يتم العثور على العقار المطلوب على منصة بُحور العقارية.',
+      };
+    }
+
+    const price = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
+    const formattedPrice = price > 0 ? `${price.toLocaleString()} ج.م` : 'السعر عند الطلب';
+    const locationName = unit.location?.name 
+      ? `${unit.location.governorate ? unit.location.governorate + '، ' : ''}${unit.location.name}` 
+      : (unit.location?.governorate || 'موقع متميز');
+    const bedroomsText = unit.bedrooms ? `${unit.bedrooms} غرف نوم` : '';
+    const areaText = unit.area ? `${unit.area} م²` : '';
+
+    const ogTitle = `${unit.title} - ${formattedPrice} | منصة بُحور`;
+    const ogDescription = [
+      locationName,
+      unit.isCashOnly ? 'نظام الدفع: كاش' : 'تقسيط متاح',
+      bedroomsText,
+      areaText,
+      unit.expectedRentalRoi ? `عائد إيجاري متوقع ${unit.expectedRentalRoi}%` : '',
+      'تصفح تفاصيل العقار والصور والعائد الاستثماري كاملة على منصة بُحور.'
+    ].filter(Boolean).join(' • ');
+
+    const rawCover = unit.coverImage || (unit.images && unit.images[0]) || '';
+    let coverImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1200';
+    if (rawCover) {
+      if (rawCover.includes('drive.google.com/file/d/')) {
+        const fileId = rawCover.split('/file/d/')[1]?.split('/')[0];
+        if (fileId) coverImage = `https://drive.google.com/uc?export=view&id=${fileId}`;
+      } else {
+        coverImage = rawCover;
+      }
+    }
+
+    const canonicalUrl = `https://buhoor-web.vercel.app/units/${id}`;
+
+    return {
+      title: `${unit.title} - ${formattedPrice} | بُحور`,
+      description: ogDescription,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        title: ogTitle,
+        description: ogDescription,
+        url: canonicalUrl,
+        siteName: 'منصة بُحور العقارية | Bohoor',
+        images: [
+          {
+            url: coverImage,
+            width: 1200,
+            height: 630,
+            alt: unit.title,
+          },
+        ],
+        locale: 'ar_EG',
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: ogTitle,
+        description: ogDescription,
+        images: [coverImage],
+      },
+      other: {
+        'al:ios:url': `bohoor://units/${id}`,
+        'al:ios:app_store_id': '123456789',
+        'al:ios:app_name': 'Bohoor',
+        'al:android:url': `bohoor://units/${id}`,
+        'al:android:package': 'com.bohoor.app',
+        'al:android:app_name': 'Bohoor',
+      }
+    };
+  } catch {
+    return {
+      title: 'تفاصيل العقار | منصة بُحور',
+      description: 'اكتشف أفضل العقارات والوحدات الاستثمارية في مصر عبر منصة بُحور.',
+    };
+  }
+}
 
 export default async function UnitDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -30,18 +120,41 @@ export default async function UnitDetailsPage({ params }: { params: Promise<{ id
     return url;
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-      {/* Breadcrumbs */}
-      <nav className="flex mb-8 text-sm text-gray-500 font-medium">
-        <Link href="/" className="hover:text-primary transition">الرئيسية</Link>
-        <span className="mx-2">/</span>
-        <Link href="/units" className="hover:text-primary transition">العقارات</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-900">{unit.title}</span>
-      </nav>
+  const priceNum = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
+  const formattedPriceText = priceNum > 0 ? `${priceNum.toLocaleString()} ج.م` : 'السعر عند الطلب';
+  const locationLabel = unit.location?.name 
+    ? `${unit.location.governorate ? unit.location.governorate + '، ' : ''}${unit.location.name}` 
+    : (unit.location?.governorate || 'موقع غير محدد');
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+  return (
+    <>
+      <OpenInAppBanner path={`units/${unit.id}`} title={unit.title} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        {/* Breadcrumbs & Action Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <nav className="flex text-sm text-gray-500 font-medium items-center flex-wrap">
+            <Link href="/" className="hover:text-primary transition">الرئيسية</Link>
+            <span className="mx-2">/</span>
+            <Link href="/units" className="hover:text-primary transition">العقارات</Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-900 truncate max-w-xs">{unit.title}</span>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <ShareButton 
+              title={unit.title}
+              description={`الموقع: ${locationLabel} • المساحة: ${unit.area || 0} م²`}
+              priceText={formattedPriceText}
+              deepLinkPath={`units/${unit.id}`}
+              url={`https://buhoor-web.vercel.app/units/${unit.id}`}
+              buttonText="مشاركة العقار"
+              variant="outline"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         
         {/* Main Details (Right side in RTL) */}
         <div className="lg:col-span-2 space-y-8">
@@ -553,8 +666,30 @@ export default async function UnitDetailsPage({ params }: { params: Promise<{ id
             sellerType={unit.sellerType}
           />
 
+          {/* Share & Mobile App Card */}
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+            <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+              <ShareIcon className="w-4 h-4 text-primary" />
+              مشاركة أو فتح في التطبيق
+            </h4>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              يمكنك مشاركة تفاصيل هذه الوحدة مع عائلتك أو أصدقائك عبر واتساب وشبكات التواصل، أو فتحها مباشرة في تطبيق بُحور.
+            </p>
+            <ShareButton 
+              title={unit.title}
+              description={`الموقع: ${locationLabel} • المساحة: ${unit.area || 0} م²`}
+              priceText={formattedPriceText}
+              deepLinkPath={`units/${unit.id}`}
+              url={`https://buhoor-web.vercel.app/units/${unit.id}`}
+              variant="primary"
+              className="w-full justify-center"
+              buttonText="مشاركة الوحدة الآن"
+            />
+          </div>
+
         </div>
       </div>
     </div>
+    </>
   );
 }

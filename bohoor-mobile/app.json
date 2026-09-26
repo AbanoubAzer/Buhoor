@@ -8,7 +8,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bohoor.app",
+      "associatedDomains": [
+        "applinks:buhoor-web.vercel.app",
+        "applinks:buhoor.vercel.app"
+      ]
     },
     "android": {
       "package": "com.bohoor.app",
@@ -18,7 +23,45 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "buhoor-web.vercel.app",
+              "pathPrefix": "/units"
+            },
+            {
+              "scheme": "https",
+              "host": "buhoor-web.vercel.app",
+              "pathPrefix": "/projects"
+            },
+            {
+              "scheme": "https",
+              "host": "buhoor-web.vercel.app",
+              "pathPrefix": "/unit"
+            },
+            {
+              "scheme": "https",
+              "host": "buhoor-web.vercel.app",
+              "pathPrefix": "/project"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "bohoor"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

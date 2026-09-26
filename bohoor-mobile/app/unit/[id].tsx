@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, Pressable, Linking, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, Pressable, Linking, Dimensions, TouchableOpacity, Share, Platform } from 'react-native';
 import { useLocalSearchParams, Stack, Link } from 'expo-router';
 import { Image } from 'expo-image';
 import axios from 'axios';
@@ -15,7 +15,8 @@ import {
   Sparkles,
   Calendar,
   Layers,
-  ChevronLeft
+  ChevronLeft,
+  Share2
 } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import UnitLeadForm from '../../components/UnitLeadForm';
@@ -135,6 +136,24 @@ export default function UnitDetails() {
     Linking.openURL('tel:+201000000000').catch(() => {});
   };
 
+  const handleShare = async () => {
+    if (!unit) return;
+    const webUrl = `https://buhoor-web.vercel.app/units/${unit.id}`;
+    const priceText = totalPrice > 0 ? `${totalPrice.toLocaleString('ar-EG')} ج.م` : '';
+    const locText = unit.location?.name ? `\n📍 الموقع: ${unit.location.name}` : '';
+    const shareMessage = `🏡 ${unit.title}${priceText ? `\n💰 السعر: ${priceText}` : ''}${locText}\n\n🔗 شاهد التفاصيل والصور كاملة على منصة بُحور:\n${webUrl}`;
+
+    try {
+      await Share.share({
+        message: shareMessage,
+        url: webUrl,
+        title: unit.title,
+      });
+    } catch (error) {
+      console.error('Error sharing unit:', error);
+    }
+  };
+
   return (
     <>
       <Stack.Screen 
@@ -142,13 +161,18 @@ export default function UnitDetails() {
           title: unit.title || 'تفاصيل العقار', 
           headerBackTitle: 'عودة',
           headerRight: () => (
-            <TouchableOpacity onPress={() => toggleFavorite(unit.id)} style={{ padding: 8 }}>
-              <Heart 
-                color={isFav ? Colors.accent : Colors.primary} 
-                fill={isFav ? Colors.accent : 'transparent'} 
-                size={24} 
-              />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <TouchableOpacity onPress={handleShare} style={{ padding: 6 }} accessibilityLabel="مشاركة">
+                <Share2 color={Colors.primary} size={22} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleFavorite(unit.id)} style={{ padding: 6 }} accessibilityLabel="المفضلة">
+                <Heart 
+                  color={isFav ? Colors.accent : Colors.primary} 
+                  fill={isFav ? Colors.accent : 'transparent'} 
+                  size={24} 
+                />
+              </TouchableOpacity>
+            </View>
           )
         }} 
       />
@@ -247,16 +271,21 @@ export default function UnitDetails() {
             </View>
           )}
 
-          {/* Quick Action Buttons (WhatsApp / Call) */}
+          {/* Quick Action Buttons (WhatsApp / Call / Share) */}
           <View style={styles.actionsBar}>
             <TouchableOpacity style={styles.waBtn} onPress={handleWhatsApp}>
-              <MessageCircle size={20} color="#fff" />
-              <Text style={styles.waBtnText}>تواصل عبر واتساب</Text>
+              <MessageCircle size={18} color="#fff" />
+              <Text style={styles.waBtnText}>واتساب</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
-              <Phone size={20} color={Colors.primary} />
-              <Text style={styles.callBtnText}>اتصال هاتفياً</Text>
+              <Phone size={18} color={Colors.primary} />
+              <Text style={styles.callBtnText}>اتصال</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.shareActionBtn} onPress={handleShare}>
+              <Share2 size={18} color={Colors.primary} />
+              <Text style={styles.shareActionBtnText}>مشاركة</Text>
             </TouchableOpacity>
           </View>
           
@@ -588,10 +617,12 @@ const styles = StyleSheet.create({
   devCardBtnText: { fontSize: 11, fontWeight: 'bold', color: Colors.primary },
 
   actionsBar: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  waBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#25D366', paddingVertical: 12, borderRadius: 12, gap: 8 },
-  waBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  callBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.gray, borderWidth: 1, borderColor: '#D1D5DB', paddingVertical: 12, borderRadius: 12, gap: 8 },
-  callBtnText: { color: Colors.primary, fontWeight: 'bold', fontSize: 14 },
+  waBtn: { flex: 1.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#25D366', paddingVertical: 12, borderRadius: 12, gap: 6 },
+  waBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  callBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.gray, borderWidth: 1, borderColor: '#D1D5DB', paddingVertical: 12, borderRadius: 12, gap: 6 },
+  callBtnText: { color: Colors.primary, fontWeight: 'bold', fontSize: 13 },
+  shareActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#D1D5DB', paddingVertical: 12, borderRadius: 12, gap: 6 },
+  shareActionBtnText: { color: Colors.primary, fontWeight: 'bold', fontSize: 13 },
 
   featuresRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 20 },
   featureBox: { flex: 1, backgroundColor: Colors.gray, borderRadius: 12, padding: 10, alignItems: 'center', marginHorizontal: 3 },

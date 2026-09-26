@@ -2,6 +2,7 @@ import { api } from "@/api/client";
 import Link from "next/link";
 import UnitSortSelector from "@/components/UnitSortSelector";
 import UnitFilterSidebar from "@/components/UnitFilterSidebar";
+import ShareButton from "@/components/ShareButton";
 import { 
   MapPinIcon, 
   HomeModernIcon, 
@@ -206,6 +207,17 @@ export default async function UnitsPage({
                             className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                           />
                           
+                          {/* Share button on card */}
+                          <div className="absolute top-3 left-3 z-10" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                            <ShareButton 
+                              title={unit.title}
+                              priceText={`${(isTotalSort && displayTotal > 0 ? displayTotal : displayCash).toLocaleString()} ج.م`}
+                              deepLinkPath={`units/${unit.id}`}
+                              url={`https://buhoor-web.vercel.app/units/${unit.id}`}
+                              variant="icon"
+                            />
+                          </div>
+
                           {/* Badges */}
                           <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
                             {unit.isVerified && (

@@ -1,4 +1,26 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3333';
+const FALLBACK_URL = 'https://buhoor.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || FALLBACK_URL;
+
+async function fetchWithRetry(url: string, init: RequestInit, retries = 1): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err: any) {
+    // If local dev server (e.g. localhost:3333) is unreachable, seamlessly fallback to production API
+    if (url.includes('localhost') || url.includes('127.0.0.1')) {
+      const fallbackUrl = url.replace(/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, FALLBACK_URL);
+      try {
+        return await fetch(fallbackUrl, init);
+      } catch {
+        // Continue to retry original or throw
+      }
+    }
+    if (retries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      return fetchWithRetry(url, init, retries - 1);
+    }
+    throw err;
+  }
+}
 
 async function request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers: HeadersInit = {
@@ -6,7 +28,7 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
     ...(options.headers || {}),
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const response = await fetchWithRetry(`${BASE_URL}${endpoint}`, {
     ...options,
     headers,
   });

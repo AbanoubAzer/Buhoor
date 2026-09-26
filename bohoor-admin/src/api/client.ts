@@ -280,4 +280,13 @@ export const api = {
       return request('/settings/default-sort', { method: 'PATCH', body: JSON.stringify({ defaultSort }) });
     },
   },
+  aiSearch: {
+    getAllSearches: async () => {
+      return request('/ai-search/admin/searches');
+    },
+    getExportUrl: () => {
+      return `${BASE_URL}/ai-search/admin/export-excel`;
+    },
+  },
 };
+

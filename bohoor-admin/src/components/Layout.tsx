@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { HomeIcon, BuildingOfficeIcon, UserGroupIcon, UsersIcon, MapPinIcon, Square2StackIcon, ShieldCheckIcon, ArrowRightOnRectangleIcon, KeyIcon, FolderIcon, PhotoIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, BuildingOfficeIcon, UserGroupIcon, UsersIcon, MapPinIcon, Square2StackIcon, ShieldCheckIcon, ArrowRightOnRectangleIcon, KeyIcon, FolderIcon, PhotoIcon, ClipboardDocumentListIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { api } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -11,6 +11,7 @@ const navigation = [
   { name: 'المشاريع',           href: '/projects',   icon: FolderIcon },
   { name: 'الوحدات والعقارات', href: '/units',       icon: BuildingOfficeIcon },
   { name: 'الطلبات والاستفسارات', href: '/leads', icon: ClipboardDocumentListIcon },
+  { name: 'مطابقات وطلبات AI', href: '/searches',   icon: SparklesIcon },
   { name: 'المناطق',            href: '/locations',  icon: MapPinIcon },
   { name: 'أنواع الوحدات',     href: '/unit-types', icon: Square2StackIcon },
   { name: 'المديرين',           href: '/admins',     icon: ShieldCheckIcon },

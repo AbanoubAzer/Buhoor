@@ -5,7 +5,7 @@ import { MapPinIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 export const revalidate = 60; // Revalidate page every 60 seconds
 
 export default async function ProjectsPage() {
-  const projects = await api.projects.getAll();
+  const projects = await api.projects.getAll().catch(() => []);
 
   return (
     <div className="bg-gray-50 min-h-screen py-16">

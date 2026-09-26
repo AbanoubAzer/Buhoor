@@ -15,13 +15,23 @@ import {
   HeartIcon
 } from "@heroicons/react/24/outline";
 
-export const revalidate = 60; // Revalidate page every 60 seconds
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function Home() {
   const [unitsData, projectsData, devsData, heroSlides, locationsData] = await Promise.all([
-    api.units.getAll({ limit: 6, status: 'APPROVED' }),
-    api.projects.getAll(),
-    api.developers.getAll(),
+    api.units.getAll({ limit: 6, status: 'APPROVED' }).catch((err) => {
+      console.error('Home: units fetch error:', err?.message || err);
+      return { data: [] };
+    }),
+    api.projects.getAll().catch((err) => {
+      console.error('Home: projects fetch error:', err?.message || err);
+      return [];
+    }),
+    api.developers.getAll().catch((err) => {
+      console.error('Home: developers fetch error:', err?.message || err);
+      return [];
+    }),
     api.heroSlides.getAll().catch(() => []), // Fallback to empty array if fails
     api.locations.getAll().catch(() => []),
   ]);
