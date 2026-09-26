@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Building2, Key, PlusCircle } from 'lucide-react-native';
+import { Home, Building2, Key, Heart, PlusCircle } from 'lucide-react-native';
 import { Image, View } from 'react-native';
 import Colors from '../../constants/Colors';
 
@@ -48,8 +48,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="units"
         options={{
-          title: 'الوحدات',
+          title: 'العقارات',
           tabBarIcon: ({ color }) => <Key color={color} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'المفضلة',
+          tabBarIcon: ({ color }) => <Heart color={color} size={24} />,
         }}
       />
       <Tabs.Screen
