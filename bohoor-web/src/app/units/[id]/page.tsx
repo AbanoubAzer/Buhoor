@@ -122,8 +122,12 @@ export default async function UnitDetailsPage({ params }: { params: Promise<{ id
                     📈 عائد إيجاري متوقع {Number(unit.expectedRentalRoi) > 0 ? Number(unit.expectedRentalRoi) : ((unit.isSeaView || unit.location?.name?.includes('جونة')) ? 16.5 : 12)}% سنوياً
                   </span>
                   {unit.sellerType && (
-                    <span className="bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-bold px-3 py-1 rounded-full">
-                      {unit.sellerType === 'DEVELOPER' ? '🏢 عرض من مطور عقاري' : '👤 بيع أفراد (إعادة بيع)'}
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs ${
+                      unit.sellerType === 'DEVELOPER'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
+                        : 'bg-indigo-50 text-indigo-800 border border-indigo-200'
+                    }`}>
+                      {unit.sellerType === 'DEVELOPER' ? '🏢 عرض مطور مباشر (0% عمولة للمشتري)' : '👤 بيع أفراد (إعادة بيع)'}
                     </span>
                   )}
                   {unit.deliveryStatus && (
@@ -546,6 +550,7 @@ export default async function UnitDetailsPage({ params }: { params: Promise<{ id
               unit.originalContractPrice
             ].map(v => Number(v)).find(v => v && v > 0) || 0} 
             unitId={unit.id} 
+            sellerType={unit.sellerType}
           />
 
         </div>

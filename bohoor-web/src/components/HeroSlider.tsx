@@ -122,9 +122,9 @@ export default function HeroSlider({ initialSlides = [], allProjects = [] }: { i
   const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section className="relative w-full max-w-[98%] mx-auto mt-2 mb-20">
+    <section className="relative w-full max-w-[98%] mx-auto mt-2 mb-16 sm:mb-20">
       {/* Background Slider Container */}
-      <div className="relative h-[600px] w-full rounded-[2rem] overflow-hidden shadow-2xl">
+      <div className="relative min-h-[480px] sm:h-[600px] w-full rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-2xl flex items-center">
         {slides.map((slide, index) => (
           <div 
             key={slide.id} 
@@ -137,36 +137,40 @@ export default function HeroSlider({ initialSlides = [], allProjects = [] }: { i
               priority={index === 0}
               className="object-cover" 
             />
-            <div className="absolute inset-0 bg-gradient-to-l from-[#0f2142]/90 via-[#0f2142]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-l from-[#0f2142]/95 via-[#0f2142]/70 to-[#0f2142]/30" />
           </div>
         ))}
         
-        <div className="absolute inset-0 z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-between items-center">
-          {/* Left/Right controls */}
-          <button onClick={prevSlide} className="absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 flex items-center justify-center text-white transition">
-            <ChevronLeftIcon className="w-6 h-6" />
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-between items-center py-12">
+          {/* Left control */}
+          <button 
+            onClick={prevSlide} 
+            className="absolute left-2 sm:left-4 lg:left-8 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 flex items-center justify-center text-white transition z-30"
+            aria-label="Previous slide"
+          >
+            <ChevronLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
           
-          <div className="text-white max-w-xl pr-16 lg:pr-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/30 text-sm mb-6 bg-white/10 backdrop-blur-md">
+          <div className="text-white max-w-xl pr-2 sm:pr-8 lg:pr-8 pl-10 sm:pl-0">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full border border-white/30 text-xs sm:text-sm mb-4 sm:mb-6 bg-white/10 backdrop-blur-md">
               <span className="text-accent">★</span> مشروع مميز
             </div>
             
             <div key={current} className="animate-fade-in-up">
-              <h1 className="text-4xl lg:text-5xl font-bold font-cairo mb-4 leading-tight">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold font-cairo mb-3 sm:mb-4 leading-snug sm:leading-tight">
                 {slides[current].title} <br/> <span className="text-accent">{slides[current].subtitle}</span>
               </h1>
-              <p className="text-gray-200 mb-8 text-lg">
+              <p className="text-gray-200 mb-6 sm:mb-8 text-sm sm:text-base lg:text-lg line-clamp-3 sm:line-clamp-none">
                 {slides[current].desc}
               </p>
             </div>
             
-            <Link href={slides[current].project?.link || "/projects"} className="bg-accent hover:bg-orange-600 text-white px-8 py-3.5 rounded-full font-bold transition inline-flex items-center gap-2 shadow-lg shadow-accent/20 hover:-translate-x-2">
+            <Link href={slides[current].project?.link || "/projects"} className="bg-accent hover:bg-orange-600 text-white px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full font-bold transition inline-flex items-center gap-2 shadow-lg shadow-accent/20 hover:-translate-x-2 text-sm sm:text-base">
               اكتشف المشروع &larr;
             </Link>
 
             {/* Pagination Dots */}
-            <div className="flex gap-2 mt-12">
+            <div className="flex gap-2 mt-8 sm:mt-12">
               {slides.map((_, i) => (
                 <button 
                   key={i} 

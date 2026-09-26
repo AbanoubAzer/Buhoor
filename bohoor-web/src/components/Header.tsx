@@ -21,8 +21,7 @@ export default function Header() {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex gap-6 items-center">
             <Link href="/" className="text-gray-600 hover:text-accent font-medium transition">الرئيسية</Link>
-                        <Link href="/units" className="text-gray-600 hover:text-accent font-medium transition">العقارات</Link>
-
+            <Link href="/units" className="text-gray-600 hover:text-accent font-medium transition">العقارات</Link>
             <Link href="/projects" className="text-gray-600 hover:text-accent font-medium transition">المشاريع</Link>
             <Link href="/areas" className="text-gray-600 hover:text-accent font-medium transition">المناطق</Link>
             <Link href="/developers" className="text-gray-600 hover:text-accent font-medium transition">المطورين</Link>
@@ -38,8 +37,8 @@ export default function Header() {
               type="button"
               className="lg:hidden -m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="القائمة الرئيسية"
             >
-              <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
                 <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               ) : (
@@ -50,20 +49,26 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Dropdown & Backdrop */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 shadow-xl absolute w-full left-0">
-          <div className="space-y-1 px-4 pb-6 pt-4">
-            <Link onClick={() => setMobileMenuOpen(false)} href="/" className="block rounded-lg px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-accent">الرئيسية</Link>
-            <Link onClick={() => setMobileMenuOpen(false)} href="/projects" className="block rounded-lg px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-accent">المشاريع</Link>
-            <Link onClick={() => setMobileMenuOpen(false)} href="/areas" className="block rounded-lg px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-accent">المناطق</Link>
-            <Link onClick={() => setMobileMenuOpen(false)} href="/developers" className="block rounded-lg px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-accent">المطورين</Link>
-            <Link onClick={() => setMobileMenuOpen(false)} href="/units" className="block rounded-lg px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-accent">العقارات</Link>
-            <Link onClick={() => setMobileMenuOpen(false)} href="/add-property" className="block sm:hidden mt-4 bg-accent text-white text-center rounded-lg px-3 py-3 text-base font-bold shadow-md">
-              أضف عقارك مجاناً
-            </Link>
+        <>
+          <div 
+            className="fixed inset-0 top-16 bg-black/40 z-40 lg:hidden backdrop-blur-xs" 
+            onClick={() => setMobileMenuOpen(false)} 
+          />
+          <div className="lg:hidden bg-white border-t border-gray-100 shadow-2xl absolute w-full left-0 z-50">
+            <div className="space-y-1.5 px-4 pb-6 pt-4">
+              <Link onClick={() => setMobileMenuOpen(false)} href="/" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">الرئيسية</Link>
+              <Link onClick={() => setMobileMenuOpen(false)} href="/units" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">العقارات</Link>
+              <Link onClick={() => setMobileMenuOpen(false)} href="/projects" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">المشاريع</Link>
+              <Link onClick={() => setMobileMenuOpen(false)} href="/areas" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">المناطق</Link>
+              <Link onClick={() => setMobileMenuOpen(false)} href="/developers" className="block rounded-xl px-3 py-2.5 text-base font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition">المطورين</Link>
+              <Link onClick={() => setMobileMenuOpen(false)} href="/add-property" className="block sm:hidden mt-3 bg-accent hover:bg-orange-600 text-white text-center rounded-xl px-4 py-3 text-base font-bold shadow-md transition">
+                أضف عقارك مجاناً &larr;
+              </Link>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

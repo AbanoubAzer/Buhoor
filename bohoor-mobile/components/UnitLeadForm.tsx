@@ -8,16 +8,18 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwm4j0_E7QODiADgwGLiUMP
 interface Props {
   unitId: string;
   unitPrice: number;
+  sellerType?: string;
 }
 
-export default function UnitLeadForm({ unitId, unitPrice }: Props) {
+export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPER' }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [questions, setQuestions] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const commission = unitPrice ? (unitPrice * 0.0125).toLocaleString('ar-EG') : "0";
+  const isDeveloper = sellerType === 'DEVELOPER';
+  const commission = isDeveloper ? "0" : (unitPrice ? (unitPrice * 0.0125).toLocaleString('ar-EG') : "0");
 
   const handleSubmit = async () => {
     if (!name || !phone) {
@@ -30,11 +32,12 @@ export default function UnitLeadForm({ unitId, unitPrice }: Props) {
       const payload = {
         action: 'NEW_LEAD',
         unitId: `Mobile App - Unit ID: ${unitId}`,
+        sellerType: isDeveloper ? 'DEVELOPER' : 'INDIVIDUAL',
         name,
         phone,
         readiness: 'Mobile User',
         questions,
-        commission
+        commission: isDeveloper ? "0 (مطور - بدون عمولة للمشتري)" : `${commission} ج.م (1.25% إعادة بيع)`
       };
 
       await axios.post(GAS_URL, payload, {
@@ -63,8 +66,24 @@ export default function UnitLeadForm({ unitId, unitPrice }: Props) {
     <View style={styles.container}>
       <Text style={styles.title}>عايز تلحق تحجز الفرصة ديه؟</Text>
       <Text style={styles.subtitle}>
-        سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك المطلوب كاش والأقساط اللي بعده.
+        سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك كل التفاصيل.
       </Text>
+
+      {/* Commission Notice */}
+      {isDeveloper ? (
+        <View style={styles.developerNoticeBox}>
+          <Text style={styles.developerNoticeTitle}>🎉 بدون أي عمولة من المشتري (0% عمولة)</Text>
+          <Text style={styles.developerNoticeSub}>
+            العقار معروض مباشرة من المطور العقاري وبنفس أسعار الشركة. لا توجد أي عمولات يتحملها المشتري.
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.noticeBox}>
+          <Text style={styles.noticeText}>
+            عمولة المنصة للمشتري: 1.25% ({commission} ج.م) تُدفع عند إتمام التنازل بنجاح. البائع لا يدفع أي عمولة.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>الاسم *</Text>
@@ -92,10 +111,10 @@ export default function UnitLeadForm({ unitId, unitPrice }: Props) {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>إيه الأسئلة أو الطلبات اللي عايز تسألها للبايع؟</Text>
+        <Text style={styles.label}>إيه الأسئلة أو الاستفسارات التي تود معرفتها؟</Text>
         <TextInput 
           style={[styles.input, styles.textArea]} 
-          placeholder="مثلاً: الاستلام إمتا بالظبط؟" 
+          placeholder={isDeveloper ? "مثلاً: مواعيد التسليم، أنظمة السداد، موعد المعاينة..." : "مثلاً: الاستلام إمتا بالظبط؟"} 
           value={questions} 
           onChangeText={setQuestions} 
           multiline 
@@ -103,12 +122,6 @@ export default function UnitLeadForm({ unitId, unitPrice }: Props) {
           textAlign="right"
           placeholderTextColor={Colors.darkGray}
         />
-      </View>
-
-      <View style={styles.noticeBox}>
-        <Text style={styles.noticeText}>
-          عمولة المنصة: 1.25% ({commission} ج.م) تُدفع عند إتمام التنازل بنجاح.
-        </Text>
       </View>
 
       <TouchableOpacity 
@@ -148,7 +161,43 @@ const styles = StyleSheet.create({
   successTitle: { fontSize: 20, fontWeight: 'bold', color: '#059669', marginBottom: 8 },
   successText: { fontSize: 16, color: '#047857', textAlign: 'center' },
   title: { fontSize: 20, fontWeight: 'bold', color: Colors.primary, marginBottom: 8, textAlign: 'right' },
-  subtitle: { fontSize: 14, color: Colors.darkGray, marginBottom: 20, textAlign: 'right', lineHeight: 22 },
+  subtitle: { fontSize: 14, color: Colors.darkGray, marginBottom: 16, textAlign: 'right', lineHeight: 22 },
+  developerNoticeBox: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  developerNoticeTitle: {
+    color: '#065F46',
+    fontSize: 13,
+    fontWeight: 'bold',
+    textAlign: 'right',
+    marginBottom: 2,
+  },
+  developerNoticeSub: {
+    color: '#047857',
+    fontSize: 11,
+    textAlign: 'right',
+    lineHeight: 18,
+  },
+  noticeBox: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  noticeText: {
+    color: '#92400E',
+    fontSize: 12,
+    textAlign: 'right',
+    fontWeight: '600',
+    lineHeight: 18,
+  },
   formGroup: { marginBottom: 16 },
   label: { fontSize: 14, fontWeight: 'bold', color: Colors.text, marginBottom: 8, textAlign: 'right' },
   input: {
@@ -161,8 +210,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   textArea: { height: 100, textAlignVertical: 'top' },
-  noticeBox: { backgroundColor: '#FEF3C7', padding: 12, borderRadius: 8, marginBottom: 20 },
-  noticeText: { color: '#92400E', fontSize: 13, textAlign: 'center', fontWeight: 'bold' },
   button: {
     backgroundColor: Colors.accent,
     padding: 16,

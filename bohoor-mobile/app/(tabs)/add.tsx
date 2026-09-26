@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Switch, Image as RNImage } from 'react-native';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { ChevronRight, Camera, Trash } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
+import { useStore } from '../../store/useStore';
 
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwm4j0_E7QODiADgwGLiUMPRWlBL7E6Z4fmk8ZVgzffWn5EiUZErnQ0YFJN4J-HYHVNLA/exec';
 
 export default function AddPropertyTab() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const { locations, unitTypes, fetchMetadata } = useStore();
+
+  useEffect(() => {
+    if (locations.length === 0 || unitTypes.length === 0) {
+      fetchMetadata();
+    }
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -91,19 +99,26 @@ export default function AddPropertyTab() {
         paymentMethod: formData.paymentMethod,
         cashRequired: Number(formData.cashRequired),
         installmentsCount: Number(formData.installmentsCount) || 0,
-        finishingStatus: 'N/A', // Omitted for simplicity in mobile or add later
+        finishingStatus: 'N/A',
         files: filesPayload
       };
 
       await axios.post(GAS_URL, payload, {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' }
       });
-      
-      Alert.alert('نجاح', 'تم استلام بيانات الوحدة بنجاح! فريقنا سيقوم بمراجعتها والتواصل معك.');
-      
-      // Reset Form
+
+      Alert.alert('تم بنجاح!', 'تم إرسال طلبك بنجاح وسيتواصل معك فريق المنصة لمراجعة العقار وتفعيله.');
       setFormData({
-        clientName: '', phone: '', penaltyAgreed: false, projectLocation: '', unitType: '', area: '', paymentMethod: 'cash', cashRequired: '', installmentsCount: '', images: []
+        clientName: '',
+        phone: '',
+        penaltyAgreed: false,
+        projectLocation: '',
+        unitType: '',
+        area: '',
+        paymentMethod: 'cash',
+        cashRequired: '',
+        installmentsCount: '',
+        images: []
       });
       setStep(1);
     } catch (error) {
@@ -160,10 +175,36 @@ export default function AddPropertyTab() {
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>تفاصيل الوحدة</Text>
             
-            <Text style={styles.label}>اسم المشروع / الموقع</Text>
-            <TextInput style={styles.input} placeholder="مثال: مدينتي، التجمع الخامس" value={formData.projectLocation} onChangeText={t => updateForm('projectLocation', t)} textAlign="right" />
+            <Text style={styles.label}>الموقع / اسم المنطقة</Text>
+            {locations.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                {locations.slice(0, 8).map((loc: any) => (
+                  <TouchableOpacity 
+                    key={loc.id} 
+                    style={[styles.smallChip, formData.projectLocation === loc.name && styles.smallChipActive]}
+                    onPress={() => updateForm('projectLocation', loc.name)}
+                  >
+                    <Text style={[styles.smallChipText, formData.projectLocation === loc.name && styles.smallChipTextActive]}>{loc.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+            <TextInput style={styles.input} placeholder="مثال: مدينتي، التجمع الخامس، الساحل الشمالي" value={formData.projectLocation} onChangeText={t => updateForm('projectLocation', t)} textAlign="right" />
 
             <Text style={styles.label}>نوع الوحدة</Text>
+            {unitTypes.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                {unitTypes.map((t: any) => (
+                  <TouchableOpacity 
+                    key={t.id} 
+                    style={[styles.smallChip, formData.unitType === t.name && styles.smallChipActive]}
+                    onPress={() => updateForm('unitType', t.name)}
+                  >
+                    <Text style={[styles.smallChipText, formData.unitType === t.name && styles.smallChipTextActive]}>{t.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
             <TextInput style={styles.input} placeholder="مثال: شقة، فيلا، شاليه، استوديو" value={formData.unitType} onChangeText={t => updateForm('unitType', t)} textAlign="right" />
 
             <Text style={styles.label}>المساحة (م²)</Text>
@@ -250,6 +291,11 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: Colors.darkGray, marginBottom: 16, textAlign: 'right' },
   label: { fontSize: 14, fontWeight: 'bold', color: Colors.primary, marginBottom: 8, textAlign: 'right' },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, marginBottom: 20, backgroundColor: Colors.gray, fontSize: 16, color: Colors.text },
+  chipsRow: { flexDirection: 'row-reverse', gap: 6, marginBottom: 10 },
+  smallChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.gray, borderWidth: 1, borderColor: '#E5E7EB' },
+  smallChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  smallChipText: { fontSize: 12, color: Colors.darkGray, fontWeight: '600' },
+  smallChipTextActive: { color: Colors.background },
   penaltyBox: { backgroundColor: '#FEF2F2', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FCA5A5' },
   penaltyText: { color: '#991B1B', fontSize: 13, lineHeight: 22, textAlign: 'right', marginBottom: 12, fontWeight: 'bold' },
   switchRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },

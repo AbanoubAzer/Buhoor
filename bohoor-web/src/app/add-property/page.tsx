@@ -289,7 +289,7 @@ export default function AddPropertyPage() {
 
                   <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 transition-all duration-300 ${!penaltyAgreed ? 'opacity-40 pointer-events-none grayscale-[50%]' : ''}`}>
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">الاسم الكريم <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-bold text-gray-700">الاسم  <span className="text-red-500">*</span></label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
                           <UserIcon className="h-5 w-5" />
