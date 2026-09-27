@@ -4,6 +4,7 @@ import { useState } from "react";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { useLanguage } from "@/context/LanguageContext";
+import { api } from "@/api/client";
 
 interface UnitLeadFormProps {
   unitPrice: number;
@@ -30,35 +31,26 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
     e.preventDefault();
     setLoading(true);
 
+    const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
+    const payload = {
+      action: "NEW_LEAD",
+      unitId: typeof window !== 'undefined' ? window.location.href : unitId,
+      sellerType: isDeveloper ? "DEVELOPER" : "INDIVIDUAL",
+      name,
+      phone: formattedPhone,
+      readiness,
+      questions,
+      language,
+      commission: isDeveloper ? "0 (Direct Developer - 0% Commission)" : `${commission} EGP (1.25% Resale)`,
+      source: "WEB",
+    };
+
     try {
-      const payload = {
-        action: "NEW_LEAD",
-        unitId: typeof window !== 'undefined' ? window.location.href : unitId,
-        sellerType: isDeveloper ? "DEVELOPER" : "INDIVIDUAL",
-        name,
-        phone: phone.startsWith('+') ? phone : `+${phone}`,
-        readiness,
-        questions,
-        language,
-        commission: isDeveloper ? "0 (Direct Developer - 0% Commission)" : `${commission} EGP (1.25% Resale)`
-      };
-
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbwm4j0_E7QODiADgwGLiUMPRWlBL7E6Z4fmk8ZVgzffWn5EiUZErnQ0YFJN4J-HYHVNLA/exec",
-        {
-          method: "POST",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
+      await api.leads.create(payload);
       setSuccess(true);
-    } catch (error: any) {
-      console.error(error);
-      alert(isRTL ? `حدث خطأ أثناء الإرسال: ${error?.message || "يرجى المحاولة مرة أخرى."}` : `Error sending request: ${error?.message || "Please try again."}`);
+    } catch (apiError: any) {
+      console.error("Lead creation error:", apiError);
+      alert(isRTL ? "حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى." : "Error sending request. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -74,6 +74,8 @@ model Location {
   governorateAr String?  @map("governorate_ar") @db.VarChar(100)
   governorateEn String?  @map("governorate_en") @db.VarChar(100)
   imageUrl      String?  @map("image_url")
+  latitude      Float?
+  longitude     Float?
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   units Unit[]
@@ -158,6 +160,8 @@ model Unit {
 
   submittedByName  String? @map("submitted_by_name") @db.VarChar(100)
   submittedByPhone String? @map("submitted_by_phone") @db.VarChar(20)
+  latitude         Float?
+  longitude        Float?
 
   status    UnitStatus? @default(APPROVED)
   deletedAt DateTime?   @map("deleted_at") @db.Timestamptz
@@ -233,4 +237,22 @@ model SearchMatch {
   @@index([userSearchId], name: "idx_matches_search")
   @@index([unitId], name: "idx_matches_unit")
   @@map("search_matches")
+}
+
+model Lead {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String   @db.VarChar(150)
+  phone          String   @db.VarChar(50)
+  questions      String?  @db.Text
+  readiness      String?  @db.VarChar(100)
+  sellerType     String?  @map("seller_type") @db.VarChar(50)
+  commission     String?  @db.VarChar(100)
+  language       String?  @default("ar") @db.VarChar(10)
+  unitId         String?  @map("unit_id") @db.VarChar(255)
+  source         String?  @default("WEB") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([createdAt], name: "idx_leads_created_at")
+  @@index([phone], name: "idx_leads_phone")
+  @@map("leads")
 }

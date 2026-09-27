@@ -73,6 +73,26 @@ export default async function AdminSearchesPage() {
         </div>
       </div>
 
+      {/* Tabs navigation */}
+      <div className="flex items-center gap-2 mb-8 border-b border-gray-200 pb-2">
+        <Link
+          href="/admin/leads"
+          className="text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 px-5 py-2.5 rounded-xl font-bold text-sm transition border border-gray-200 flex items-center gap-2"
+        >
+          <span>طلبات المعاينة (Leads)</span>
+        </Link>
+        <Link
+          href="/admin/searches"
+          className="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm flex items-center gap-2"
+        >
+          <SparklesIcon className="w-4 h-4 text-amber-300" />
+          <span>مطابقات البحث الذكي (AI Searches)</span>
+          <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+            {totalSearches}
+          </span>
+        </Link>
+      </div>
+
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-2xs text-right">

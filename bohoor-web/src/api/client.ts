@@ -126,5 +126,29 @@ export const api = {
       return `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3333'}/ai-search/admin/export-excel`;
     },
   },
+  leads: {
+    create: async (data: {
+      name: string;
+      phone: string;
+      questions?: string;
+      readiness?: string;
+      sellerType?: string;
+      commission?: string;
+      language?: string;
+      unitId?: string;
+      source?: string;
+    }) => {
+      return request('/leads', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    getAll: async () => {
+      return request('/leads', { cache: 'no-store' });
+    },
+    getExportUrl: () => {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3333'}/leads/export-excel`;
+    },
+  },
 };
 
