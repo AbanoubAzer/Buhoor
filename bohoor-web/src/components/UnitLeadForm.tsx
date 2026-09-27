@@ -193,24 +193,9 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
             </label>
           </div>
 
-          {/* Agreement Checkbox */}
-          <div className="pt-3 border-t border-gray-100">
-            {isDeveloper ? (
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  required 
-                  checked={agreed} 
-                  onChange={e => setAgreed(e.target.checked)} 
-                  className="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded flex-shrink-0" 
-                />
-                <span className="text-sm text-gray-700 leading-snug">
-                  {isRTL 
-                    ? "أؤكد رغبتي في التواصل لحجز ومعاينة الوحدة مباشرة من المطور."
-                    : "I confirm my request to book and inspect the unit directly from the developer."}
-                </span>
-              </label>
-            ) : (
+          {/* Agreement Checkbox (Only for resale / individual units where commission applies) */}
+          {!isDeveloper && (
+            <div className="pt-3 border-t border-gray-100">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input 
                   type="checkbox" 
@@ -225,12 +210,12 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
                     : <>I agree to Bohoor's 1.25% buyer commission ({commission} EGP), payable only upon successful transfer. The seller pays 0%.</>}
                 </span>
               </label>
-            )}
-          </div>
+            </div>
+          )}
 
           <button 
             type="submit" 
-            disabled={loading || !agreed || !phone || !readiness}
+            disabled={loading || (!isDeveloper && !agreed) || !phone || !readiness}
             className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition shadow-md shadow-primary/20"
           >
             {loading ? (isRTL ? "جاري الإرسال..." : "Sending...") : (isRTL ? "تأكيد الطلب" : "Confirm Inquiry")}
