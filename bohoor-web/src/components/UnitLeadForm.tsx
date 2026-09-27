@@ -91,22 +91,8 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
             : "Leave your name and WhatsApp number, and our team will contact you to review all details."}
         </p>
 
-        {/* Commission Banner */}
-        {isDeveloper ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 mb-5 flex items-start gap-2.5">
-            <span className="text-xl leading-none">🎉</span>
-            <div>
-              <p className="text-xs font-bold text-emerald-900 mb-0.5">
-                {isRTL ? "بدون أي عمولة من المشتري (0% عمولة)" : "No Buyer Commission (0% Commission)"}
-              </p>
-              <p className="text-[11px] text-emerald-700 leading-relaxed font-medium">
-                {isRTL 
-                  ? "العقار معروض مباشرة من المطور العقاري وبنفس أسعار الشركة. لا توجد أي عمولات أو رسوم يتحملها المشتري."
-                  : "Directly listed from the developer at official company rates. No commission or hidden fees for the buyer."}
-              </p>
-            </div>
-          </div>
-        ) : (
+        {/* Commission Banner - only show for resale where commission applies */}
+        {!isDeveloper && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 mb-5 flex items-start gap-2.5">
             <span className="text-xl leading-none">ℹ️</span>
             <div>
@@ -217,8 +203,8 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
                 />
                 <span className="text-sm text-gray-700 leading-snug">
                   {isRTL 
-                    ? <>أؤكد رغبتي في التواصل لحجز ومعاينة الوحدة مباشرة من المطور <strong className="text-emerald-700">(بدون أي عمولة من المشتري — 0%)</strong>.</>
-                    : <>I confirm my request to book and inspect the unit directly from the developer <strong className="text-emerald-700">(0% Buyer Commission)</strong>.</>}
+                    ? "أؤكد رغبتي في التواصل لحجز ومعاينة الوحدة مباشرة من المطور."
+                    : "I confirm my request to book and inspect the unit directly from the developer."}
                 </span>
               </label>
             ) : (
