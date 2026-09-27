@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
@@ -11,6 +11,12 @@ const cairo = Cairo({
   variable: "--font-cairo",
   weight: ["300", "400", "500", "600", "700"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: "منصة بحور | العقارات بأسلوب عصري",
@@ -34,27 +40,27 @@ export default function RootLayout({
             {children}
           </main>
 
-        <footer className="bg-primary text-white pt-0 pb-8 mt-auto rounded-t-[3rem] overflow-hidden">
+        <footer className="bg-primary text-white pt-0 pb-8 mt-auto rounded-t-[2rem] sm:rounded-t-[3rem] overflow-hidden">
           {/* Trust Banner */}
-          <div className="bg-[#0f2142] py-4 relative overflow-hidden mb-12">
+          <div className="bg-[#0f2142] py-4 relative overflow-hidden mb-8 sm:mb-12">
             <div className="absolute inset-y-0 right-0 w-1/3 bg-accent/10 rounded-l-[100px] blur-2xl"></div>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row justify-between items-center text-sm gap-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row justify-between items-center text-sm gap-4 sm:gap-6">
               <div className="flex items-center gap-2 text-gray-300 hover:text-white transition cursor-pointer">
                 <span className="font-bold">عربي</span>
                 <span className="text-lg">🇪🇬</span>
               </div>
               
-              <div className="flex gap-8 items-center text-gray-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-accent" />
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-8 items-center text-xs sm:text-sm text-gray-300">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-accent shrink-0" />
                   <span>دعم وخدمة مميزة</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-accent" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-accent shrink-0" />
                   <span>تجربة آمنة وسهلة</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-accent" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-accent shrink-0" />
                   <span>بيانات فعالة ومؤمنة</span>
                 </div>
               </div>

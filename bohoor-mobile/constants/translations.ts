@@ -109,6 +109,14 @@ export const translations = {
     unitNotFound: 'الوحدة غير موجودة',
     projectNotFound: 'المشروع غير موجود',
     loading: 'جاري التحميل...',
+
+    // Favorites
+    favoriteProperties: 'العقارات المفضلة ❤️',
+    saveFavoriteHint: 'احفظ العقارات التي تعجبك بالضغط على أيقونة القلب لتصل إليها لاحقاً',
+    noFavoritesTitle: 'لا توجد عقارات في المفضلة',
+    noFavoritesSub: 'تصفح قائمة العقارات والمشاريع وقم بالضغط على رمز القلب لحفظ العقارات التي تهتم بها.',
+    exploreProperties: 'استكشف العقارات الآن',
+    roomsSuffix: 'غرف',
   },
 
   en: {
@@ -219,6 +227,14 @@ export const translations = {
     unitNotFound: 'Property not found',
     projectNotFound: 'Project not found',
     loading: 'Loading...',
+
+    // Favorites
+    favoriteProperties: 'Favorite Properties ❤️',
+    saveFavoriteHint: 'Save properties you like by tapping the heart icon to view them later',
+    noFavoritesTitle: 'No Saved Properties',
+    noFavoritesSub: 'Browse properties and projects and tap the heart icon to save the ones you love.',
+    exploreProperties: 'Explore Properties Now',
+    roomsSuffix: 'rooms',
   }
 };
 

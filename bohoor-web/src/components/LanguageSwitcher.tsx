@@ -33,11 +33,12 @@ export default function LanguageSwitcher({
     <button
       type="button"
       onClick={toggleLanguage}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold border border-gray-200 hover:border-primary/40 bg-white/80 hover:bg-white text-gray-700 hover:text-primary transition shadow-xs backdrop-blur-sm ${className}`}
+      className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 hover:border-primary/40 bg-white/80 hover:bg-white text-gray-700 hover:text-primary transition shadow-xs backdrop-blur-sm shrink-0 ${className}`}
       title="تغيير اللغة / Switch Language"
     >
       <GlobeAltIcon className="w-4 h-4 text-primary shrink-0" />
-      <span className="text-sm">{language === 'ar' ? '🇬🇧 English' : '🇪🇬 عربي'}</span>
+      <span className="hidden sm:inline text-sm">{language === 'ar' ? '🇬🇧 English' : '🇪🇬 عربي'}</span>
+      <span className="sm:hidden text-xs font-bold">{language === 'ar' ? 'EN' : 'عربي'}</span>
     </button>
   );
 }

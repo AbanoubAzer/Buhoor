@@ -172,6 +172,13 @@ export const translations = {
     backHome: 'العودة للرئيسية',
     errorOccurred: 'حدث خطأ غير متوقع',
     tryAgain: 'إعادة المحاولة',
+
+    // Favorites Page
+    favoriteProperties: 'العقارات المفضلة',
+    favoritesPageSub: 'جميع الوحدات والعقارات التي قمت بحفظها للرجوع إليها لاحقاً تظهر هنا.',
+    noFavoritesTitle: 'لا توجد عقارات في المفضلة',
+    noFavoritesSub: 'قم بتصفح العقارات المتاحة واضغط على علامة القلب (❤️) لحفظ العقارات التي تنال إعجابك للرجوع لها بسرعة في أي وقت.',
+    browseUnitsNow: 'تصفح العقارات الآن',
   },
 
   en: {
@@ -345,6 +352,13 @@ export const translations = {
     backHome: 'Back to Home',
     errorOccurred: 'An unexpected error occurred',
     tryAgain: 'Try Again',
+
+    // Favorites Page
+    favoriteProperties: 'Favorite Properties',
+    favoritesPageSub: 'All properties and units you have saved for later reference appear here.',
+    noFavoritesTitle: 'No Saved Properties',
+    noFavoritesSub: 'Browse available properties and tap the heart icon (❤️) to save your favorites for quick access anytime.',
+    browseUnitsNow: 'Browse Properties Now',
   }
 };
 

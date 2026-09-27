@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { Image } from 'expo-image';
-import { Heart, MapPin, Maximize2, BedDouble, Trash2, ArrowRight } from 'lucide-react-native';
+import { Heart, MapPin, Maximize2, BedDouble, Trash2, ArrowRight, TrendingUp } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import { useStore } from '../../store/useStore';
 
@@ -16,14 +16,23 @@ const getDirectImageUrl = (url: string) => {
 };
 
 export default function FavoritesTab() {
-  const { units, favorites, toggleFavorite, isFavorite } = useStore();
+  const { units, favorites, toggleFavorite, isFavorite, language, t, getLocalized } = useStore();
+  const isRtl = language === 'ar';
 
   const favoriteUnits = units.filter((unit) => isFavorite(unit.id));
 
   const renderUnit = ({ item: unit }: { item: any }) => {
     const cover = unit.coverImage || (unit.images && unit.images[0]);
     const price = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
-    const locName = unit.location?.name || unit.project?.location || '';
+    const unitTitle = getLocalized(unit, 'title') || unit.title;
+    const locName = getLocalized(unit, 'location') || unit.location?.name || unit.project?.location || '';
+    const isSea = Boolean(
+      unit.isSeaView ||
+      unit.location?.name?.includes('جونة') ||
+      unit.location?.name?.includes('ساحل') ||
+      unit.location?.name?.includes('بحر')
+    );
+    const roi = Number(unit.expectedRentalRoi) > 0 ? Number(unit.expectedRentalRoi) : (isSea ? 16.5 : 12);
 
     return (
       <Link href={`/unit/${unit.id}`} asChild>
@@ -37,12 +46,12 @@ export default function FavoritesTab() {
             />
           ) : (
             <View style={[styles.image, styles.placeholder]}>
-              <Text style={styles.placeholderText}>لا توجد صورة</Text>
+              <Text style={styles.placeholderText}>{t('noCoverImage') || (isRtl ? 'لا توجد صورة' : 'No Image')}</Text>
             </View>
           )}
 
           <TouchableOpacity 
-            style={styles.favoriteBtn} 
+            style={[styles.favoriteBtn, isRtl ? { left: 12 } : { right: 12 }]} 
             onPress={() => toggleFavorite(unit.id)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -50,41 +59,51 @@ export default function FavoritesTab() {
           </TouchableOpacity>
 
           <View style={styles.cardBody}>
-            <View style={styles.topMeta}>
+            <View style={[styles.topMeta, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <Text style={unit.sellerType === 'DEVELOPER' ? styles.devBadge : styles.typeBadge}>
-                {unit.sellerType === 'DEVELOPER' ? '🏢 مطور مباشر' : '👤 أفراد'}
+                {unit.sellerType === 'DEVELOPER' ? t('developerBadge') : t('resaleBadge')}
               </Text>
-              {unit.isSeaView && <Text style={styles.seaBadge}>🌊 إطلالة بحر</Text>}
+              {unit.isSeaView && <Text style={styles.seaBadge}>🌊 {t('seaView')}</Text>}
+              <View style={styles.roiBadge}>
+                <TrendingUp size={11} color="#065F46" />
+                <Text style={styles.roiBadgeText}>{t('roi')} {roi}%</Text>
+              </View>
             </View>
 
-            <Text style={styles.unitName} numberOfLines={1}>{unit.title}</Text>
+            <Text style={[styles.unitName, { textAlign: isRtl ? 'right' : 'left' }]} numberOfLines={1}>
+              {unitTitle}
+            </Text>
             
             {locName ? (
-              <View style={styles.locRow}>
-                <Text style={styles.locText} numberOfLines={1}>{locName}</Text>
+              <View style={[styles.locRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 <MapPin size={14} color={Colors.darkGray} />
+                <Text style={[styles.locText, { textAlign: isRtl ? 'right' : 'left' }]} numberOfLines={1}>
+                  {locName}
+                </Text>
               </View>
             ) : null}
 
-            <View style={styles.specsRow}>
+            <View style={[styles.specsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               {unit.area ? (
-                <View style={styles.specItem}>
-                  <Text style={styles.specVal}>{unit.area} م²</Text>
+                <View style={[styles.specItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <Maximize2 size={12} color={Colors.darkGray} />
+                  <Text style={styles.specVal}>{unit.area} {t('sqm')}</Text>
                 </View>
               ) : null}
               {unit.bedrooms ? (
-                <View style={styles.specItem}>
-                  <Text style={styles.specVal}>{unit.bedrooms} غرف</Text>
+                <View style={[styles.specItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <BedDouble size={12} color={Colors.darkGray} />
+                  <Text style={styles.specVal}>{unit.bedrooms} {t('roomsSuffix') || (isRtl ? 'غرف' : 'beds')}</Text>
                 </View>
               ) : null}
             </View>
 
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>{price.toLocaleString('ar-EG')} ج.م</Text>
+            <View style={[styles.priceRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+              <Text style={styles.price}>{price.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
               <Text style={styles.priceLabel}>
-                {unit.sellerType === 'DEVELOPER' ? 'السعر / المقدم:' : 'المطلوب كاش:'}
+                {unit.sellerType === 'DEVELOPER' 
+                  ? (isRtl ? 'السعر / المقدم:' : 'Price / Down Payment:') 
+                  : (isRtl ? 'المطلوب كاش:' : 'Cash Required:')}
               </Text>
             </View>
           </View>
@@ -95,13 +114,15 @@ export default function FavoritesTab() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerSubtitle}>
+      <View style={[styles.header, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+        <Text style={[styles.headerSubtitle, { textAlign: isRtl ? 'right' : 'left' }]}>
           {favoriteUnits.length > 0
-            ? `لديك ${favoriteUnits.length} عقار محفوظ في قائمتك المفضلة`
-            : 'احفظ العقارات التي تعجبك بالضغط على أيقونة القلب لتصل إليها لاحقاً'}
+            ? (isRtl 
+                ? `لديك ${favoriteUnits.length} عقار محفوظ في قائمتك المفضلة` 
+                : `You have ${favoriteUnits.length} saved properties in your wishlist`)
+            : t('saveFavoriteHint')}
         </Text>
-        <Text style={styles.headerTitle}>العقارات المفضلة ❤️</Text>
+        <Text style={styles.headerTitle}>{t('favoriteProperties')}</Text>
       </View>
 
       {favoriteUnits.length === 0 ? (
@@ -109,14 +130,12 @@ export default function FavoritesTab() {
           <View style={styles.emptyIconBg}>
             <Heart size={48} color={Colors.accent} />
           </View>
-          <Text style={styles.emptyTitle}>لا توجد عقارات في المفضلة</Text>
-          <Text style={styles.emptySub}>
-            تصفح قائمة العقارات والمشاريع وقم بالضغط على رمز القلب لحفظ العقارات التي تهتم بها.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('noFavoritesTitle')}</Text>
+          <Text style={styles.emptySub}>{t('noFavoritesSub')}</Text>
           <Link href="/units" asChild>
-            <TouchableOpacity style={styles.browseBtn}>
-              <Text style={styles.browseBtnText}>استكشف العقارات الآن</Text>
-              <ArrowRight size={18} color="#fff" />
+            <TouchableOpacity style={[styles.browseBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+              <Text style={styles.browseBtnText}>{t('exploreProperties')}</Text>
+              <ArrowRight size={18} color="#fff" style={!isRtl ? { transform: [{ rotate: '0deg' }] } : { transform: [{ rotate: '180deg' }] }} />
             </TouchableOpacity>
           </Link>
         </View>
@@ -202,6 +221,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
+  },
+  roiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  roiBadgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#065F46',
   },
   unitName: { fontSize: 16, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 6 },
   locRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, marginBottom: 8 },

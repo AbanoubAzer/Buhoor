@@ -49,19 +49,20 @@ export default async function Home() {
   ];
 
   return (
-    <div className="flex flex-col gap-20 pb-16">
+    <div className="flex flex-col gap-10 sm:gap-16 lg:gap-20 pb-16">
       
       {/* Floating WhatsApp Button */}
       <a 
         href="https://wa.me/201000000000" 
         target="_blank" 
         rel="noreferrer"
-        className="fixed bottom-6 left-6 z-50 bg-[#25D366] hover:bg-[#20bd5a] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center group"
+        className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 bg-[#25D366] hover:bg-[#20bd5a] text-white p-3 sm:p-4 rounded-full shadow-xl hover:scale-105 transition-transform flex items-center justify-center group"
+        aria-label="تواصل عبر واتساب"
       >
-        <span className="absolute right-full mr-4 bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+        <span className="hidden sm:inline-block absolute right-full mr-4 bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
           تحدث مع خبير
         </span>
-        <ChatBubbleLeftRightIcon className="w-8 h-8" />
+        <ChatBubbleLeftRightIcon className="w-6 h-6 sm:w-8 sm:h-8" />
       </a>
 
       <HeroSlider initialSlides={heroSlides} allProjects={projectsData} />

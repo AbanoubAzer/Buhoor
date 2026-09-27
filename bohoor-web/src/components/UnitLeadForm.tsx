@@ -89,8 +89,8 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
         </div>
       )}
       
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 sticky top-24" dir={isRTL ? 'rtl' : 'ltr'}>
-        <h3 className="text-xl font-bold text-primary mb-2">
+      <div className="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 sticky top-24" dir={isRTL ? 'rtl' : 'ltr'}>
+        <h3 className="text-lg sm:text-xl font-bold text-primary mb-2">
           {isRTL ? "عايز تلحق تحجز الفرصة ديه؟" : "Want to secure this opportunity?"}
         </h3>
         <p className="text-sm text-gray-500 mb-4 leading-relaxed">

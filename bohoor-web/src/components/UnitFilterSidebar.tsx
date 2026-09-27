@@ -567,6 +567,19 @@ export default function UnitFilterSidebar({
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
           <button
             type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('open-ai-search'));
+              }
+            }}
+            className="whitespace-nowrap px-3.5 py-1.5 rounded-full font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white shadow-md shadow-indigo-500/20 flex items-center gap-1.5 active:scale-95 transition border border-indigo-400/30"
+          >
+            <SparklesIcon className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+            <span>البحث الذكي بالـ AI</span>
+          </button>
+          <button
+            type="button"
             onClick={() => handleQuickPill('isCashOnly', 'true')}
             className={`whitespace-nowrap px-3 py-1.5 rounded-full font-bold border transition ${
               currentParams.isCashOnly === 'true'

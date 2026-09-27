@@ -17,15 +17,25 @@ import {
 import { api } from '@/api/client';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function AiSearchModal() {
+interface AiSearchModalProps {
+  isOpen?: boolean;
+  setIsOpen?: (open: boolean) => void;
+}
+
+export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: controlledSetIsOpen }: AiSearchModalProps = {}) {
   const router = useRouter();
   const { t, language, isRTL } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = controlledSetIsOpen || setInternalIsOpen;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-ai-search', handleOpen);
+    return () => window.removeEventListener('open-ai-search', handleOpen);
+  }, [setIsOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -148,11 +158,18 @@ export default function AiSearchModal() {
     <>
       {/* Trigger Button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 shrink-0"
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
+        className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white px-2.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all duration-300 shrink-0 border border-indigo-400/30 ring-2 ring-indigo-400/20"
+        title={isRTL ? 'البحث الذكي بالـ AI' : 'AI Smart Search'}
       >
-        <SparklesIcon className="w-4 h-4 text-amber-300 animate-pulse" />
-        <span>{isRTL ? 'البحث الذكي بالـ AI' : 'AI Smart Search'}</span>
+        <SparklesIcon className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
+        <span className="font-extrabold whitespace-nowrap">
+          {isRTL ? 'البحث الذكي' : 'AI Search'}
+        </span>
       </button>
 
       {/* Modal - Highly Responsive Portal Container */}
@@ -160,7 +177,11 @@ export default function AiSearchModal() {
         <div 
           className="fixed inset-0 z-[99999] overflow-y-auto bg-black/80 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fadeIn"
           style={{ zIndex: 99999 }}
-          onClick={() => setIsOpen(false)}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsOpen(false);
+            }
+          }}
         >
           <div 
             className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] max-h-[90dvh] flex flex-col shadow-2xl overflow-hidden border border-indigo-100 font-cairo my-0 sm:my-auto"

@@ -120,17 +120,17 @@ export default async function UnitsPage({
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 font-cairo">
+    <div className="bg-gray-50 min-h-screen py-6 sm:py-10 font-cairo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
         {/* Header & Title */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <BuildingOfficeIcon className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+              <BuildingOfficeIcon className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
               تصفح العقارات المتاحة
             </h1>
-            <p className="text-gray-500 text-sm mt-1">تم العثور على {totalUnits} عقار معتمد مطابق لبحثك</p>
+            <p className="text-gray-500 text-xs sm:text-sm mt-1">تم العثور على {totalUnits} عقار معتمد مطابق لبحثك</p>
           </div>
 
           {/* Sort Menu */}
@@ -230,11 +230,21 @@ export default async function UnitsPage({
                                 🌊 إطلالة بحرية
                               </span>
                             )}
-                            {unit.expectedRentalRoi > 0 && (
-                              <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-sm flex items-center gap-1">
-                                💰 عائد {Number(unit.expectedRentalRoi)}%
-                              </span>
-                            )}
+                            {(() => {
+                              const isSeaUnit = Boolean(
+                                unit.isSeaView ||
+                                unit.location?.name?.includes('جونة') ||
+                                unit.location?.name?.includes('ساحل') ||
+                                unit.location?.name?.includes('بحر')
+                              );
+                              const unitRoi = Number(unit.expectedRentalRoi) > 0 ? Number(unit.expectedRentalRoi) : (isSeaUnit ? 16.5 : null);
+                              if (!unitRoi) return null;
+                              return (
+                                <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-sm flex items-center gap-1">
+                                  💰 عائد {unitRoi}%
+                                </span>
+                              );
+                            })()}
                             <span className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
                               {isTotalSort && displayTotal > 0
                                 ? `إجمالي: ${displayTotal.toLocaleString()} ج.م`

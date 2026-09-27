@@ -209,7 +209,30 @@ export default function HeroSlider({ initialSlides = [], allProjects = [] }: { i
 
       {/* Floating Search Bar */}
       <div className="relative lg:absolute lg:-bottom-8 left-0 right-0 max-w-5xl mx-auto px-4 z-30 mt-4 lg:mt-0">
-        <div className="bg-white p-2 lg:p-2 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] flex flex-col md:flex-row items-stretch md:items-center gap-2 border border-gray-100 relative">
+        <div className="bg-white p-2.5 lg:p-2 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] flex flex-col md:flex-row items-stretch md:items-center gap-2 border border-gray-100 relative">
+          
+          {/* Mobile AI Search Quick Action */}
+          <div className="md:hidden w-full">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('open-ai-search'));
+                }
+              }}
+              className="w-full flex items-center justify-between bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white px-3.5 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-indigo-500/20 active:scale-98 transition-all border border-indigo-400/30"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base animate-pulse">✨</span>
+                <span>البحث الذكي بالذكاء الاصطناعي (AI)</span>
+              </div>
+              <span className="bg-white/20 text-white text-[11px] font-black px-2 py-0.5 rounded-lg flex items-center gap-1">
+                مطابقة فورية &larr;
+              </span>
+            </button>
+          </div>
+
           <div className="w-full flex-[1.5] flex items-center border-b md:border-b-0 md:border-l border-gray-100 px-4 py-3 relative">
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 mr-2" />
             <input 
