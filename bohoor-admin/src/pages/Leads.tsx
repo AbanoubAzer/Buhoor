@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../api/client';
 import { 
   ArrowDownTrayIcon, 
@@ -22,7 +22,7 @@ export default function LeadsPage() {
   const [filterText, setFilterText] = useState('');
   const toast = useToast();
 
-  const googleSheets = {
+  const googleSheets = useMemo(() => ({
     properties: {
       name: 'عرض العقارات (الملاك - شيت 2)',
       gid: '392586599',
@@ -33,13 +33,9 @@ export default function LeadsPage() {
       gid: '835859943',
       url: 'https://docs.google.com/spreadsheets/d/1cC-IO1uMUJ0DF7JOu6xLvXc8-3xPOJdiu2_kqoP-GEI/htmlembed?gid=835859943&widget=true&headers=true'
     }
-  };
+  }), []);
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.leads.getAll(1, 100);
@@ -51,26 +47,47 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const exportUrl = api.leads.getExportUrl();
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
 
-  const filteredLeads = leads.filter((l) => {
-    if (!filterText.trim()) return true;
-    const txt = filterText.toLowerCase();
-    return (
+  const exportUrl = useMemo(() => api.leads.getExportUrl(), []);
+
+  // Memoize search/filter to avoid re-evaluating on unrelated renders
+  const filteredLeads = useMemo(() => {
+    if (!filterText.trim()) return leads;
+    const txt = filterText.toLowerCase().trim();
+    return leads.filter((l) =>
       (l.name && l.name.toLowerCase().includes(txt)) ||
       (l.phone && l.phone.includes(txt)) ||
       (l.questions && l.questions.toLowerCase().includes(txt)) ||
       (l.readiness && l.readiness.toLowerCase().includes(txt)) ||
       (l.unitId && l.unitId.toLowerCase().includes(txt))
     );
-  });
+  }, [leads, filterText]);
 
-  const totalLeads = leads.length;
-  const readyNowCount = leads.filter((l) => l.readiness && l.readiness.includes('النهاردة')).length;
-  const developerCount = leads.filter((l) => l.sellerType === 'DEVELOPER').length;
-  const resaleCount = leads.filter((l) => l.sellerType === 'INDIVIDUAL').length;
+  // Single-pass memoized KPI calculations
+  const stats = useMemo(() => {
+    let readyNow = 0;
+    let developer = 0;
+    let resale = 0;
+
+    for (let i = 0; i < leads.length; i++) {
+      const l = leads[i];
+      if (l.readiness && l.readiness.includes('النهاردة')) readyNow++;
+      if (l.sellerType === 'DEVELOPER') developer++;
+      else if (l.sellerType === 'INDIVIDUAL') resale++;
+    }
+
+    return {
+      total: leads.length,
+      readyNow,
+      developer,
+      resale,
+    };
+  }, [leads]);
 
   return (
     <div className="flex flex-col gap-6 font-arabic p-2 sm:p-4" dir="rtl">
@@ -188,25 +205,25 @@ export default function LeadsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
           <span className="text-xs font-bold text-gray-400 block mb-1">إجمالي طلبات المعاينة</span>
-          <span className="text-3xl font-black text-gray-900">{totalLeads}</span>
+          <span className="text-3xl font-black text-gray-900">{stats.total}</span>
           <span className="text-xs text-gray-500 font-semibold block mt-1">طلب مسجل في قاعدة البيانات</span>
         </div>
 
         <div className="bg-gradient-to-br from-emerald-50 to-white p-5 rounded-2xl border border-emerald-100 shadow-xs">
           <span className="text-xs font-bold text-emerald-700 block mb-1">🔥 جاهزون للتنفيذ الفوري</span>
-          <span className="text-3xl font-black text-emerald-800">{readyNowCount}</span>
+          <span className="text-3xl font-black text-emerald-800">{stats.readyNow}</span>
           <span className="text-xs text-emerald-600 font-semibold block mt-1">أولوية اتصال عاجل (خلال 48 س)</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-xs">
           <span className="text-xs font-bold text-blue-700 block mb-1">🏢 وحدات مطورين (0% عمولة)</span>
-          <span className="text-3xl font-black text-blue-900">{developerCount}</span>
+          <span className="text-3xl font-black text-blue-900">{stats.developer}</span>
           <span className="text-xs text-blue-600 font-semibold block mt-1">عرض مباشر من شركة التطوير</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-amber-100 shadow-xs">
           <span className="text-xs font-bold text-amber-800 block mb-1">👤 إعادة بيع أفراد (1.25%)</span>
-          <span className="text-3xl font-black text-amber-900">{resaleCount}</span>
+          <span className="text-3xl font-black text-amber-900">{stats.resale}</span>
           <span className="text-xs text-amber-700 font-semibold block mt-1">مع عمولة المنصة</span>
         </div>
       </div>
@@ -227,7 +244,7 @@ export default function LeadsPage() {
           </div>
 
           <div className="text-xs text-gray-500 font-bold self-end sm:self-center">
-            عرض {filteredLeads.length} من أصل {totalLeads} طلب
+            عرض {filteredLeads.length} من أصل {stats.total} طلب
           </div>
         </div>
 
@@ -411,6 +428,7 @@ export default function LeadsPage() {
               src={`https://docs.google.com/spreadsheets/d/1cC-IO1uMUJ0DF7JOu6xLvXc8-3xPOJdiu2_kqoP-GEI/htmlembed?gid=${activeSheetGid}&widget=true&headers=true`}
               className="w-full h-full border-0 z-10 relative bg-transparent"
               title="Property Submissions Sheet"
+              loading="lazy"
             />
           </div>
         </div>

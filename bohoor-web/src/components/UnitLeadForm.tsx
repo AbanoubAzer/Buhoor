@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { useLanguage } from "@/context/LanguageContext";
@@ -24,8 +24,11 @@ export default function UnitLeadForm({ unitPrice, unitId, sellerType = 'DEVELOPE
 
   const isDeveloper = sellerType === 'DEVELOPER';
 
-  // Calculate 1.25% commission only for individuals/resale
-  const commission = isDeveloper ? "0" : (unitPrice ? (unitPrice * 0.0125).toLocaleString(isRTL ? 'ar-EG' : 'en-US') : "0");
+  // Memoize 1.25% commission only for individuals/resale
+  const commission = useMemo(() => {
+    if (isDeveloper) return "0";
+    return unitPrice ? (unitPrice * 0.0125).toLocaleString(isRTL ? 'ar-EG' : 'en-US') : "0";
+  }, [isDeveloper, unitPrice, isRTL]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
