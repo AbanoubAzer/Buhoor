@@ -29,7 +29,7 @@ export default async function DevelopersPage() {
               <p className="text-gray-500 text-sm mb-4 line-clamp-2">
                 {dev.bio || 'مطور عقاري معتمد في منصة بحور.'}
               </p>
-              <Link href={`/developers/${dev.id}`} className="inline-block bg-primary/10 text-accent hover:bg-primary hover:text-white font-medium px-6 py-2 rounded-xl transition w-full">
+              <Link href={`/developers/${dev.slug || dev.id}`} className="inline-block bg-primary/10 text-accent hover:bg-primary hover:text-white font-medium px-6 py-2 rounded-xl transition w-full">
                 عرض المشاريع
               </Link>
             </div>

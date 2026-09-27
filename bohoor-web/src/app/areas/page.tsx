@@ -54,7 +54,7 @@ export default async function AreasPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {groupedLocations[govName].map((loc: any, i: number) => (
                     <Link 
-                      href={`/units?locationId=${loc.id}`} 
+                      href={`/units?location=${encodeURIComponent(loc.nameAr || loc.name)}`} 
                       key={loc.id || i} 
                       className="relative h-72 rounded-3xl overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500 block"
                     >

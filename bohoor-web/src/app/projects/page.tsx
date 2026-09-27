@@ -22,7 +22,7 @@ export default async function ProjectsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((proj: any) => (
-            <Link href={`/projects/${proj.id}`} key={proj.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl transition-all group flex flex-col hover:-translate-y-1 duration-300">
+            <Link href={`/projects/${proj.slug || proj.id}`} key={proj.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl transition-all group flex flex-col hover:-translate-y-1 duration-300">
               <div className="h-64 relative overflow-hidden">
                 <img src={proj.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab'} alt={proj.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />

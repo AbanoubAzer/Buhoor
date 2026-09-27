@@ -87,7 +87,7 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
 
   return (
     <>
-      <OpenInAppBanner path={`units/${unit.id}`} title={title} />
+      <OpenInAppBanner path={`units/${unit.code || unit.id}`} title={title} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 w-full" dir={isRTL ? 'rtl' : 'ltr'}>
         {/* Breadcrumbs & Action Bar */}
@@ -238,7 +238,7 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
                     {unit.developer && (
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-indigo-600 font-bold uppercase tracking-wider">{t('developer')}:</span>
-                        <Link href={`/developers/${unit.developer.id}`} className="text-base font-bold text-indigo-950 hover:text-primary transition underline decoration-indigo-300">
+                        <Link href={`/developers/${unit.developer.slug || unit.developer.id}`} className="text-base font-bold text-indigo-950 hover:text-primary transition underline decoration-indigo-300">
                           🏢 {getLocalized(unit.developer, 'name') || unit.developer.name}
                         </Link>
                       </div>
@@ -246,7 +246,7 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
                     {unit.project && (
                       <div className="flex items-center gap-2 text-sm text-gray-700">
                         <span className="text-xs text-purple-600 font-bold uppercase tracking-wider">{t('project')}:</span>
-                        <Link href={`/projects/${unit.project.id}`} className="font-bold text-purple-950 hover:text-primary transition underline decoration-purple-300">
+                        <Link href={`/projects/${unit.project.slug || unit.project.id}`} className="font-bold text-purple-950 hover:text-primary transition underline decoration-purple-300">
                           🏗️ {getLocalized(unit.project, 'name') || unit.project.name}
                         </Link>
                       </div>
@@ -254,7 +254,7 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
                   </div>
                   {unit.project && (
                     <Link 
-                      href={`/projects/${unit.project.id}`}
+                      href={`/projects/${unit.project.slug || unit.project.id}`}
                       className="bg-white hover:bg-indigo-50 text-indigo-950 border border-indigo-200 text-xs font-bold px-4 py-2 rounded-xl transition shadow-2xs whitespace-nowrap"
                     >
                       {t('viewProjectDetails')} &larr;
@@ -597,7 +597,7 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
                 unit.cashPaidToSeller,
                 unit.originalContractPrice
               ].map(v => Number(v)).find(v => v && v > 0) || 0} 
-              unitId={unit.id} 
+              unitId={unit.code || unit.id} 
               sellerType={unit.sellerType}
             />
 

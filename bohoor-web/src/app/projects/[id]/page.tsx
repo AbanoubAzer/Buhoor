@@ -1,9 +1,10 @@
 import { api } from "@/api/client";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
 import ProjectDetailsView from "@/components/ProjectDetailsView";
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -20,7 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const description = project.descriptionAr || project.description || project.descriptionEn || `اكتشف مشروع ${title} في ${project.location || 'مصر'}. تفاصيل الوحدات والأسعار ومخططات المشروع على منصة بُحور.`;
 
     const coverImage = project.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200';
-    const canonicalUrl = `https://buhoor-web.vercel.app/projects/${id}`;
+    const canonicalSlug = project.slug || id;
+    const canonicalUrl = `https://buhoor-web.vercel.app/projects/${canonicalSlug}`;
 
     return {
       title: `مشروع ${title} | ${project.developer?.name || 'بُحور'}`,
@@ -51,10 +53,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         images: [coverImage],
       },
       other: {
-        'al:ios:url': `bohoor://projects/${id}`,
+        'al:ios:url': `bohoor://projects/${canonicalSlug}`,
         'al:ios:app_store_id': '123456789',
         'al:ios:app_name': 'Bohoor',
-        'al:android:url': `bohoor://projects/${id}`,
+        'al:android:url': `bohoor://projects/${canonicalSlug}`,
         'al:android:package': 'com.bohoor.app',
         'al:android:app_name': 'Bohoor',
       }
@@ -71,17 +73,28 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   const { id } = await params;
 
   let project: any;
-  let unitsRes: any;
   try {
     project = await api.projects.getOne(id);
-    unitsRes = await api.units.getAll({ projectId: id, status: 'APPROVED', limit: 50 });
-  } catch (error) {
+  } catch {
     notFound();
   }
 
   if (!project) notFound();
 
-  const units = unitsRes.data || [];
+  // If accessed by raw UUID and project has a clean slug, redirect to clean URL
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  if (isUuid && project.slug) {
+    redirect(`/projects/${project.slug}`);
+  }
+
+  let unitsRes: any = { data: [] };
+  try {
+    unitsRes = await api.units.getAll({ projectId: project.id, status: 'APPROVED', limit: 50 });
+  } catch {
+    unitsRes = { data: [] };
+  }
+
+  const units = unitsRes?.data || [];
 
   return <ProjectDetailsView project={project} units={units} />;
 }

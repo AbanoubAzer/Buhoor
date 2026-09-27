@@ -23,6 +23,7 @@ interface UnitFilterSidebarProps {
     isCashOnly?: string;
     governorate?: string;
     locationId?: string;
+    location?: string;
     unitTypeId?: string;
     developerId?: string;
     projectId?: string;
@@ -73,7 +74,15 @@ export default function UnitFilterSidebar({
   const [sellerType, setSellerType] = useState(currentParams.sellerType || 'ALL');
   const [isCashOnly, setIsCashOnly] = useState(currentParams.isCashOnly || 'all');
   const [selectedGov, setSelectedGov] = useState(currentParams.governorate || '');
-  const [selectedLoc, setSelectedLoc] = useState(currentParams.locationId || '');
+  
+  const initialLocId = (() => {
+    if (currentParams.location) {
+      const found = locations.find((l: any) => l.name === currentParams.location || l.nameAr === currentParams.location);
+      if (found) return found.id;
+    }
+    return currentParams.locationId || '';
+  })();
+  const [selectedLoc, setSelectedLoc] = useState(initialLocId);
   const [selectedUnitType, setSelectedUnitType] = useState(currentParams.unitTypeId || '');
   const [selectedDev, setSelectedDev] = useState(currentParams.developerId || '');
   const [seaView, setSeaView] = useState(currentParams.seaView === 'true');
@@ -84,7 +93,7 @@ export default function UnitFilterSidebar({
     currentParams.sellerType && currentParams.sellerType !== 'ALL',
     currentParams.isCashOnly && currentParams.isCashOnly !== 'all',
     Boolean(currentParams.governorate),
-    Boolean(currentParams.locationId),
+    Boolean(currentParams.location || currentParams.locationId),
     Boolean(currentParams.unitTypeId),
     Boolean(currentParams.developerId),
     Boolean(currentParams.minCashRequired || currentParams.maxCashRequired),
@@ -121,7 +130,14 @@ export default function UnitFilterSidebar({
 
     // Governorate & Location
     if (selectedGov) p.set('governorate', selectedGov);
-    if (selectedLoc) p.set('locationId', selectedLoc);
+    if (selectedLoc) {
+      const found = locations.find((l: any) => l.id === selectedLoc);
+      if (found) {
+        p.set('location', found.nameAr || found.name);
+      } else {
+        p.set('location', selectedLoc);
+      }
+    }
 
     // Numeric Ranges
     const minCash = formData.get('minCashRequired')?.toString();

@@ -22,7 +22,7 @@ export default function ProjectDetailsView({ project, units }: ProjectDetailsVie
 
   return (
     <>
-      <OpenInAppBanner path={`projects/${project.id}`} title={projectName} />
+      <OpenInAppBanner path={`projects/${project.slug || project.id}`} title={projectName} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full" dir={isRTL ? 'rtl' : 'ltr'}>
         {/* Navigation & Share */}
@@ -30,7 +30,7 @@ export default function ProjectDetailsView({ project, units }: ProjectDetailsVie
           <nav className="flex text-sm text-gray-500 font-medium items-center flex-wrap gap-1">
             <Link href="/" className="hover:text-primary transition">{t('home')}</Link>
             <span className="mx-1">/</span>
-            <Link href={`/developers/${project.developerId}`} className="hover:text-primary transition">
+            <Link href={`/developers/${project.developer?.slug || project.developerId}`} className="hover:text-primary transition">
               {developerName || t('developer')}
             </Link>
             <span className="mx-1">/</span>
@@ -40,8 +40,8 @@ export default function ProjectDetailsView({ project, units }: ProjectDetailsVie
           <ShareButton 
             title={projectName}
             description={`${projectLocation ? projectLocation + ' • ' : ''}${developerName || ''}`}
-            deepLinkPath={`projects/${project.id}`}
-            url={`https://buhoor-web.vercel.app/projects/${project.id}`}
+            deepLinkPath={`projects/${project.slug || project.id}`}
+            url={`https://buhoor-web.vercel.app/projects/${project.slug || project.id}`}
             buttonText={t('shareProject')}
             variant="outline"
           />

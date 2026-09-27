@@ -1,9 +1,10 @@
 import { api } from "@/api/client";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { BuildingOfficeIcon, MapPinIcon } from "@heroicons/react/24/outline";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function DeveloperDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,12 +13,20 @@ export default async function DeveloperDetailsPage({ params }: { params: Promise
   let projects: any[] = [];
   try {
     developer = await api.developers.getOne(id);
-    projects = await api.projects.getAll(id);
-  } catch (error) {
+    if (!developer) notFound();
+
+    // Redirect UUID to clean slug early (before fetching projects)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    if (isUuid && developer.slug) {
+      redirect(`/developers/${developer.slug}`);
+    }
+
+    projects = await api.projects.getAll(developer.id).catch(() => []);
+  } catch (err: any) {
+    if (err?.digest?.startsWith('NEXT_REDIRECT')) throw err;
     notFound();
   }
 
-  if (!developer) notFound();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
@@ -53,7 +62,7 @@ export default async function DeveloperDetailsPage({ params }: { params: Promise
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((proj: any) => (
-              <Link href={`/projects/${proj.id}`} key={proj.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 group hover:shadow-xl transition-all duration-300 flex flex-col">
+              <Link href={`/projects/${proj.slug || proj.id}`} key={proj.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 group hover:shadow-xl transition-all duration-300 flex flex-col">
                 <div className="h-48 overflow-hidden relative">
                   <img 
                     src={proj.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800'} 

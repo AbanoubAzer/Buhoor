@@ -43,6 +43,7 @@ model Developer {
 
 model Project {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug          String?   @unique @db.VarChar(150)
   developerId   String    @map("developer_id") @db.Uuid
   developer     Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
   name          String    @db.VarChar(150)

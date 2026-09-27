@@ -1,4 +1,5 @@
 import { api } from "@/api/client";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import UnitSortSelector from "@/components/UnitSortSelector";
 import UnitFilterSidebar from "@/components/UnitFilterSidebar";
@@ -26,7 +27,8 @@ export default async function UnitsPage({
   const sellerType = typeof resolvedParams.sellerType === 'string' ? resolvedParams.sellerType : undefined;
   const isCashOnly = typeof resolvedParams.isCashOnly === 'string' ? resolvedParams.isCashOnly : undefined;
   const governorate = typeof resolvedParams.governorate === 'string' ? resolvedParams.governorate : undefined;
-  const locationId = typeof resolvedParams.locationId === 'string' ? resolvedParams.locationId : undefined;
+  const locationNameParam = typeof resolvedParams.location === 'string' ? resolvedParams.location : undefined;
+  const rawLocationId = typeof resolvedParams.locationId === 'string' ? resolvedParams.locationId : undefined;
   const unitTypeId = typeof resolvedParams.unitTypeId === 'string' ? resolvedParams.unitTypeId : undefined;
   const developerId = typeof resolvedParams.developerId === 'string' ? resolvedParams.developerId : undefined;
   const projectId = typeof resolvedParams.projectId === 'string' ? resolvedParams.projectId : undefined;
@@ -55,10 +57,35 @@ export default async function UnitsPage({
   const developers = Array.isArray(developersData) ? developersData : (developersData?.data || []);
   const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || []);
 
+  // Redirect raw UUID locationId to clean SEO location name
+  const isUuidLoc = rawLocationId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawLocationId);
+  if (isUuidLoc) {
+    const matchedLoc = locations.find((l: any) => l.id === rawLocationId);
+    if (matchedLoc) {
+      const p = new URLSearchParams();
+      for (const [k, v] of Object.entries(resolvedParams)) {
+        if (k !== 'locationId' && typeof v === 'string') p.set(k, v);
+      }
+      p.set('location', matchedLoc.nameAr || matchedLoc.name);
+      redirect(`/units?${p.toString()}`);
+    }
+  }
+
   // Extract unique governorates
   const governorates = Array.from(
     new Set(locations.map((loc: any) => loc.governorate).filter(Boolean))
   ) as string[];
+
+  // Find effective location
+  const matchedLocation = locationNameParam
+    ? locations.find((l: any) => 
+        l.name === locationNameParam || 
+        l.nameAr === locationNameParam || 
+        (l.nameEn && l.nameEn.toLowerCase() === locationNameParam.toLowerCase())
+      )
+    : undefined;
+
+  const effectiveLocationId = matchedLocation?.id || (!isUuidLoc ? rawLocationId : undefined);
 
   // Filter locations by selected governorate if chosen
   const filteredLocations = governorate
@@ -74,7 +101,8 @@ export default async function UnitsPage({
     sellerType,
     isCashOnly,
     governorate,
-    locationId,
+    locationId: effectiveLocationId,
+    location: locationNameParam,
     unitTypeId,
     developerId,
     projectId,
@@ -102,7 +130,8 @@ export default async function UnitsPage({
     if (sellerType) p.set('sellerType', sellerType);
     if (isCashOnly) p.set('isCashOnly', isCashOnly);
     if (governorate) p.set('governorate', governorate);
-    if (locationId) p.set('locationId', locationId);
+    if (locationNameParam) p.set('location', locationNameParam);
+    else if (effectiveLocationId) p.set('locationId', effectiveLocationId);
     if (unitTypeId) p.set('unitTypeId', unitTypeId);
     if (developerId) p.set('developerId', developerId);
     if (projectId) p.set('projectId', projectId);
@@ -157,7 +186,8 @@ export default async function UnitsPage({
                 sellerType,
                 isCashOnly,
                 governorate,
-                locationId,
+                locationId: effectiveLocationId,
+                location: locationNameParam,
                 unitTypeId,
                 developerId,
                 projectId,
@@ -199,7 +229,7 @@ export default async function UnitsPage({
                     const isTotalSort = sortBy === 'total_price_asc' || sortBy === 'total_price_desc';
 
                     return (
-                      <Link href={`/units/${unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group block flex flex-col">
+                      <Link href={`/units/${unit.code || unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group block flex flex-col">
                         <div className="relative h-56 overflow-hidden">
                           <img
                             src={cover}
@@ -212,8 +242,8 @@ export default async function UnitsPage({
                             <ShareButton
                               title={unit.title}
                               priceText={`${(isTotalSort && displayTotal > 0 ? displayTotal : displayCash).toLocaleString()} ج.م`}
-                              deepLinkPath={`units/${unit.id}`}
-                              url={`https://buhoor-web.vercel.app/units/${unit.id}`}
+                              deepLinkPath={`units/${unit.code || unit.id}`}
+                              url={`https://buhoor-web.vercel.app/units/${unit.code || unit.id}`}
                               variant="icon"
                             />
                           </div>

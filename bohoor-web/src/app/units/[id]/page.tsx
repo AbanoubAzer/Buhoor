@@ -1,5 +1,5 @@
 import { api } from "@/api/client";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
 import UnitDetailsView from "@/components/UnitDetailsView";
 
@@ -100,11 +100,17 @@ export default async function UnitDetailsPage({ params }: { params: Promise<{ id
   let unit: any;
   try {
     unit = await api.units.getOne(id);
-  } catch (error) {
+  } catch {
     notFound();
   }
 
   if (!unit) notFound();
+
+  // If accessed by raw UUID and unit has reference code, redirect to clean URL
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  if (isUuid && unit.code) {
+    redirect(`/units/${unit.code}`);
+  }
 
   return <UnitDetailsView unit={unit} />;
 }

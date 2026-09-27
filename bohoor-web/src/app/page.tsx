@@ -130,7 +130,7 @@ export default async function Home() {
             {/* Project Cards */}
             <div className="lg:w-3/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {projects.map((proj: any) => (
-                <Link href={`/projects/${proj.id}`} key={proj.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all group flex flex-col">
+                <Link href={`/projects/${proj.slug || proj.id}`} key={proj.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all group flex flex-col">
                   <div className="h-48 relative overflow-hidden">
                     <Image src={proj.coverImage || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab'} alt={proj.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" />
                     
@@ -176,7 +176,7 @@ export default async function Home() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {developers.map((dev: any) => (
-              <Link href={`/developers/${dev.id}`} key={dev.id} className="bg-white border border-gray-100 rounded-2xl p-6 text-center hover:shadow-lg transition-all group flex flex-col items-center">
+              <Link href={`/developers/${dev.slug || dev.id}`} key={dev.id} className="bg-white border border-gray-100 rounded-2xl p-6 text-center hover:shadow-lg transition-all group flex flex-col items-center">
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/5 transition-colors">
                   <BuildingOfficeIcon className="w-10 h-10 text-primary" />
                 </div>
@@ -197,7 +197,7 @@ export default async function Home() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {locations.map((loc: any, i: number) => (
-            <Link href={`/units?locationId=${loc.id}`} key={loc.id || i} className="relative h-64 rounded-3xl overflow-hidden group shadow-sm hover:shadow-xl transition-all block">
+            <Link href={`/units?location=${encodeURIComponent(loc.nameAr || loc.name)}`} key={loc.id || i} className="relative h-64 rounded-3xl overflow-hidden group shadow-sm hover:shadow-xl transition-all block">
               <Image 
                 src={loc.imageUrl || loc.image || fallbackAreaImages[i % fallbackAreaImages.length]} 
                 alt={loc.name} 

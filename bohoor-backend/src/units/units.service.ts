@@ -68,7 +68,20 @@ export class UnitsService {
       };
     }
 
-    if (filters.locationId) {
+    const locTarget = filters.location || (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(filters.locationId || '') ? filters.locationId : undefined);
+    if (locTarget) {
+      const decodedLoc = decodeURIComponent(locTarget).trim();
+      where.location = {
+        ...where.location,
+        OR: [
+          { name: { contains: decodedLoc, mode: 'insensitive' } },
+          { nameAr: { contains: decodedLoc, mode: 'insensitive' } },
+          { nameEn: { contains: decodedLoc, mode: 'insensitive' } },
+          { governorate: { contains: decodedLoc, mode: 'insensitive' } },
+          { governorateAr: { contains: decodedLoc, mode: 'insensitive' } },
+        ],
+      };
+    } else if (filters.locationId) {
       where.locationId = filters.locationId;
     }
 
@@ -238,16 +251,47 @@ export class UnitsService {
     return this.prisma.unit.count({ where: { deletedAt: null } });
   }
 
-  async findOne(id: string) {
-    const unit = await this.prisma.unit.findFirst({
-      where: { id, deletedAt: null },
-      include: {
-        developer: true,
-        project: true,
-        location: true,
-        unitType: true,
-      },
-    });
+  async findOne(identifier: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+    const includeConfig = {
+      developer: true,
+      project: true,
+      location: true,
+      unitType: true,
+    };
+
+    let unit = null;
+
+    if (isUuid) {
+      unit = await this.prisma.unit.findFirst({
+        where: { id: identifier, deletedAt: null },
+        include: includeConfig,
+      });
+    }
+
+    if (!unit) {
+      unit = await this.prisma.unit.findFirst({
+        where: {
+          code: { equals: identifier, mode: 'insensitive' },
+          deletedAt: null,
+        },
+        include: includeConfig,
+      });
+    }
+
+    if (!unit) {
+      const codeMatch = identifier.match(/(?:^|-)(BH-\d+)$/i);
+      if (codeMatch) {
+        unit = await this.prisma.unit.findFirst({
+          where: {
+            code: { equals: codeMatch[1].toUpperCase(), mode: 'insensitive' },
+            deletedAt: null,
+          },
+          include: includeConfig,
+        });
+      }
+    }
+
     if (!unit) {
       throw new NotFoundException('العقار غير موجود أو تم حذفه');
     }

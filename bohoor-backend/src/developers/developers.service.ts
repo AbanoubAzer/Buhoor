@@ -46,26 +46,44 @@ export class DevelopersService {
     return this.prisma.developer.count();
   }
 
-  findOne(id: string) {
-    return this.prisma.developer.findUnique({
-      where: { id },
-      include: {
-        projects: {
-          include: {
-            units: {
-              where: { deletedAt: null },
-              include: { location: true, unitType: true },
-            },
-            _count: {
-              select: { units: { where: { deletedAt: null } } },
-            },
+  async findOne(identifier: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+    
+    const includeConfig = {
+      projects: {
+        include: {
+          units: {
+            where: { deletedAt: null },
+            include: { location: true, unitType: true },
+          },
+          _count: {
+            select: { units: { where: { deletedAt: null } } },
           },
         },
-        units: {
-          where: { deletedAt: null },
-          include: { location: true, unitType: true, project: true },
-        },
       },
+      units: {
+        where: { deletedAt: null },
+        include: { location: true, unitType: true, project: true },
+      },
+    };
+
+    if (isUuid) {
+      const byId = await this.prisma.developer.findUnique({
+        where: { id: identifier },
+        include: includeConfig,
+      });
+      if (byId) return byId;
+    }
+
+    // Try by slug
+    return this.prisma.developer.findFirst({
+      where: {
+        OR: [
+          { slug: { equals: identifier, mode: 'insensitive' } },
+          { name: { equals: identifier, mode: 'insensitive' } },
+        ],
+      },
+      include: includeConfig,
     });
   }
 
