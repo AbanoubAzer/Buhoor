@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { 
   SparklesIcon, 
   XMarkIcon, 
@@ -119,13 +121,15 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
       combinedQuery = parts.join('، ');
     }
 
+    const fullPhone = customerPhone.startsWith('+') ? customerPhone : `+${customerPhone}`;
+
     setLoading(true);
     setError(null);
     try {
       const res = await api.aiSearch.match({
         query: combinedQuery,
         customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
+        customerPhone: fullPhone.trim(),
       });
       setResult(res);
 
@@ -136,7 +140,7 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
             ...res,
             query: combinedQuery,
             customerName: customerName.trim(),
-            customerPhone: customerPhone.trim(),
+            customerPhone: fullPhone.trim(),
           })
         );
       } catch (e) {
@@ -256,19 +260,18 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
 
                   <div>
                     <label className="text-xs font-bold text-gray-700 block mb-1">
-                      رقم الهاتف / واتساب <span className="text-red-500 font-bold">*</span>
+                      {isRTL ? "رقم الهاتف / واتساب" : "Phone / WhatsApp"} <span className="text-red-500 font-bold">*</span>
                     </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        dir="ltr"
+                    <div dir="ltr" className="react-phone-input-container">
+                      <PhoneInput
+                        country={'eg'}
+                        enableSearch={true}
+                        searchPlaceholder={isRTL ? "البحث عن الدولة..." : "Search country..."}
                         value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="010xxxxxxxx"
-                        className="w-full py-2 sm:py-2.5 px-3 pl-8 text-right rounded-xl border border-gray-200 bg-white focus:border-indigo-500 outline-none text-xs sm:text-sm text-gray-800 font-sans"
-                        required
+                        onChange={(p) => setCustomerPhone(p)}
+                        inputStyle={{ width: '100%', height: '42px', borderRadius: '0.75rem', borderColor: '#e5e7eb', backgroundColor: '#ffffff', fontSize: '0.875rem' }}
+                        buttonStyle={{ borderRadius: '0.75rem 0 0 0.75rem', borderColor: '#e5e7eb', backgroundColor: '#ffffff', direction: 'ltr' }}
                       />
-                      <PhoneIcon className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5 sm:top-3" />
                     </div>
                   </div>
                 </div>
