@@ -288,5 +288,13 @@ export const api = {
       return `${BASE_URL}/ai-search/admin/export-excel`;
     },
   },
+  leads: {
+    getAll: async (page = 1, limit = 100) => {
+      return request(`/leads?page=${page}&limit=${limit}`);
+    },
+    getExportUrl: () => {
+      return `${BASE_URL}/leads/export-excel`;
+    },
+  },
 };
 
