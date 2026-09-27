@@ -37,7 +37,27 @@ export async function setupApp(app: INestApplication) {
   });
   app.use('/auth/login', loginLimiter);
 
-  // 5. Secured CORS
+  // 5. Rate Limiter for Leads Submission (Max 15 per 5 minutes per IP to prevent spam)
+  const leadsSubmissionLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { statusCode: 429, message: 'تم إرسال عدة طلبات مؤخراً، يرجى الانتظار بضع دقائق' },
+  });
+  app.use('/leads', leadsSubmissionLimiter);
+
+  // 6. Rate Limiter for AI Search (Max 25 queries per minute per IP to prevent compute abuse)
+  const aiSearchLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 25,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { statusCode: 429, message: 'تجاوزت الحد المسموح من عمليات البحث، يرجى الانتظار دقيقة' },
+  });
+  app.use('/ai-search', aiSearchLimiter);
+
+  // 7. Secured CORS
   const allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
