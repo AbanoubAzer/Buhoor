@@ -529,7 +529,7 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                               <div className="text-right flex-1">
                                 <div className="flex items-center justify-end gap-2 mb-1 flex-wrap">
                                   <Link 
-                                    href={`/units/${unit.id}`}
+                                    href={`/units/${unit.code || unit.id}`}
                                     onClick={() => setIsOpen(false)}
                                     className="font-bold text-gray-900 hover:text-primary transition text-xs sm:text-sm"
                                   >
@@ -555,7 +555,7 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
 
                               <div className="flex items-center gap-2 justify-end sm:justify-start pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
                                 <Link 
-                                  href={`/units/${unit.id}`}
+                                  href={`/units/${unit.code || unit.id}`}
                                   onClick={() => setIsOpen(false)}
                                   className="text-xs font-bold bg-gray-100 hover:bg-primary hover:text-white text-gray-700 px-3 py-1.5 rounded-xl transition flex items-center gap-1"
                                 >

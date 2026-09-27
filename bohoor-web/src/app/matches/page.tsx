@@ -345,7 +345,7 @@ function MatchesContent() {
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div>
                         {/* Title */}
-                        <Link href={`/units/${unit.id}`}>
+                        <Link href={`/units/${unit.code || unit.id}`}>
                           <h3 className="text-base font-bold text-gray-900 group-hover:text-primary transition line-clamp-2 leading-snug">
                             {unit.title}
                           </h3>
@@ -404,7 +404,7 @@ function MatchesContent() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <Link
-                            href={`/units/${unit.id}`}
+                            href={`/units/${unit.code || unit.id}`}
                             className="bg-gray-100 hover:bg-primary hover:text-white text-gray-800 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition"
                           >
                             <span>التفاصيل</span>
@@ -444,7 +444,7 @@ function MatchesContent() {
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${badgeBg}`}>
                           {score}% {matchLabel}
                         </span>
-                        <Link href={`/units/${unit.id}`} className="font-bold text-gray-900 hover:text-primary transition text-sm sm:text-base">
+                        <Link href={`/units/${unit.code || unit.id}`} className="font-bold text-gray-900 hover:text-primary transition text-sm sm:text-base">
                           {unit.title}
                         </Link>
                       </div>
@@ -481,7 +481,7 @@ function MatchesContent() {
 
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/units/${unit.id}`}
+                        href={`/units/${unit.code || unit.id}`}
                         className="bg-gray-100 hover:bg-primary hover:text-white text-gray-800 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition"
                       >
                         <span>التفاصيل</span>

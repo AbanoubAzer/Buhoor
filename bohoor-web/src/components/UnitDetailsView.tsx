@@ -105,8 +105,8 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
               title={title}
               description={`${locationLabel ? locationLabel + ' • ' : ''}${formatArea(unit.area)}`}
               priceText={formattedPriceText}
-              deepLinkPath={`units/${unit.id}`}
-              url={`https://buhoor-web.vercel.app/units/${unit.id}`}
+              deepLinkPath={`units/${unit.code || unit.id}`}
+              url={`https://buhoor-web.vercel.app/units/${unit.code || unit.id}`}
               buttonText={t('shareProperty')}
               variant="outline"
             />
@@ -617,8 +617,8 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
                 title={title}
                 description={`${locationLabel ? locationLabel + ' • ' : ''}${formatArea(unit.area)}`}
                 priceText={formattedPriceText}
-                deepLinkPath={`units/${unit.id}`}
-                url={`https://buhoor-web.vercel.app/units/${unit.id}`}
+                deepLinkPath={`units/${unit.code || unit.id}`}
+                url={`https://buhoor-web.vercel.app/units/${unit.code || unit.id}`}
                 variant="primary"
                 className="w-full justify-center"
                 buttonText={t('shareUnitNow')}

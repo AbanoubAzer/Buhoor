@@ -3,10 +3,10 @@ import Link from "next/link";
 import UnitSortSelector from "@/components/UnitSortSelector";
 import UnitFilterSidebar from "@/components/UnitFilterSidebar";
 import ShareButton from "@/components/ShareButton";
-import { 
-  MapPinIcon, 
-  HomeModernIcon, 
-  MagnifyingGlassIcon, 
+import {
+  MapPinIcon,
+  HomeModernIcon,
+  MagnifyingGlassIcon,
   FunnelIcon,
   SparklesIcon,
   BuildingOfficeIcon,
@@ -30,7 +30,7 @@ export default async function UnitsPage({
   const unitTypeId = typeof resolvedParams.unitTypeId === 'string' ? resolvedParams.unitTypeId : undefined;
   const developerId = typeof resolvedParams.developerId === 'string' ? resolvedParams.developerId : undefined;
   const projectId = typeof resolvedParams.projectId === 'string' ? resolvedParams.projectId : undefined;
-  
+
   const minCashRequired = typeof resolvedParams.minCashRequired === 'string' ? resolvedParams.minCashRequired : undefined;
   const maxCashRequired = typeof resolvedParams.maxCashRequired === 'string' ? resolvedParams.maxCashRequired : undefined;
   const minMonthlyInstallment = typeof resolvedParams.minMonthlyInstallment === 'string' ? resolvedParams.minMonthlyInstallment : undefined;
@@ -122,7 +122,7 @@ export default async function UnitsPage({
   return (
     <div className="bg-gray-50 min-h-screen py-6 sm:py-10 font-cairo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        
+
         {/* Header & Title */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100">
           <div>
@@ -143,10 +143,10 @@ export default async function UnitsPage({
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Sidebar Filters */}
           <aside className="w-full lg:w-80 flex-shrink-0">
-            <UnitFilterSidebar 
+            <UnitFilterSidebar
               locations={locations}
               unitTypes={unitTypes}
               developers={developers}
@@ -201,15 +201,15 @@ export default async function UnitsPage({
                     return (
                       <Link href={`/units/${unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group block flex flex-col">
                         <div className="relative h-56 overflow-hidden">
-                          <img 
-                            src={cover} 
-                            alt={unit.title} 
+                          <img
+                            src={cover}
+                            alt={unit.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                           />
-                          
+
                           {/* Share button on card */}
                           <div className="absolute top-3 left-3 z-10">
-                            <ShareButton 
+                            <ShareButton
                               title={unit.title}
                               priceText={`${(isTotalSort && displayTotal > 0 ? displayTotal : displayCash).toLocaleString()} ج.م`}
                               deepLinkPath={`units/${unit.id}`}

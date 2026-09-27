@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       }
     }
 
-    const canonicalUrl = `https://buhoor-web.vercel.app/units/${id}`;
+    const canonicalUrl = `https://buhoor-web.vercel.app/units/${unit.code || id}`;
 
     return {
       title: `${title} - ${formattedPrice} | بُحور`,
@@ -78,10 +78,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         images: [coverImage],
       },
       other: {
-        'al:ios:url': `bohoor://units/${id}`,
+        'al:ios:url': `bohoor://units/${unit.code || id}`,
         'al:ios:app_store_id': '123456789',
         'al:ios:app_name': 'Bohoor',
-        'al:android:url': `bohoor://units/${id}`,
+        'al:android:url': `bohoor://units/${unit.code || id}`,
         'al:android:package': 'com.bohoor.app',
         'al:android:app_name': 'Bohoor',
       }

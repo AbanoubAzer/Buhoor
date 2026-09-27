@@ -268,7 +268,7 @@ export default async function Home() {
                   <span className="flex items-center gap-1 font-bold">{unit.bedrooms || 3} غرف</span>
                   <span className="flex items-center gap-1 font-bold">{unit.bathrooms || 2} حمام</span>
                 </div>
-                <Link href={`/units/${unit.id}`} className="mt-4 block text-center bg-primary/5 hover:bg-primary text-primary hover:text-white font-bold py-3 rounded-xl transition">
+                <Link href={`/units/${unit.code || unit.id}`} className="mt-4 block text-center bg-primary/5 hover:bg-primary text-primary hover:text-white font-bold py-3 rounded-xl transition">
                   عرض التفاصيل
                 </Link>
               </div>

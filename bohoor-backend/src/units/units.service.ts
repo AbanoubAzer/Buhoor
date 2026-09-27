@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class UnitsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   create(createUnitDto: CreateUnitDto) {
     const data: any = { ...createUnitDto };

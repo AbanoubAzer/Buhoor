@@ -91,7 +91,7 @@ export default function ProjectDetailsView({ project, units }: ProjectDetailsVie
                 const isInstallment = unit.remainingInstallments > 0 || unit.installmentsCount > 0 || (unit.sellerType === 'DEVELOPER' && !unit.isCashOnly);
 
                 return (
-                  <Link href={`/units/${unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group block">
+                  <Link href={`/units/${unit.code || unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group block">
                     <div className="relative h-56 overflow-hidden">
                       <img 
                         src={cover} 
