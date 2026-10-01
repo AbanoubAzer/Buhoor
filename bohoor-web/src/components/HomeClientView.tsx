@@ -83,7 +83,77 @@ export default function HomeClientView({
         </div>
       </section>
 
-      {/* 2. Latest Projects */}
+      {/* 2. Featured Units */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-16 font-arabic">
+        <div className="flex justify-between items-end mb-8">
+          <h2 className="text-3xl font-bold font-cairo text-gray-900 border-r-4 border-accent pr-4">{t('featuredUnitsTitle')}</h2>
+          <Link href="/units" className="text-primary hover:text-accent font-bold transition text-sm">{t('viewAll')} &larr;</Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {units.map((unit: any) => {
+            const unitTitle = getLocalized(unit, 'title') || unit.title;
+            const unitLoc = getLocalized(unit, 'location') || '-';
+            const unitPrice = formatPrice(unit.totalPrice || unit.originalContractPrice || unit.cashPaidToSeller);
+            const isInstallment = unit.remainingInstallments > 0 || unit.installmentsCount > 0 || (unit.sellerType === 'DEVELOPER' && !unit.isCashOnly);
+
+            return (
+              <Link href={`/units/${unit.code || unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all group flex flex-col">
+                <div className="relative h-60 overflow-hidden">
+                  <Image 
+                    src={unit.coverImage || unit.images?.[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa'} 
+                    alt={unitTitle} 
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <div className="absolute top-4 right-4 flex flex-col gap-1.5 items-end">
+                    {unit.isVerified && (
+                      <span className="bg-amber-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
+                        ⭐ {t('verified')}
+                      </span>
+                    )}
+                    {unit.expectedRentalRoi > 0 && (
+                      <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
+                        💰 {t('expectedRoi')} {Number(unit.expectedRentalRoi)}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-full text-gray-400 hover:text-red-500 transition shadow-sm">
+                    <HeartIcon className="w-5 h-5" />
+                  </div>
+                </div>
+                
+                <div className="p-5 flex-1 flex flex-col justify-between bg-white">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">{unitTitle}</h3>
+                    <p className="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                      <MapPinIcon className="w-4 h-4 text-gray-400" />
+                      {unitLoc}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-4 mb-3">
+                      <span className="text-2xl font-extrabold text-primary font-cairo">{unitPrice}</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${isInstallment ? 'bg-primary/10 text-primary' : 'bg-green-100 text-green-700'}`}>
+                        {isInstallment ? t('installments') : t('cash')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-gray-500 text-xs pt-2 border-t border-gray-50">
+                      <span>🛏️ {unit.bedrooms || 0} {t('bedrooms')}</span>
+                      <span>🚿 {unit.bathrooms || 0} {t('bathrooms')}</span>
+                      <span>📐 {formatArea(unit.area)}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 3. Latest Projects */}
       <section className="max-w-[98%] mx-auto w-full pb-16 font-arabic">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-8">
@@ -220,77 +290,7 @@ export default function HomeClientView({
         </div>
       </section>
 
-      {/* 5. Featured Units */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full font-arabic">
-        <div className="flex justify-between items-end mb-8">
-          <h2 className="text-3xl font-bold font-cairo text-gray-900">{t('featuredUnitsTitle')}</h2>
-          <Link href="/units" className="text-primary hover:text-accent font-bold transition">{t('viewAll')} &larr;</Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {units.map((unit: any) => {
-            const unitTitle = getLocalized(unit, 'title') || unit.title;
-            const unitLoc = getLocalized(unit, 'location') || '-';
-            const unitPrice = formatPrice(unit.totalPrice || unit.originalContractPrice || unit.cashPaidToSeller);
-            const isInstallment = unit.remainingInstallments > 0 || unit.installmentsCount > 0 || (unit.sellerType === 'DEVELOPER' && !unit.isCashOnly);
-
-            return (
-              <Link href={`/units/${unit.code || unit.id}`} key={unit.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all group flex flex-col">
-                <div className="relative h-60 overflow-hidden">
-                  <Image 
-                    src={unit.coverImage || unit.images?.[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa'} 
-                    alt={unitTitle} 
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
-                  <div className="absolute top-4 right-4 flex flex-col gap-1.5 items-end">
-                    {unit.isVerified && (
-                      <span className="bg-amber-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
-                        ⭐ {t('verified')}
-                      </span>
-                    )}
-                    {unit.expectedRentalRoi > 0 && (
-                      <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
-                        💰 {t('expectedRoi')} {Number(unit.expectedRentalRoi)}%
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-full text-gray-400 hover:text-red-500 transition shadow-sm">
-                    <HeartIcon className="w-5 h-5" />
-                  </div>
-                </div>
-                
-                <div className="p-5 flex-1 flex flex-col justify-between bg-white">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">{unitTitle}</h3>
-                    <p className="text-sm text-gray-500 mb-4 flex items-center gap-1">
-                      <MapPinIcon className="w-4 h-4 text-gray-400" />
-                      {unitLoc}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-4 mb-3">
-                      <span className="text-2xl font-extrabold text-primary font-cairo">{unitPrice}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${isInstallment ? 'bg-primary/10 text-primary' : 'bg-green-100 text-green-700'}`}>
-                        {isInstallment ? t('installments') : t('cash')}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-gray-500 text-xs pt-2 border-t border-gray-50">
-                      <span>🛏️ {unit.bedrooms || 0} {t('bedrooms')}</span>
-                      <span>🚿 {unit.bathrooms || 0} {t('bathrooms')}</span>
-                      <span>📐 {formatArea(unit.area)}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 6. Mobile App Download Showcase */}
+      {/* 5. Mobile App Download Showcase */}
       <AppDownloadSection />
     </div>
   );
