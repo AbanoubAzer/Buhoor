@@ -18,7 +18,6 @@ import {
 import { Link } from 'expo-router';
 import { Image } from 'expo-image';
 import {
-  ShieldCheck,
   TrendingUp,
   Building2,
   Sparkles,
@@ -148,44 +147,7 @@ function HeroSlider({ slides }: { slides: any[] }) {
   );
 }
 
-// ─── Trust Banner Component ─────────────────────────────────────────────────
-function TrustBanner() {
-  const { language } = useStore();
-  const isRtl = language === 'ar';
 
-  const items = [
-    {
-      icon: <ShieldCheck size={20} color={Colors.success} />,
-      title: isRtl ? 'موثق 100%' : '100% Verified',
-      sub: isRtl ? 'عقود معتمدة' : 'Official Contracts'
-    },
-    {
-      icon: <Sparkles size={20} color={Colors.accent} />,
-      title: isRtl ? '0% عمولة' : '0% Commission',
-      sub: isRtl ? 'شراء من المطور' : 'Direct Developer'
-    },
-    {
-      icon: <TrendingUp size={20} color={Colors.sea} />,
-      title: isRtl ? 'عائد 16.5%' : '16.5% ROI',
-      sub: isRtl ? 'إيجار يومي' : 'Rental Income'
-    },
-  ];
-
-  return (
-    <View style={[trustStyles.wrapper, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
-      {items.map((item, i) => (
-        <React.Fragment key={i}>
-          <View style={trustStyles.item}>
-            <View style={trustStyles.iconCircle}>{item.icon}</View>
-            <Text style={trustStyles.title}>{item.title}</Text>
-            <Text style={trustStyles.sub}>{item.sub}</Text>
-          </View>
-          {i < items.length - 1 && <View style={trustStyles.divider} />}
-        </React.Fragment>
-      ))}
-    </View>
-  );
-}
 
 // ─── Section Header ──────────────────────────────────────────────────────────
 function SectionHeader({ title, subtitle, href }: { title: string; subtitle?: string; href: string }) {
@@ -450,9 +412,6 @@ export default function HomeTab() {
         {/* ── Hero Slider ───────────────────────────── */}
         {heroSlides.length > 0 && <HeroSlider slides={heroSlides} />}
 
-        {/* ── Trust Banner ─────────────────────────── */}
-        <TrustBanner />
-
         {/* ── Property Type Shortcuts ───────────────── */}
         <View style={styles.section}>
           <SectionHeader
@@ -611,38 +570,7 @@ const heroStyles = StyleSheet.create({
   },
 });
 
-const trustStyles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    marginHorizontal: 16,
-    marginBottom: 24,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  item: { alignItems: 'center', flex: 1 },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  divider: { width: 1, height: 40, backgroundColor: Colors.border },
-  title: { fontSize: 12, fontWeight: '800', color: Colors.text, marginTop: 2 },
-  sub: { fontSize: 10, color: Colors.textMuted, marginTop: 2 },
-});
+
 
 const sectionStyles = StyleSheet.create({
   row: {
