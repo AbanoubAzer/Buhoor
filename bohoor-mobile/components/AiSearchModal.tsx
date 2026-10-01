@@ -411,7 +411,7 @@ export default function AiSearchModal({ visible, onClose }: AiSearchModalProps) 
                                 asChild
                                 onPress={onClose}
                               >
-                                <TouchableOpacity style={[styles.viewMiniBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                                <TouchableOpacity style={StyleSheet.flatten([styles.viewMiniBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }])}>
                                   <Text style={styles.viewMiniBtnText}>{t('view')}</Text>
                                   {isRtl ? (
                                     <ChevronLeft size={16} color={Colors.primary} />

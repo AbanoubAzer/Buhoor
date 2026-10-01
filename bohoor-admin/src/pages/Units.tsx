@@ -24,6 +24,11 @@ export default function Units() {
   const [unitTypes, setUnitTypes]         = useState<any[]>([]);
   const [editingUnit, setEditingUnit]     = useState<any>(null);
 
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importProjectId, setImportProjectId] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+
   // Filters
   const [searchQuery, setSearchQuery]           = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -212,12 +217,20 @@ export default function Units() {
           <p className="text-gray-500 text-sm mt-0.5">إدارة ومراجعة وفلترة جميع الوحدات السكنية والتجارية</p>
         </div>
         {!isFormVisible && (
-          <button
-            onClick={() => { setEditingUnit(null); setIsFormVisible(true); }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-sm hover:shadow"
-          >
-            + إضافة عقار
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setImportProjectId(''); setImportFile(null); setShowImportModal(true); }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-sm hover:shadow cursor-pointer flex items-center gap-2"
+            >
+              <span>📊</span> تحديث بالإكسيل
+            </button>
+            <button
+              onClick={() => { setEditingUnit(null); setIsFormVisible(true); }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition shadow-sm hover:shadow"
+            >
+              + إضافة عقار
+            </button>
+          </div>
         )}
       </div>
 
@@ -547,6 +560,85 @@ export default function Units() {
             </div>
           )}
         </>
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 space-y-4">
+            <h2 className="text-xl font-bold text-gray-900">استيراد من إكسيل (Excel)</h2>
+            <p className="text-gray-500 text-sm">اختر المشروع اللي عايز تضيف أو تحدث وحداته، وبعدين ارفع الشيت.</p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">المشروع</label>
+                <select 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-800 outline-none focus:border-indigo-500 focus:bg-white transition"
+                  value={importProjectId}
+                  onChange={e => setImportProjectId(e.target.value)}
+                >
+                  <option value="">-- اختر المشروع --</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">ملف الإكسيل (.xlsx, .csv)</label>
+                <input 
+                  type="file" 
+                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-800 outline-none focus:border-indigo-500 focus:bg-white transition"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) setImportFile(file);
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="px-5 py-2.5 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-bold transition"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                disabled={!importFile || !importProjectId || importLoading}
+                onClick={async () => {
+                  if (!importFile || !importProjectId) return;
+                  setImportLoading(true);
+                  try {
+                    const res = await api.units.importExcel(importFile, importProjectId);
+                    toast.success(res?.message || 'تم الاستيراد بنجاح ✅');
+                    setShowImportModal(false);
+                    setImportFile(null);
+                    setImportProjectId('');
+                    fetchUnits(1);
+                  } catch (err: any) {
+                    toast.error(err.message || 'فشل الاستيراد ❌');
+                  } finally {
+                    setImportLoading(false);
+                  }
+                }}
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition shadow text-white flex items-center gap-2 ${
+                  !importFile || !importProjectId || importLoading ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                {importLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    جاري الرفع...
+                  </>
+                ) : 'تأكيد واستيراد'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

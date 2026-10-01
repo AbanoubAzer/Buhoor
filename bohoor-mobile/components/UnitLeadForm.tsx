@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 import Colors from '../constants/Colors';
+import { useStore } from '../store/useStore';
 
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwm4j0_E7QODiADgwGLiUMPRWlBL7E6Z4fmk8ZVgzffWn5EiUZErnQ0YFJN4J-HYHVNLA/exec';
 
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPER' }: Props) {
+  const { language, t } = useStore();
+  const isRtl = language === 'ar';
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [questions, setQuestions] = useState('');
@@ -19,11 +23,11 @@ export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPE
   const [success, setSuccess] = useState(false);
 
   const isDeveloper = sellerType === 'DEVELOPER';
-  const commission = isDeveloper ? "0" : (unitPrice ? (unitPrice * 0.0125).toLocaleString('ar-EG') : "0");
+  const commission = isDeveloper ? "0" : (unitPrice ? (unitPrice * 0.0125).toLocaleString(isRtl ? 'ar-EG' : 'en-US') : "0");
 
   const handleSubmit = async () => {
     if (!name || !phone) {
-      Alert.alert('خطأ', 'الرجاء إدخال الاسم ورقم الواتساب');
+      Alert.alert(isRtl ? 'خطأ' : 'Error', t('errNameReq'));
       return;
     }
 
@@ -37,7 +41,9 @@ export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPE
         phone,
         readiness: 'Mobile User',
         questions,
-        commission: isDeveloper ? "0 (مطور - بدون عمولة للمشتري)" : `${commission} ج.م (1.25% إعادة بيع)`
+        commission: isDeveloper 
+          ? (isRtl ? "0 (مطور - بدون عمولة للمشتري)" : "0 (Developer - No Buyer Commission)")
+          : `${commission} ${t('currency')} (1.25% ${isRtl ? 'إعادة بيع' : 'Resale'})`
       };
 
       await axios.post(GAS_URL, payload, {
@@ -47,7 +53,7 @@ export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPE
       setSuccess(true);
     } catch (error) {
       console.error(error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء إرسال طلبك');
+      Alert.alert(isRtl ? 'خطأ' : 'Error', t('errSearchFail'));
     } finally {
       setLoading(false);
     }
@@ -56,70 +62,69 @@ export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPE
   if (success) {
     return (
       <View style={styles.successContainer}>
-        <Text style={styles.successTitle}>تم استلام طلبك بنجاح!</Text>
-        <Text style={styles.successText}>سيقوم فريقنا بالتواصل معك في أقرب وقت.</Text>
+        <Text style={styles.successTitle}>{t('leadSubmittedSuccess')}</Text>
+        <Text style={styles.successText}>{t('leadSubmittedSub')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>عايز تلحق تحجز الفرصة ديه؟</Text>
-      <Text style={styles.subtitle}>
-        سيب اسمك ورقم الواتساب، وفريقنا هيكلّمك يراجع معاك كل التفاصيل.
+      <Text style={[styles.title, { textAlign: isRtl ? 'right' : 'left' }]}>{t('sendLeadTitle')}</Text>
+      <Text style={[styles.subtitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+        {t('sendLeadSub')}
       </Text>
 
       {/* Commission Notice */}
       {isDeveloper ? (
         <View style={styles.developerNoticeBox}>
-          <Text style={styles.developerNoticeTitle}>🎉 بدون أي عمولة من المشتري (0% عمولة)</Text>
-          <Text style={styles.developerNoticeSub}>
-            العقار معروض مباشرة من المطور العقاري وبنفس أسعار الشركة. لا توجد أي عمولات يتحملها المشتري.
+          <Text style={[styles.developerNoticeTitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+            {t('noBuyerCommission')}
+          </Text>
+          <Text style={[styles.developerNoticeSub, { textAlign: isRtl ? 'right' : 'left' }]}>
+            {t('developerDirectDesc')}
           </Text>
         </View>
       ) : (
         <View style={styles.noticeBox}>
-          <Text style={styles.noticeText}>
-            عمولة المنصة للمشتري: 1.25% ({commission} ج.م) تُدفع عند إتمام التنازل بنجاح. البائع لا يدفع أي عمولة.
+          <Text style={[styles.noticeText, { textAlign: isRtl ? 'right' : 'left' }]}>
+            {t('resaleCommissionNotice').replace('{commission}', commission)}
           </Text>
         </View>
       )}
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>الاسم *</Text>
+        <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('fullName')} *</Text>
         <TextInput 
-          style={styles.input} 
-          placeholder="الاسم الكامل" 
+          style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]} 
+          placeholder={t('namePlaceholder')} 
           value={name} 
           onChangeText={setName} 
-          textAlign="right"
           placeholderTextColor={Colors.darkGray}
         />
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>رقم الواتساب *</Text>
+        <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('phoneNumber')} *</Text>
         <TextInput 
-          style={styles.input} 
-          placeholder="مثال: +201012345678" 
+          style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]} 
+          placeholder={t('phonePlaceholder')} 
           value={phone} 
           onChangeText={setPhone} 
           keyboardType="phone-pad" 
-          textAlign="right"
           placeholderTextColor={Colors.darkGray}
         />
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>إيه الأسئلة أو الاستفسارات التي تود معرفتها؟</Text>
+        <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('questionsLabel')}</Text>
         <TextInput 
-          style={[styles.input, styles.textArea]} 
-          placeholder={isDeveloper ? "مثلاً: مواعيد التسليم، أنظمة السداد، موعد المعاينة..." : "مثلاً: الاستلام إمتا بالظبط؟"} 
+          style={[styles.input, styles.textArea, { textAlign: isRtl ? 'right' : 'left' }]} 
+          placeholder={isDeveloper ? (isRtl ? "مثلاً: مواعيد التسليم، أنظمة السداد، موعد المعاينة..." : "e.g. Delivery dates, payment plans...") : (isRtl ? "مثلاً: الاستلام إمتا بالظبط؟" : "e.g. When is exact delivery?")} 
           value={questions} 
           onChangeText={setQuestions} 
           multiline 
           numberOfLines={3} 
-          textAlign="right"
           placeholderTextColor={Colors.darkGray}
         />
       </View>
@@ -129,7 +134,7 @@ export default function UnitLeadForm({ unitId, unitPrice, sellerType = 'DEVELOPE
         onPress={handleSubmit} 
         disabled={loading}
       >
-        <Text style={styles.buttonText}>{loading ? 'جاري الإرسال...' : 'تأكيد الطلب'}</Text>
+        <Text style={styles.buttonText}>{loading ? t('submitting') : t('confirmRequest')}</Text>
       </TouchableOpacity>
     </View>
   );

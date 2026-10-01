@@ -156,7 +156,7 @@ export const useStore = create<AppState>()(
     {
       name: 'bohoor-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ favorites: state.favorites }),
+      partialize: (state) => ({ favorites: state.favorites, language: state.language }),
     }
   )
 );

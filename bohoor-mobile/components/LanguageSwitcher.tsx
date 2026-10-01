@@ -5,15 +5,21 @@ import Colors from '../constants/Colors';
 import { Globe } from 'lucide-react-native';
 
 export function LanguageSwitcher() {
-  const { language, toggleLanguage } = useStore();
+  const { language, setLanguage } = useStore();
+
+  const handleToggle = () => {
+    const nextLang = language === 'ar' ? 'en' : 'ar';
+    setLanguage(nextLang);
+  };
 
   return (
     <TouchableOpacity 
-      onPress={toggleLanguage} 
+      onPress={handleToggle} 
       style={styles.btn}
-      accessibilityLabel="تغيير اللغة / Switch Language"
+      activeOpacity={0.7}
+      accessibilityLabel="Switch Language"
     >
-      <Globe size={15} color={Colors.primary} />
+      <Globe size={14} color={Colors.primary} />
       <Text style={styles.text}>
         {language === 'ar' ? '🇬🇧 EN' : '🇪🇬 عربي'}
       </Text>

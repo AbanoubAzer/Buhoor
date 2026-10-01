@@ -15,15 +15,19 @@ export class DevelopersService {
         logoUrl: createDeveloperDto.logoUrl,
         bio: createDeveloperDto.bio,
         phone: createDeveloperDto.phone,
+        isActive: createDeveloperDto.isActive ?? true,
       }
     });
   }
 
-  findAll() {
+  findAll(includeHidden = false) {
+    const where: any = includeHidden ? {} : { isActive: true };
     return this.prisma.developer.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         projects: {
+          where: includeHidden ? undefined : { isActive: true },
           include: {
             _count: { select: { units: { where: { deletedAt: null } } } },
           },
@@ -34,7 +38,7 @@ export class DevelopersService {
         },
         _count: {
           select: {
-            projects: true,
+            projects: includeHidden ? true : { where: { isActive: true } },
             units: { where: { deletedAt: null } },
           },
         },
@@ -75,12 +79,27 @@ export class DevelopersService {
       if (byId) return byId;
     }
 
-    // Try by slug
+    // Try by slug or name (handling encoded URI components, leading spaces, or hyphenated slugs)
+    const raw = identifier;
+    let decoded = identifier;
+    try {
+      decoded = decodeURIComponent(identifier);
+    } catch {
+      // keep identifier if decode fails
+    }
+    const trimmed = decoded.trim();
+    const slugified = trimmed.toLowerCase().replace(/\s+/g, '-');
+
     return this.prisma.developer.findFirst({
       where: {
         OR: [
-          { slug: { equals: identifier, mode: 'insensitive' } },
-          { name: { equals: identifier, mode: 'insensitive' } },
+          { slug: { equals: raw, mode: 'insensitive' } },
+          { name: { equals: raw, mode: 'insensitive' } },
+          { slug: { equals: decoded, mode: 'insensitive' } },
+          { name: { equals: decoded, mode: 'insensitive' } },
+          { slug: { equals: trimmed, mode: 'insensitive' } },
+          { name: { equals: trimmed, mode: 'insensitive' } },
+          { slug: { equals: slugified, mode: 'insensitive' } },
         ],
       },
       include: includeConfig,

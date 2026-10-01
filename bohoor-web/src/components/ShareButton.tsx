@@ -9,6 +9,7 @@ import {
   DevicePhoneMobileIcon,
   ChatBubbleLeftEllipsisIcon
 } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ShareButtonProps {
   title: string;
@@ -27,12 +28,14 @@ export default function ShareButton({
   url,
   priceText,
   deepLinkPath = '',
-  buttonText = 'مشاركة',
+  buttonText,
   variant = 'outline',
   className = '',
 }: ShareButtonProps) {
+  const { t, isRTL } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const resolvedButtonText = buttonText || t('shareProperty');
 
   const getFullUrl = () => {
     if (url) return url;
@@ -45,10 +48,10 @@ export default function ShareButton({
   const getShareText = () => {
     const lines = [
       `🏡 ${title}`,
-      priceText ? `💰 السعر: ${priceText}` : null,
+      priceText ? `💰 ${isRTL ? 'السعر' : 'Price'}: ${priceText}` : null,
       description ? `📝 ${description}` : null,
-      `🔗 رابط التفاصيل: ${getFullUrl()}`,
-      `منصة بُحور للعقارات 🇪🇬`
+      `🔗 ${isRTL ? 'رابط التفاصيل' : 'Details Link'}: ${getFullUrl()}`,
+      `${t('buhoorRealty')} 🇪🇬`
     ].filter(Boolean);
 
     return lines.join('\n');
@@ -148,12 +151,12 @@ export default function ShareButton({
           handleNativeShare(e);
         }}
         className={`${getButtonStyles()} ${className}`}
-        title="مشاركة"
-        aria-label="مشاركة"
+        title={resolvedButtonText}
+        aria-label={resolvedButtonText}
       >
         <ShareIcon className="w-5 h-5 text-current shrink-0" />
         {variant !== 'icon' && variant !== 'ghost' && (
-          <span>{buttonText}</span>
+          <span>{resolvedButtonText}</span>
         )}
       </button>
 
@@ -166,7 +169,7 @@ export default function ShareButton({
           <div 
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative transform transition-all"
-            dir="rtl"
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Header */}
             <div className="flex justify-between items-center pb-4 border-b border-gray-100">
@@ -175,14 +178,14 @@ export default function ShareButton({
                   <ShareIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">مشاركة الرابط</h3>
-                  <p className="text-xs text-gray-500">شارك العقار عبر التطبيقات أو انسخ الرابط</p>
+                  <h3 className="text-lg font-bold text-gray-900">{t('shareModalTitle')}</h3>
+                  <p className="text-xs text-gray-500">{t('shareModalSub')}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition"
-                aria-label="إغلاق"
+                aria-label={isRTL ? 'إغلاق' : 'Close'}
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>
@@ -207,7 +210,7 @@ export default function ShareButton({
                 <div className="w-12 h-12 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                   <ChatBubbleLeftEllipsisIcon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-medium text-gray-700">واتساب</span>
+                <span className="text-xs font-medium text-gray-700">{t('whatsApp')}</span>
               </button>
 
               {/* Facebook */}
@@ -219,7 +222,7 @@ export default function ShareButton({
                 <div className="w-12 h-12 rounded-2xl bg-[#1877F2] text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform font-bold text-xl">
                   f
                 </div>
-                <span className="text-xs font-medium text-gray-700">فيسبوك</span>
+                <span className="text-xs font-medium text-gray-700">{t('facebook')}</span>
               </button>
 
               {/* SMS */}
@@ -231,7 +234,7 @@ export default function ShareButton({
                 <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                   <DevicePhoneMobileIcon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-medium text-gray-700">رسائل SMS</span>
+                <span className="text-xs font-medium text-gray-700">{t('sms')}</span>
               </button>
 
               {/* Twitter / X */}
@@ -243,7 +246,7 @@ export default function ShareButton({
                 <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform font-bold text-lg">
                   𝕏
                 </div>
-                <span className="text-xs font-medium text-gray-700">إكس (تويتر)</span>
+                <span className="text-xs font-medium text-gray-700">{t('twitter')}</span>
               </button>
             </div>
 
@@ -255,23 +258,31 @@ export default function ShareButton({
                     ب
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-900">فتح في تطبيق بُحور</p>
-                    <p className="text-[11px] text-gray-500">للأجهزة المحمولة المثبت عليها التطبيق</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-gray-900">{t('openInApp')}</p>
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                        {t('comingSoon')}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500">Android & iOS</p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={openInAppScheme}
+                  onClick={() => {
+                    alert(t('appComingSoonToast'));
+                    openInAppScheme();
+                  }}
                   className="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-xs shrink-0"
                 >
-                  فتح التطبيق
+                  {t('comingSoon')}
                 </button>
               </div>
             )}
 
             {/* Copy Link Input Bar */}
             <div className="mt-4 pt-4 border-t border-gray-100">
-              <label className="text-xs font-semibold text-gray-600 block mb-2">أو نسخ رابط المشاركة:</label>
+              <label className="text-xs font-semibold text-gray-600 block mb-2">{isRTL ? 'أو نسخ رابط المشاركة:' : 'Or copy share link:'}</label>
               <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-1.5 focus-within:border-primary transition">
                 <input 
                   type="text" 
@@ -291,12 +302,12 @@ export default function ShareButton({
                   {copied ? (
                     <>
                       <CheckIcon className="w-4 h-4" />
-                      <span>تم النسخ!</span>
+                      <span>{t('copied')}</span>
                     </>
                   ) : (
                     <>
                       <LinkIcon className="w-4 h-4" />
-                      <span>نسخ</span>
+                      <span>{t('copy')}</span>
                     </>
                   )}
                 </button>

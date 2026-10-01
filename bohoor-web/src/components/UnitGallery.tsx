@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ChevronRightIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext';
 
 interface UnitGalleryProps {
   images: string[];
 }
 
 export default function UnitGallery({ images }: UnitGalleryProps) {
+  const { isRTL } = useLanguage();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const openModal = (index: number) => {
@@ -57,7 +59,7 @@ export default function UnitGallery({ images }: UnitGalleryProps) {
             onClick={() => openModal(i)}
             className="h-24 rounded-xl overflow-hidden border border-gray-200 cursor-zoom-in hover:opacity-80 transition block"
           >
-            <img src={img} alt={`صورة ${i + 1}`} className="w-full h-full object-cover" />
+            <img src={img} alt={isRTL ? `صورة ${i + 1}` : `Photo ${i + 1}`} className="w-full h-full object-cover" />
           </div>
         ))}
       </div>
@@ -71,11 +73,13 @@ export default function UnitGallery({ images }: UnitGalleryProps) {
           <div 
             className="relative bg-white p-4 md:p-6 rounded-3xl shadow-2xl max-w-4xl w-full mx-4 flex flex-col justify-center items-center"
             onClick={(e) => e.stopPropagation()}
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Close Button inside the box */}
             <button 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition bg-gray-100 hover:bg-gray-200 p-2 rounded-full z-10"
+              className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} text-gray-400 hover:text-gray-800 transition bg-gray-100 hover:bg-gray-200 p-2 rounded-full z-10`}
               onClick={closeModal}
+              aria-label={isRTL ? 'إغلاق' : 'Close'}
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
@@ -83,7 +87,7 @@ export default function UnitGallery({ images }: UnitGalleryProps) {
             <div className="relative w-full h-[60vh] md:h-[70vh] flex justify-center items-center mt-8">
               <img 
                 src={images[selectedIndex]} 
-                alt={`صورة مكبرة`} 
+                alt={isRTL ? 'صورة مكبرة' : 'Enlarged photo'} 
                 className="max-w-full max-h-full object-contain rounded-xl select-none"
               />
               
@@ -93,6 +97,7 @@ export default function UnitGallery({ images }: UnitGalleryProps) {
                   <button 
                     className="absolute -right-2 md:right-4 text-gray-800 hover:text-white hover:bg-primary transition bg-white/90 shadow-md backdrop-blur-sm p-2 rounded-full z-10"
                     onClick={nextImage}
+                    aria-label={isRTL ? 'الصورة التالية' : 'Next photo'}
                   >
                     <ChevronRightIcon className="w-6 h-6" />
                   </button>
@@ -100,6 +105,7 @@ export default function UnitGallery({ images }: UnitGalleryProps) {
                   <button 
                     className="absolute -left-2 md:left-4 text-gray-800 hover:text-white hover:bg-primary transition bg-white/90 shadow-md backdrop-blur-sm p-2 rounded-full z-10"
                     onClick={prevImage}
+                    aria-label={isRTL ? 'الصورة السابقة' : 'Previous photo'}
                   >
                     <ChevronLeftIcon className="w-6 h-6" />
                   </button>
@@ -107,8 +113,8 @@ export default function UnitGallery({ images }: UnitGalleryProps) {
               )}
             </div>
             
-            <div className="mt-4 text-gray-500 font-bold text-sm text-center bg-gray-100 px-4 py-1.5 rounded-full">
-              صورة {selectedIndex + 1} من {images.length}
+            <div className="mt-4 text-gray-500 font-bold text-sm text-center bg-gray-100 px-4 py-1.5 rounded-full" dir="ltr">
+              {isRTL ? `صورة ${selectedIndex + 1} من ${images.length}` : `Photo ${selectedIndex + 1} of ${images.length}`}
             </div>
           </div>
         </div>

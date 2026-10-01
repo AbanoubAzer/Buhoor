@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext';
 
 interface OpenInAppBannerProps {
   path: string; // e.g. "units/123" or "projects/456"
@@ -12,6 +13,7 @@ export default function OpenInAppBanner({
   path,
   title = 'تطبيق بُحور',
 }: OpenInAppBannerProps) {
+  const { t, isRTL } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -51,33 +53,43 @@ export default function OpenInAppBanner({
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gradient-to-r from-primary to-[#0f284e] text-white px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-sm animate-fadeIn sticky top-0 z-40">
+    <div className="bg-gradient-to-r from-primary to-[#0f284e] text-white px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-sm animate-fadeIn sticky top-0 z-40" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
           onClick={handleDismiss}
           className="text-gray-300 hover:text-white p-1 rounded-full hover:bg-white/10 transition shrink-0"
-          aria-label="إغلاق"
+          aria-label={isRTL ? 'إغلاق' : 'Close'}
         >
           <XMarkIcon className="w-4 h-4" />
         </button>
 
         <div className="w-8 h-8 rounded-xl bg-accent text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-          ب
+          {isRTL ? 'ب' : 'B'}
         </div>
 
         <div className="min-w-0">
-          <p className="font-bold text-xs truncate">تطبيق بُحور متاح لهاتفك</p>
-          <p className="text-[11px] text-gray-300 truncate">تصفح العقار بتجربة أسرع وسلسة</p>
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold text-xs truncate">{t('appBannerTitle')}</p>
+            <span className="bg-amber-400 text-gray-900 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+              {t('comingSoon')}
+            </span>
+          </div>
+          <p className="text-[11px] text-gray-300 truncate">
+            {isRTL ? 'تطبيق Android و iOS قريباً على المتاجر' : 'Android & iOS App coming soon to stores'}
+          </p>
         </div>
       </div>
 
       <button
         type="button"
-        onClick={handleOpenInApp}
+        onClick={() => {
+          alert(t('appComingSoonToast'));
+          handleOpenInApp();
+        }}
         className="bg-accent hover:bg-accent/90 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 shrink-0 whitespace-nowrap active:scale-95"
       >
-        <span>فتح في التطبيق</span>
+        <span>{t('comingSoon')}</span>
         <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
       </button>
     </div>

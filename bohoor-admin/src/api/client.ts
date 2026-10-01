@@ -2,8 +2,9 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333'; // Ù…Ù
 
 async function request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token');
+  const isFormData = options.body instanceof FormData;
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
@@ -57,7 +58,7 @@ async function request<T = any>(endpoint: string, options: RequestInit = {}): Pr
 export const api = {
   projects: {
     getAll: async (developerId?: string) => {
-      const url = developerId ? `/projects?developerId=${developerId}` : '/projects';
+      const url = developerId ? `/projects?all=true&developerId=${developerId}` : '/projects?all=true';
       return request(url);
     },
     getOne: async (id: string) => {
@@ -81,7 +82,7 @@ export const api = {
       return request(`/developers/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
     },
     getAll: async () => {
-      return request('/developers');
+      return request('/developers?all=true');
     },
     getOne: async (id: string) => {
       return request(`/developers/${id}`);
@@ -204,6 +205,12 @@ export const api = {
     },
     remove: async (id: string) => {
       return request(`/units/${id}`, { method: 'DELETE' });
+    },
+    importExcel: async (file: File, projectId?: string) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (projectId) formData.append('projectId', projectId);
+      return request('/units/import', { method: 'POST', body: formData });
     },
   },
   locations: {

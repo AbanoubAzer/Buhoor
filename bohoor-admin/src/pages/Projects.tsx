@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import UnitForm from '../components/UnitForm';
 import { useToast } from '../context/ToastContext';
 import ImageUpload from '../components/ImageUpload';
+import MultipleImageUpload from '../components/MultipleImageUpload';
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 const ChevronDown = () => (
@@ -24,6 +25,17 @@ const PlusIcon = () => (
 const EditIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+  </svg>
+);
+const EyeIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+  </svg>
+);
+const EyeSlashIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a9.97 9.97 0 014.122-.963c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21m-4.22-4.22L3 3" />
   </svg>
 );
 
@@ -51,24 +63,38 @@ function StatusBadge({ status }: { status: string }) {
 
 // ── Project Form Modal ───────────────────────────────────────────────────────
 function ProjectModal({
-  developers, onSave, onClose, initial,
-}: { developers: any[]; onSave: (data: any) => void; onClose: () => void; initial?: any }) {
+  developers, locations, onSave, onClose, initial,
+}: { developers: any[]; locations: any[]; onSave: (data: any) => void; onClose: () => void; initial?: any }) {
   const [form, setForm] = useState({
-    name: initial?.name ?? '',
+    name: initial?.name ?? initial?.nameAr ?? '',
+    nameEn: initial?.nameEn ?? '',
     developerId: initial?.developerId ?? '',
-    location: initial?.location ?? '',
-    description: initial?.description ?? '',
+    location: initial?.location ?? initial?.locationAr ?? '',
+    description: initial?.description ?? initial?.descriptionAr ?? '',
+    descriptionEn: initial?.descriptionEn ?? '',
     coverImage: initial?.coverImage ?? '',
+    images: initial?.images ?? [],
+    videoLink: initial?.videoLink ?? '',
+    isActive: initial?.isActive ?? true,
   });
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 space-y-4" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 my-8 p-6 space-y-4" dir="rtl">
         <h2 className="text-lg font-bold text-gray-800">{initial ? 'تعديل مشروع' : 'إضافة مشروع جديد'}</h2>
-        <div className="grid grid-cols-1 gap-3">
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">اسم المشروع *</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" />
+        <div className="grid grid-cols-1 gap-3 max-h-[70vh] overflow-y-auto px-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">اسم المشروع (بالعربية) *</label>
+              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="مثال: ذا جروف"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">اسم المشروع ( بالإنجليزي )</label>
+              <input value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))}
+                placeholder="e.g. The Grove" dir="ltr"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none text-left" />
+            </div>
           </div>
           <div>
             <label className="text-sm text-gray-600 mb-1 block">المطور *</label>
@@ -80,29 +106,65 @@ function ProjectModal({
           </div>
           <div>
             <label className="text-sm text-gray-600 mb-1 block">الموقع *</label>
-            <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" />
+            <select value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+              <option value="">اختر منطقة</option>
+              {locations.map(loc => <option key={loc.id} value={loc.name}>{loc.name}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">الوصف (بالعربية)</label>
+              <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2}
+                placeholder="وصف المشروع بالعربية..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none resize-none" />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">الوصف (بالإنجليزي) - English</label>
+              <textarea value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} dir="ltr"
+                placeholder="Project description in English..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none resize-none text-left" />
+            </div>
           </div>
           <div>
-            <label className="text-sm text-gray-600 mb-1 block">الوصف</label>
-            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none resize-none" />
+            <label className="text-sm text-gray-600 mb-1 block">رابط فيديو اختياري (يوتيوب أو غيره)</label>
+            <input type="url" placeholder="https://..." value={form.videoLink} onChange={e => setForm(f => ({ ...f, videoLink: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none text-left" dir="ltr" />
           </div>
           <div className="pt-2">
             <ImageUpload 
-              label="صورة الغلاف" 
+              label="صورة الغلاف الأساسية" 
               value={form.coverImage} 
               onChange={(url) => setForm(f => ({ ...f, coverImage: url }))} 
             />
           </div>
+          <div className="pt-2">
+            <label className="text-sm text-gray-600 mb-1 block font-semibold">صور إضافية للمشروع (Gallery)</label>
+            <MultipleImageUpload 
+              images={form.images} 
+              onChange={(urls) => setForm(f => ({ ...f, images: urls }))} 
+            />
+          </div>
+          <div className="flex items-center gap-2 pt-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <input
+              type="checkbox"
+              id="isActiveProj"
+              checked={form.isActive}
+              onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
+              className="w-4 h-4 text-indigo-600 focus:ring-indigo-400 rounded border-gray-300"
+            />
+            <label htmlFor="isActiveProj" className="text-sm font-semibold text-gray-700 cursor-pointer">
+              عرض المشروع بالموقع والتطبيق (نشط)
+            </label>
+          </div>
         </div>
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-2 border-t mt-4">
           <button onClick={() => onSave(form)}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2 text-sm font-semibold transition">
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2 text-sm font-semibold transition mt-2">
             حفظ
           </button>
           <button onClick={onClose}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg py-2 text-sm font-semibold transition">
+            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg py-2 text-sm font-semibold transition mt-2">
             إلغاء
           </button>
         </div>
@@ -160,6 +222,18 @@ export default function Projects() {
   useEffect(() => {
     fetchAll();
   }, [devFilter]);
+
+  const handleToggleProjectActive = async (proj: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newStatus = !(proj.isActive ?? true);
+    try {
+      await api.projects.update(proj.id, { isActive: newStatus });
+      toast.success(newStatus ? 'تم إظهار المشروع بنجاح' : 'تم إخفاء المشروع بنجاح');
+      fetchAll();
+    } catch (err: any) {
+      toast.error('فشل تغيير حالة المشروع');
+    }
+  };
 
   const handleSaveProject = async (data: any) => {
     try {
@@ -242,6 +316,7 @@ export default function Projects() {
             const total = proj._count?.units ?? proj.units?.length ?? 0;
             const approved = (proj.units ?? []).filter((u: any) => u.status === 'APPROVED').length;
             const percent = total > 0 ? Math.round((approved / total) * 100) : 0;
+            const isProjActive = proj.isActive ?? true;
 
             return (
               <div key={proj.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition hover:border-indigo-100">
@@ -259,6 +334,9 @@ export default function Projects() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-bold text-gray-900 text-base">{proj.name}</h3>
                         <span className="text-xs bg-indigo-50 text-indigo-700 font-medium px-2 py-0.5 rounded-full">{proj.location}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${isProjActive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                          {isProjActive ? 'نشط' : 'مخفي'}
+                        </span>
                       </div>
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                         {proj.developer && (
@@ -287,6 +365,17 @@ export default function Projects() {
                     )}
 
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={e => handleToggleProjectActive(proj, e)}
+                        className={`p-2 rounded-lg transition ${
+                          isProjActive
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                            : 'bg-rose-50 hover:bg-rose-100 text-rose-700'
+                        }`}
+                        title={isProjActive ? 'إخفاء المشروع' : 'إظهار المشروع'}
+                      >
+                        {isProjActive ? <EyeIcon /> : <EyeSlashIcon />}
+                      </button>
                       <button
                         onClick={e => { e.stopPropagation(); setEditingProject(proj); setShowProjectModal(true); }}
                         className="p-2 rounded-lg bg-gray-100 hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 transition"
@@ -359,6 +448,7 @@ export default function Projects() {
       {showProjectModal && (
         <ProjectModal
           developers={developers}
+          locations={locations}
           initial={editingProject}
           onSave={handleSaveProject}
           onClose={() => { setShowProjectModal(false); setEditingProject(null); }}

@@ -10,10 +10,10 @@ import { useLanguage } from "../context/LanguageContext";
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, dir } = useLanguage();
 
   return (
-    <header className="sticky top-0 z-50 glass">
+    <header dir={dir} className="sticky top-0 z-50 glass">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
@@ -47,7 +47,7 @@ export default function Header() {
               type="button"
               className="lg:hidden p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition border border-gray-200 shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="القائمة"
+              aria-label={isRTL ? "القائمة" : "Menu"}
             >
               {mobileMenuOpen ? (
                 <XMarkIcon className="h-5 w-5" aria-hidden="true" />
@@ -84,11 +84,11 @@ export default function Header() {
                   </div>
                   <div>
                     <div className="font-extrabold text-sm flex items-center gap-1.5">
-                      <span>{isRTL ? 'البحث الذكي بالعقارات' : 'AI Smart Property Match'}</span>
+                      <span>{t('aiSearchBtn')}</span>
                       <span className="bg-amber-400 text-slate-900 text-[10px] px-1.5 py-0.5 rounded font-black">AI</span>
                     </div>
                     <p className="text-[11px] text-white/80 font-medium mt-0.5">
-                      {isRTL ? 'حدّد ميزانيتك ومواصفاتك ليطابقها فوراً' : 'Instant AI matching for your budget & criteria'}
+                      {t('aiSearchSub')}
                     </p>
                   </div>
                 </div>

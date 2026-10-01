@@ -22,7 +22,9 @@ export default function Locations() {
 
   // Form State
   const [name, setName] = useState('');
+  const [nameEn, setNameEn] = useState('');
   const [governorate, setGovernorate] = useState('البحر الأحمر');
+  const [governorateEn, setGovernorateEn] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [customGovernorate, setCustomGovernorate] = useState('');
   const [uploadMode, setUploadMode] = useState<'upload' | 'url'>('upload');
@@ -42,7 +44,9 @@ export default function Locations() {
 
   const resetForm = () => {
     setName('');
+    setNameEn('');
     setGovernorate('البحر الأحمر');
+    setGovernorateEn('');
     setImageUrl('');
     setCustomGovernorate('');
     setEditingLoc(null);
@@ -56,7 +60,9 @@ export default function Locations() {
     const selectedGov = governorate === 'أخرى' ? customGovernorate : governorate;
     const payload = {
       name: name.trim(),
+      nameEn: nameEn.trim() || undefined,
       governorate: selectedGov.trim() || undefined,
+      governorateEn: governorateEn.trim() || undefined,
       imageUrl: imageUrl.trim() || undefined,
     };
 
@@ -77,7 +83,8 @@ export default function Locations() {
 
   const startEdit = (loc: any) => {
     setEditingLoc(loc);
-    setName(loc.name || '');
+    setName(loc.name || loc.nameAr || '');
+    setNameEn(loc.nameEn || '');
     if (loc.governorate && EGYPT_GOVERNORATES.includes(loc.governorate)) {
       setGovernorate(loc.governorate);
       setCustomGovernorate('');
@@ -88,6 +95,7 @@ export default function Locations() {
       setGovernorate('البحر الأحمر');
       setCustomGovernorate('');
     }
+    setGovernorateEn(loc.governorateEn || '');
     setImageUrl(loc.imageUrl || '');
   };
 
@@ -118,13 +126,24 @@ export default function Locations() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">اسم المنطقة *</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">اسم المنطقة (بالعربية) *</label>
             <input 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="مثال: الغردقة، سهل حشيش، الجونة..."
               required
               className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-primary focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">اسم المنطقة (بالإنجليزي) - English Name</label>
+            <input 
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
+              placeholder="e.g. Hurghada, Sahl Hasheesh, El Gouna"
+              dir="ltr"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-primary focus:border-primary text-left"
             />
           </div>
 

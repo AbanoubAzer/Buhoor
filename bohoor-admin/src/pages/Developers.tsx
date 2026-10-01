@@ -11,6 +11,8 @@ import {
   PhoneIcon,
   InformationCircleIcon,
   XMarkIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from '@heroicons/react/24/outline';
 
 export default function Developers() {
@@ -34,6 +36,18 @@ export default function Developers() {
   useEffect(() => {
     fetchDevelopers();
   }, []);
+
+  const handleToggleActive = async (dev: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newStatus = !(dev.isActive ?? true);
+    try {
+      await api.developers.update(dev.id, { isActive: newStatus });
+      toast.success(newStatus ? 'تم إظهار المطور بنجاح' : 'تم إخفاء المطور بنجاح');
+      fetchDevelopers();
+    } catch (err: any) {
+      toast.error('فشل تغيير حالة المطور');
+    }
+  };
 
   const handleEditClick = (dev: any, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -166,13 +180,33 @@ export default function Developers() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={(e) => handleEditClick(dev, e)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
-                          title="تعديل المطور"
-                        >
-                          <PencilSquareIcon className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              dev.isActive ?? true ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            {dev.isActive ?? true ? 'نشط' : 'مخفي'}
+                          </span>
+                          <button
+                            onClick={(e) => handleToggleActive(dev, e)}
+                            className={`p-1.5 rounded-lg transition ${
+                              dev.isActive ?? true
+                                ? 'text-emerald-600 hover:bg-emerald-50'
+                                : 'text-gray-400 hover:text-rose-600 hover:bg-rose-50'
+                            }`}
+                            title={dev.isActive ?? true ? 'إخفاء المطور' : 'إظهار المطور'}
+                          >
+                            {dev.isActive ?? true ? <EyeIcon className="w-5 h-5 text-emerald-600" /> : <EyeSlashIcon className="w-5 h-5 text-rose-500" />}
+                          </button>
+                          <button
+                            onClick={(e) => handleEditClick(dev, e)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                            title="تعديل المطور"
+                          >
+                            <PencilSquareIcon className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Bio preview */}

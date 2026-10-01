@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Linking, Pressable, Share, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, Stack, Link } from 'expo-router';
+import { useLocalSearchParams, Stack, Link, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import axios from 'axios';
-import { PlayCircle, MapPin, Building, Key, Share2 } from 'lucide-react-native';
+import { PlayCircle, MapPin, Building, Key, Share2, ChevronRight, ChevronLeft } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import { useStore } from '../../store/useStore';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
@@ -20,6 +20,7 @@ const getDirectImageUrl = (url: string) => {
 };
 
 export default function ProjectDetails() {
+  const router = useRouter();
   const { id } = useLocalSearchParams();
   const { language, t, getLocalized } = useStore();
   const isRtl = language === 'ar';
@@ -95,8 +96,22 @@ export default function ProjectDetails() {
     <>
       <Stack.Screen 
         options={{ 
-          title: projectName || t('projectDetails'), 
-          headerBackTitle: t('back'),
+          title: '',
+          headerTitle: '',
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.back()} 
+              style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+              accessibilityLabel={t('back')}
+            >
+              {isRtl ? (
+                <ChevronRight size={26} color={Colors.primary} />
+              ) : (
+                <ChevronLeft size={26} color={Colors.primary} />
+              )}
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <View style={{ flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }}>
               <LanguageSwitcher />
@@ -153,7 +168,7 @@ export default function ProjectDetails() {
 
                   return (
                     <Link href={`/unit/${unit.id}`} key={unit.id} asChild>
-                      <Pressable style={[styles.unitCard, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                      <Pressable style={StyleSheet.flatten([styles.unitCard, { flexDirection: isRtl ? 'row-reverse' : 'row' }])}>
                         {unitCover ? (
                           <Image source={{ uri: getDirectImageUrl(unitCover) }} contentFit="cover" style={styles.unitImg} />
                         ) : (
@@ -175,12 +190,23 @@ export default function ProjectDetails() {
             </View>
           )}
 
-          {project.videoUrl && (
+          {project.images && project.images.length > 0 && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'صور المشروع' : 'Project Gallery'}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                {project.images.map((img: string, index: number) => (
+                  <Image key={index} source={{ uri: getDirectImageUrl(img) }} style={styles.galleryImage} contentFit="cover" />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {project.videoLink && (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('videos')}</Text>
               <Pressable 
                 style={[styles.videoButton, { flexDirection: isRtl ? 'row-reverse' : 'row' }]} 
-                onPress={() => Linking.openURL(project.videoUrl).catch(() => {})}
+                onPress={() => Linking.openURL(project.videoLink).catch(() => {})}
               >
                 <PlayCircle color={Colors.accent} size={28} />
                 <Text style={styles.videoText}>{t('watchVideo')}</Text>
@@ -217,4 +243,5 @@ const styles = StyleSheet.create({
   unitPrice: { fontSize: 14, fontWeight: 'bold', color: Colors.accent },
   videoButton: { alignItems: 'center', backgroundColor: Colors.gray, padding: 14, borderRadius: 12, gap: 12 },
   videoText: { fontSize: 15, color: Colors.primary, fontWeight: 'bold' },
+  galleryImage: { width: 140, height: 100, borderRadius: 12, backgroundColor: '#D1D5DB' },
 });

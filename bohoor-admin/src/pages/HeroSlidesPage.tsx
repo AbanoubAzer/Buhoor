@@ -13,14 +13,19 @@ export default function HeroSlidesPage() {
   const [formData, setFormData] = useState({
     image: '',
     title: '',
+    titleEn: '',
     subtitle: '',
+    subtitleEn: '',
     desc: '',
+    descEn: '',
     projectName: '',
     projectLocation: '',
     projectLocationAr: '',
     projectType: '',
+    projectTypeEn: '',
     projectArea: '',
     projectPrice: '',
+    projectPriceEn: '',
     projectLink: '/projects',
     isActive: true,
     order: 0,
@@ -67,14 +72,19 @@ export default function HeroSlidesPage() {
     setFormData({
       image: slide.image,
       title: slide.title,
+      titleEn: slide.titleEn || '',
       subtitle: slide.subtitle,
+      subtitleEn: slide.subtitleEn || '',
       desc: slide.desc,
+      descEn: slide.descEn || '',
       projectName: slide.projectName,
       projectLocation: slide.projectLocation,
       projectLocationAr: slide.projectLocationAr,
       projectType: slide.projectType,
+      projectTypeEn: slide.projectTypeEn || '',
       projectArea: slide.projectArea,
       projectPrice: slide.projectPrice,
+      projectPriceEn: slide.projectPriceEn || '',
       projectLink: slide.projectLink || '/projects',
       isActive: slide.isActive,
       order: slide.order,
@@ -98,14 +108,19 @@ export default function HeroSlidesPage() {
     setFormData({
       image: '',
       title: '',
+      titleEn: '',
       subtitle: '',
+      subtitleEn: '',
       desc: '',
+      descEn: '',
       projectName: '',
       projectLocation: '',
       projectLocationAr: '',
       projectType: '',
+      projectTypeEn: '',
       projectArea: '',
       projectPrice: '',
+      projectPriceEn: '',
       projectLink: '/projects',
       isActive: true,
       order: 0,
@@ -184,18 +199,32 @@ export default function HeroSlidesPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">العنوان الرئيسي</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">العنوان الرئيسي (AR)</label>
                   <input required type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">العنوان الفرعي الملون</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">العنوان الرئيسي (EN)</label>
+                  <input type="text" dir="ltr" value={formData.titleEn} onChange={(e) => setFormData({...formData, titleEn: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 text-left" placeholder="Title in English" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">العنوان الفرعي (AR)</label>
                   <input required type="text" value={formData.subtitle} onChange={(e) => setFormData({...formData, subtitle: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">العنوان الفرعي (EN)</label>
+                  <input type="text" dir="ltr" value={formData.subtitleEn} onChange={(e) => setFormData({...formData, subtitleEn: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 text-left" placeholder="Subtitle in English" />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">الوصف</label>
-                <textarea required value={formData.desc} onChange={(e) => setFormData({...formData, desc: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 h-20"></textarea>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">الوصف (AR)</label>
+                  <textarea required value={formData.desc} onChange={(e) => setFormData({...formData, desc: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 h-20"></textarea>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">الوصف (EN)</label>
+                  <textarea dir="ltr" value={formData.descEn} onChange={(e) => setFormData({...formData, descEn: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 h-20 text-left" placeholder="Description in English"></textarea>
+                </div>
               </div>
 
               <hr className="my-4"/>
@@ -215,16 +244,24 @@ export default function HeroSlidesPage() {
                   <input required type="text" value={formData.projectLocationAr} onChange={(e) => setFormData({...formData, projectLocationAr: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">نوع العقار</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">نوع العقار (AR)</label>
                   <input required type="text" value={formData.projectType} onChange={(e) => setFormData({...formData, projectType: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">نوع العقار (EN)</label>
+                  <input type="text" dir="ltr" value={formData.projectTypeEn} onChange={(e) => setFormData({...formData, projectTypeEn: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 text-left" placeholder="e.g. Chalet" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">المساحة</label>
                   <input required type="text" value={formData.projectArea} onChange={(e) => setFormData({...formData, projectArea: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50" placeholder="مثال: 80 م²" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">السعر</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">السعر (AR)</label>
                   <input required type="text" value={formData.projectPrice} onChange={(e) => setFormData({...formData, projectPrice: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50" placeholder="مثال: 6,500,000 ج.م" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">السعر (EN)</label>
+                  <input type="text" dir="ltr" value={formData.projectPriceEn} onChange={(e) => setFormData({...formData, projectPriceEn: e.target.value})} className="w-full p-2 border rounded-xl bg-gray-50 text-left" placeholder="e.g. 6,500,000 EGP" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">رابط المشروع (الزر)</label>

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UnitsService } from './units.service.js';
 import { CreateUnitDto } from './dto/create-unit.dto.js';
 import { UpdateUnitDto } from './dto/update-unit.dto.js';
@@ -7,6 +8,14 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 @Controller('units')
 export class UnitsController {
   constructor(private readonly unitsService: UnitsService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file'))
+  importExcel(@UploadedFile() file: any, @Body('projectId') projectId?: string) {
+    if (!file) throw new BadRequestException('File is required');
+    return this.unitsService.importExcel(file, projectId);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post()

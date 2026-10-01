@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { DevelopersService } from './developers.service.js';
 import { CreateDeveloperDto } from './dto/create-developer.dto.js';
 import { UpdateDeveloperDto } from './dto/update-developer.dto.js';
@@ -15,8 +15,12 @@ export class DevelopersController {
   }
 
   @Get()
-  findAll() {
-    return this.developersService.findAll();
+  findAll(
+    @Query('all') all?: string,
+    @Query('includeHidden') includeHidden?: string,
+  ) {
+    const isIncludeHidden = all === 'true' || includeHidden === 'true';
+    return this.developersService.findAll(isIncludeHidden);
   }
 
   @Get('count')

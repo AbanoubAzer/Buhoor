@@ -115,6 +115,7 @@ export default function FavoritesTab() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+        <Text style={[styles.headerTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('favoriteProperties')}</Text>
         <Text style={[styles.headerSubtitle, { textAlign: isRtl ? 'right' : 'left' }]}>
           {favoriteUnits.length > 0
             ? (isRtl 
@@ -122,7 +123,6 @@ export default function FavoritesTab() {
                 : `You have ${favoriteUnits.length} saved properties in your wishlist`)
             : t('saveFavoriteHint')}
         </Text>
-        <Text style={styles.headerTitle}>{t('favoriteProperties')}</Text>
       </View>
 
       {favoriteUnits.length === 0 ? (
@@ -133,9 +133,9 @@ export default function FavoritesTab() {
           <Text style={styles.emptyTitle}>{t('noFavoritesTitle')}</Text>
           <Text style={styles.emptySub}>{t('noFavoritesSub')}</Text>
           <Link href="/units" asChild>
-            <TouchableOpacity style={[styles.browseBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+            <TouchableOpacity style={StyleSheet.flatten([styles.browseBtn, { flexDirection: isRtl ? 'row-reverse' : 'row' }])}>
               <Text style={styles.browseBtnText}>{t('exploreProperties')}</Text>
-              <ArrowRight size={18} color="#fff" style={!isRtl ? { transform: [{ rotate: '0deg' }] } : { transform: [{ rotate: '180deg' }] }} />
+              <ArrowRight size={18} color="#fff" style={isRtl ? { transform: [{ rotate: '180deg' }] } : undefined} />
             </TouchableOpacity>
           </Link>
         </View>
@@ -153,107 +153,109 @@ export default function FavoritesTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.gray },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.cardBackground,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.borderLight,
     alignItems: 'flex-end',
   },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: Colors.primary },
-  headerSubtitle: { fontSize: 13, color: Colors.darkGray, marginTop: 4, textAlign: 'right' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: Colors.primary },
+  headerSubtitle: { fontSize: 13, color: Colors.textMuted, marginTop: 4, textAlign: 'right' },
   content: { padding: 16 },
   card: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 20,
     marginBottom: 16,
     overflow: 'hidden',
-    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
     position: 'relative',
   },
-  image: { width: '100%', height: 190, backgroundColor: Colors.gray },
+  image: { width: '100%', height: 195, backgroundColor: Colors.surface },
   placeholder: { justifyContent: 'center', alignItems: 'center' },
-  placeholderText: { color: Colors.darkGray },
+  placeholderText: { color: Colors.textMuted },
   favoriteBtn: {
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 20,
     padding: 8,
     zIndex: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
   },
-  cardBody: { padding: 14 },
-  topMeta: { flexDirection: 'row-reverse', gap: 8, marginBottom: 6 },
+  cardBody: { padding: 16 },
+  topMeta: { flexDirection: 'row-reverse', gap: 8, marginBottom: 8 },
   typeBadge: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: Colors.primary,
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     borderRadius: 8,
   },
   devBadge: {
     fontSize: 11,
-    fontWeight: 'bold',
-    color: '#065F46',
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    fontWeight: '700',
+    color: Colors.success,
+    backgroundColor: Colors.successLight,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     borderRadius: 8,
   },
   seaBadge: {
     fontSize: 11,
-    fontWeight: 'bold',
-    color: '#0284C7',
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    fontWeight: '700',
+    color: Colors.seaDark,
+    backgroundColor: Colors.seaLight,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     borderRadius: 8,
   },
   roiBadge: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-    borderWidth: 1,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    backgroundColor: Colors.successLight,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     borderRadius: 8,
   },
   roiBadgeText: {
     fontSize: 11,
-    fontWeight: 'bold',
-    color: '#065F46',
+    fontWeight: '700',
+    color: Colors.success,
   },
-  unitName: { fontSize: 16, fontWeight: 'bold', color: Colors.primary, textAlign: 'right', marginBottom: 6 },
-  locRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, marginBottom: 8 },
-  locText: { fontSize: 12, color: Colors.darkGray },
+  unitName: { fontSize: 16, fontWeight: '800', color: Colors.text, textAlign: 'right', marginBottom: 6 },
+  locRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4, marginBottom: 10 },
+  locText: { fontSize: 12, color: Colors.textMuted },
   specsRow: {
     flexDirection: 'row-reverse',
-    gap: 12,
-    marginBottom: 10,
-    paddingBottom: 8,
+    gap: 14,
+    marginBottom: 12,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Colors.borderLight,
   },
   specItem: { flexDirection: 'row-reverse', alignItems: 'center', gap: 4 },
-  specVal: { fontSize: 12, color: Colors.darkGray, fontWeight: '600' },
+  specVal: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
   priceRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
-  priceLabel: { fontSize: 12, color: Colors.darkGray },
-  price: { fontSize: 16, fontWeight: 'bold', color: Colors.accent },
+  priceLabel: { fontSize: 12, color: Colors.textMuted },
+  price: { fontSize: 17, fontWeight: '900', color: Colors.accent },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -261,24 +263,24 @@ const styles = StyleSheet.create({
     padding: 30,
   },
   emptyIconBg: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FFF7ED',
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: Colors.warningLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.primary,
+    fontWeight: '800',
+    color: Colors.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptySub: {
     fontSize: 14,
-    color: Colors.darkGray,
+    color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -287,14 +289,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: 26,
+    paddingVertical: 14,
+    borderRadius: 16,
     gap: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   browseBtnText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
 });

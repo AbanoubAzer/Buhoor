@@ -5,6 +5,7 @@ import MultipleImageUpload from './MultipleImageUpload';
 
 type UnitFormData = {
   title: string;
+  titleEn?: string;
   sellerType: 'DEVELOPER' | 'INDIVIDUAL';
   developerId?: string;
   projectId?: string;
@@ -26,6 +27,7 @@ type UnitFormData = {
   isCashOnly?: boolean;
   cashDiscountPercentage?: number;
   description?: string;
+  descriptionEn?: string;
   isSeaView?: boolean;
   expectedRentalRoi?: number;
   coverImage?: string;
@@ -246,23 +248,49 @@ export default function UnitForm({
       <div>
         <h3 className="text-lg font-semibold text-primary mb-3 border-b pb-2">المعلومات الأساسية</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="col-span-full">
-            <label className="block text-sm font-medium text-gray-700 mb-1">عنوان الإعلان</label>
-            <input
-              {...register('title', { required: 'العنوان مطلوب' })}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"
-            />
-            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
+          <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">عنوان الإعلان (بالعربية) *</label>
+              <input
+                {...register('title', { required: 'العنوان مطلوب' })}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"
+                placeholder="شاليه للبيع في الجونة بالتقسيط"
+              />
+              {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">عنوان الإعلان (بالإنجليزي) - English Title</label>
+              <input
+                {...register('titleEn')}
+                dir="ltr"
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary text-left"
+                placeholder="Chalet for sale in El Gouna with installments"
+              />
+            </div>
           </div>
 
-          <div className="col-span-full">
-            <label className="block text-sm font-medium text-gray-700 mb-1">وصف وتفاصيل العقار الكاملة</label>
-            <textarea
-              {...register('description')}
-              rows={4}
-              placeholder="اكتب وصفاً شاملاً عن العقار (الموقع، التجهيزات، المميزات، الخدمات المتاحة، طريقة السداد...)"
-              className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-primary focus:border-primary text-sm leading-relaxed"
-            />
+          <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">وصف العقار (بالعربية)</label>
+              <textarea
+                {...register('description')}
+                rows={4}
+                placeholder="اكتب وصفاً شاملاً عن العقار بالعربية..."
+                className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-primary focus:border-primary text-sm leading-relaxed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">وصف العقار (بالإنجليزي) - English Description</label>
+              <textarea
+                {...register('descriptionEn')}
+                rows={4}
+                dir="ltr"
+                placeholder="Write a full description in English..."
+                className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-primary focus:border-primary text-sm leading-relaxed text-left"
+              />
+            </div>
           </div>
 
           <div>
@@ -710,8 +738,8 @@ export default function UnitForm({
           <div className="col-span-full">
             <MultipleImageUpload 
               label="باقي الصور (اختياري)"
-              value={watch('images') || ''}
-              onChange={(urls) => setValue('images', urls)}
+              images={(Array.isArray(watch('images')) ? watch('images') : (typeof watch('images') === 'string' && watch('images') ? (watch('images') as unknown as string).split(',').map((s: string) => s.trim()) : [])) as string[]}
+              onChange={(urls) => setValue('images', urls as any)}
             />
           </div>
           <div>

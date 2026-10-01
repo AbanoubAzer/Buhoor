@@ -3,14 +3,14 @@ import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 interface MultipleImageUploadProps {
-  value: string;
-  onChange: (urls: string) => void;
+  images: string[];
+  onChange: (urls: string[]) => void;
   label?: string;
 }
 
-export default function MultipleImageUpload({ value, onChange, label = 'اختر صور إضافية' }: MultipleImageUploadProps) {
+export default function MultipleImageUpload({ images = [], onChange, label = 'اختر صور إضافية' }: MultipleImageUploadProps) {
   const [loading, setLoading] = useState(false);
-  const urls = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const urls = Array.isArray(images) ? images : [];
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -40,14 +40,17 @@ export default function MultipleImageUpload({ value, onChange, label = 'اختر
       }
     }
 
-    onChange(newUrls.join(', '));
+    if (newUrls.length > urls.length) {
+      toast.success('تم رفع الصور بنجاح وتقدر تشوفها دلوقتي');
+    }
+    onChange(newUrls);
     setLoading(false);
   };
 
   const removeUrl = (index: number) => {
     const newUrls = [...urls];
     newUrls.splice(index, 1);
-    onChange(newUrls.join(', '));
+    onChange(newUrls);
   };
 
   return (

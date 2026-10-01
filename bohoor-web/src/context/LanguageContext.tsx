@@ -17,21 +17,42 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('ar');
+interface LanguageProviderProps {
+  children: React.ReactNode;
+  initialLanguage?: Language;
+}
+
+export function LanguageProvider({ children, initialLanguage = 'ar' }: LanguageProviderProps) {
+  const [language, setLanguageState] = useState<Language>(initialLanguage);
 
   useEffect(() => {
-    const saved = localStorage.getItem('bohoor_lang') as Language;
-    if (saved === 'ar' || saved === 'en') {
-      setLanguageState(saved);
-      document.documentElement.lang = saved;
-      document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
+    // Check localStorage or cookie on client mount to ensure perfect client-side consistency
+    try {
+      const saved = localStorage.getItem('bohoor_lang') as Language;
+      if (saved === 'ar' || saved === 'en') {
+        if (saved !== language) {
+          setLanguageState(saved);
+        }
+        document.documentElement.lang = saved;
+        document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
+        document.cookie = `bohoor_lang=${saved};path=/;max-age=31536000;SameSite=Lax`;
+      } else if (initialLanguage) {
+        localStorage.setItem('bohoor_lang', initialLanguage);
+        document.cookie = `bohoor_lang=${initialLanguage};path=/;max-age=31536000;SameSite=Lax`;
+      }
+    } catch (e) {
+      console.error('Language sync error:', e);
     }
-  }, []);
+  }, [initialLanguage, language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('bohoor_lang', lang);
+    try {
+      localStorage.setItem('bohoor_lang', lang);
+      document.cookie = `bohoor_lang=${lang};path=/;max-age=31536000;SameSite=Lax`;
+    } catch (e) {
+      console.error('Error saving language:', e);
+    }
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   };

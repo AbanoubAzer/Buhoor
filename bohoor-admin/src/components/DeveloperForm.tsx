@@ -3,10 +3,13 @@ import ImageUpload from './ImageUpload';
 
 type DeveloperFormData = {
   name: string;
+  nameEn?: string;
   slug: string;
   logoUrl: string;
   bio: string;
+  bioEn?: string;
   phone: string;
+  isActive?: boolean;
 };
 
 export default function DeveloperForm({
@@ -25,7 +28,10 @@ export default function DeveloperForm({
     setValue,
     formState: { errors },
   } = useForm<DeveloperFormData>({
-    defaultValues: initialData || {},
+    defaultValues: {
+      isActive: true,
+      ...initialData,
+    },
   });
 
   return (
@@ -34,13 +40,23 @@ export default function DeveloperForm({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">اسم المطور</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">اسم المطور (بالعربية) *</label>
           <input
             {...register('name', { required: 'الاسم مطلوب' })}
             className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"
             placeholder="مثال: بحور العقارية"
           />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">اسم المطور ( بالإنجليزي ) - English Name</label>
+          <input
+            {...register('nameEn')}
+            dir="ltr"
+            className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary text-left"
+            placeholder="e.g. Bohoor Realty"
+          />
         </div>
 
         <div>
@@ -74,14 +90,39 @@ export default function DeveloperForm({
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">نبذة عن المطور</label>
-        <textarea
-          {...register('bio')}
-          className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"
-          rows={3}
-          placeholder="نبذة تعريفية..."
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">نبذة عن المطور (بالعربية)</label>
+          <textarea
+            {...register('bio')}
+            className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"
+            rows={3}
+            placeholder="نبذة تعريفية بالعربية..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">نبذة عن المطور (بالإنجليزي) - English Bio</label>
+          <textarea
+            {...register('bioEn')}
+            dir="ltr"
+            className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary text-left"
+            rows={3}
+            placeholder="Developer bio in English..."
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 pt-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+        <input
+          type="checkbox"
+          id="isActiveDev"
+          {...register('isActive')}
+          className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300"
         />
+        <label htmlFor="isActiveDev" className="text-sm font-semibold text-gray-700 cursor-pointer">
+          عرض المطور بالموقع والتطبيق (نشط)
+        </label>
       </div>
 
       <div className="flex justify-end space-x-2 space-x-reverse mt-6">

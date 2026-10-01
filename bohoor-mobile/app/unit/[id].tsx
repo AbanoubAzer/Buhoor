@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, Pressable, Linking, Dimensions, TouchableOpacity, Share, Platform } from 'react-native';
-import { useLocalSearchParams, Stack, Link } from 'expo-router';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, Pressable, Linking, Dimensions, TouchableOpacity, Share, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useLocalSearchParams, Stack, Link, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import axios from 'axios';
 import { 
@@ -16,6 +17,7 @@ import {
   Calendar,
   Layers,
   ChevronLeft,
+  ChevronRight,
   Share2
 } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
@@ -36,10 +38,12 @@ const getDirectImageUrl = (url: string) => {
 };
 
 export default function UnitDetails() {
+  const router = useRouter();
   const { id } = useLocalSearchParams();
   const [unit, setUnit] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toggleFavorite, isFavorite, language, t, getLocalized } = useStore();
+  const isRtl = language === 'ar';
 
   useEffect(() => {
     fetchUnitDetails();
@@ -67,7 +71,7 @@ export default function UnitDetails() {
   if (!unit) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>الوحدة غير موجودة</Text>
+        <Text style={styles.errorText}>{isRtl ? 'الوحدة غير موجودة' : 'Unit not found'}</Text>
       </View>
     );
   }
@@ -133,10 +137,7 @@ export default function UnitDetails() {
     Linking.openURL(`https://wa.me/201000000000?text=${text}`).catch(() => {});
   };
 
-  const handleCall = () => {
-    Linking.openURL('tel:+201000000000').catch(() => {});
-  };
-
+  
   const title = getLocalized(unit, 'title') || unit.title;
   const description = getLocalized(unit, 'description') || unit.description;
   const locName = getLocalized(unit, 'location') || unit.location?.name;
@@ -163,10 +164,24 @@ export default function UnitDetails() {
     <>
       <Stack.Screen 
         options={{ 
-          title: title || t('units'), 
-          headerBackTitle: t('back'),
+          title: '',
+          headerTitle: '',
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.back()} 
+              style={{ paddingHorizontal: 6, paddingVertical: 4 }}
+              accessibilityLabel={t('back')}
+            >
+              {isRtl ? (
+                <ChevronRight size={26} color={Colors.primary} />
+              ) : (
+                <ChevronLeft size={26} color={Colors.primary} />
+              )}
+            </TouchableOpacity>
+          ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }}>
               <LanguageSwitcher />
               <TouchableOpacity onPress={handleShare} style={{ padding: 6 }} accessibilityLabel={t('share')}>
                 <Share2 color={Colors.primary} size={20} />
@@ -182,86 +197,108 @@ export default function UnitDetails() {
           )
         }} 
       />
-      <ScrollView style={styles.container} bounces={false}>
+      <KeyboardAwareScrollView
+        style={styles.container}
+        bounces={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={150}
+        keyboardShouldPersistTaps="handled"
+      >
         <Image source={{ uri: coverImage }} contentFit="cover" style={styles.coverImage} />
         
         <View style={styles.content}>
           
           {/* Top Badges */}
-          <View style={styles.badgeRow}>
-            {unit.isVerified && <Text style={styles.verifiedBadge}>⭐ موثق ومعتمد</Text>}
-            {isSea && <Text style={styles.seaBadge}>🌊 إطلالة بحرية</Text>}
+          <View style={[styles.badgeRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+            {unit.isVerified && <Text style={styles.verifiedBadge}>{isRtl ? '⭐ موثق ومعتمد' : '⭐ Verified & Certified'}</Text>}
+            {isSea && <Text style={styles.seaBadge}>{isRtl ? '🌊 إطلالة بحرية' : '🌊 Sea View'}</Text>}
             <Text style={unit.sellerType === 'DEVELOPER' ? styles.devBadge : styles.sellerBadge}>
-              {unit.sellerType === 'DEVELOPER' ? '🏢 مطور مباشر (0% عمولة)' : '👤 بيع أفراد (إعادة بيع)'}
+              {unit.sellerType === 'DEVELOPER' ? isRtl ? '🏢 مطور مباشر (0% عمولة)' : '🏢 Direct Developer (0% Commission)' : isRtl ? '👤 بيع أفراد (إعادة بيع)' : '👤 Individual Sale (Resale)'}
             </Text>
             {unit.deliveryStatus && (
               <Text style={styles.deliveryBadge}>
-                {unit.deliveryStatus === 'READY' ? '✅ جاهز فوراً' : `🏗️ استلام ${unit.deliveryYear || ''}`}
+                {unit.deliveryStatus === 'READY' ? isRtl ? '✅ جاهز فوراً' : '✅ Ready Now' : `🏗️ استلام ${unit.deliveryYear || ''}`}
               </Text>
             )}
           </View>
 
           {/* Buyer Commission Highlight Banner */}
           {unit.sellerType === 'DEVELOPER' ? (
-            <View style={styles.commissionBannerGreen}>
+            <View style={[styles.commissionBannerGreen, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <ShieldCheck size={20} color="#065F46" />
               <View style={{ flex: 1 }}>
-                <Text style={styles.commissionBannerTitleGreen}>🎉 بدون أي عمولة من المشتري (0%)</Text>
-                <Text style={styles.commissionBannerSubGreen}>هذا العقار معروض مباشرة من شركة التطوير العقاري المعتمدة بدون رسوم إضافية.</Text>
+                <Text style={[styles.commissionBannerTitleGreen, { textAlign: isRtl ? 'right' : 'left' }]}>
+                  {isRtl ? '🎉 بدون أي عمولة من المشتري (0%)' : '🎉 0% Buyer Commission'}
+                </Text>
+                <Text style={[styles.commissionBannerSubGreen, { textAlign: isRtl ? 'right' : 'left' }]}>
+                  {isRtl ? 'هذا العقار معروض مباشرة من شركة التطوير العقاري المعتمدة بدون رسوم إضافية.' : 'This property is offered directly by the certified developer without extra fees.'}
+                </Text>
               </View>
             </View>
           ) : (
-            <View style={styles.commissionBannerBlue}>
+            <View style={[styles.commissionBannerBlue, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <ShieldCheck size={20} color={Colors.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.commissionBannerTitleBlue}>عمولة المنصة للمشتري: 1.25% فقط</Text>
-                <Text style={styles.commissionBannerSubBlue}>عقار إعادة بيع من فرد. المالك البائع لا يدفع أي عمولة للمنصة.</Text>
+                <Text style={[styles.commissionBannerTitleBlue, { textAlign: isRtl ? 'right' : 'left' }]}>
+                  {isRtl ? 'عمولة المنصة للمشتري: 1.25% فقط' : 'Platform Commission for Buyer: Only 1.25%'}
+                </Text>
+                <Text style={[styles.commissionBannerSubBlue, { textAlign: isRtl ? 'right' : 'left' }]}>
+                  {isRtl ? 'عقار إعادة بيع من فرد. المالك البائع لا يدفع أي عمولة للمنصة.' : 'Resale property from an individual. The selling owner pays no commission to the platform.'}
+                </Text>
               </View>
             </View>
           )}
 
-          <Text style={styles.title}>{unit.title}</Text>
+          <Text style={[styles.title, { textAlign: isRtl ? 'right' : 'left' }]}>{title}</Text>
           
-          {unit.location?.name && (
-            <View style={styles.locRow}>
-              <Text style={styles.locText}>
-                {unit.location.governorate ? `${unit.location.governorate}، ${unit.location.name}` : unit.location.name}
-              </Text>
+          {locName ? (
+            <View style={[styles.locRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <MapPin size={16} color={Colors.darkGray} />
+              <Text style={[styles.locText, { textAlign: isRtl ? 'right' : 'left' }]}>
+                {unit.location?.governorate ? (isRtl ? `${unit.location.governorate}، ${locName}` : `${locName}, ${unit.location.governorate}`) : locName}
+              </Text>
             </View>
-          )}
+          ) : null}
 
           {/* Price Box */}
-          <View style={styles.priceContainer}>
+          <View style={[styles.priceContainer, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
             <View>
-              <Text style={styles.priceLabel}>
-                {unit.sellerType === 'DEVELOPER' && cashPaid > 0 ? 'المقدم المطلوب' : 'السعر الكلي'}
+              <Text style={[styles.priceLabel, { textAlign: isRtl ? 'right' : 'left' }]}>
+                {unit.sellerType === 'DEVELOPER' && cashPaid > 0 ? (isRtl ? 'المقدم المطلوب' : 'Required Down Payment') : (isRtl ? 'السعر الكلي' : 'Total Price')}
               </Text>
-              <Text style={styles.price}>
-                {(cashPaid > 0 && unit.sellerType === 'DEVELOPER' ? cashPaid : totalPrice).toLocaleString('ar-EG')} ج.م
+              <Text style={[styles.price, { textAlign: isRtl ? 'right' : 'left' }]}>
+                {(cashPaid > 0 && unit.sellerType === 'DEVELOPER' ? cashPaid : totalPrice).toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}
               </Text>
             </View>
             {totalPrice > 0 && cashPaid > 0 && cashPaid !== totalPrice && (
               <View style={styles.totalPriceBadge}>
-                <Text style={styles.totalPriceLabel}>إجمالي سعر العقار</Text>
-                <Text style={styles.totalPriceVal}>{totalPrice.toLocaleString('ar-EG')} ج.م</Text>
+                <Text style={styles.totalPriceLabel}>{isRtl ? 'إجمالي سعر العقار' : 'Total Property Price'}</Text>
+                <Text style={styles.totalPriceVal}>{totalPrice.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
               </View>
             )}
           </View>
 
           {/* Developer & Project Reference Card */}
           {(unit.developer || unit.project) && (
-            <View style={styles.devCard}>
+            <View style={[styles.devCard, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+              {Boolean(unit.developer?.logoUrl || unit.developer?.logo) && (
+                <Image
+                  source={{ uri: unit.developer.logoUrl || unit.developer.logo }}
+                  style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E5E7EB', marginEnd: 10 }}
+                  contentFit="contain"
+                />
+              )}
               <View style={{ flex: 1 }}>
                 {unit.developer && (
-                  <View style={styles.devCardItem}>
-                    <Text style={styles.devCardLabel}>المطور العقاري:</Text>
+                  <View style={[styles.devCardItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                    <Text style={styles.devCardLabel}>{isRtl ? 'المطور العقاري:' : 'Developer:'}</Text>
                     <Text style={styles.devCardValue}>🏢 {unit.developer.name}</Text>
                   </View>
                 )}
                 {unit.project && (
-                  <View style={styles.devCardItem}>
-                    <Text style={styles.devCardLabel}>المشروع:</Text>
+                  <View style={[styles.devCardItem, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                    <Text style={styles.devCardLabel}>{isRtl ? 'المشروع:' : 'Project:'}</Text>
                     <Text style={styles.devCardValue}>📁 {unit.project.name}</Text>
                   </View>
                 )}
@@ -269,8 +306,8 @@ export default function UnitDetails() {
               {unit.project?.id && (
                 <Link href={`/project/${unit.project.id}`} asChild>
                   <TouchableOpacity style={styles.devCardBtn}>
-                    <Text style={styles.devCardBtnText}>تفاصيل المشروع</Text>
-                    <ChevronLeft size={16} color={Colors.primary} />
+                    <Text style={styles.devCardBtnText}>{isRtl ? 'تفاصيل المشروع' : 'Project Details'}</Text>
+                    <ChevronLeft size={16} color={Colors.primary} style={{ transform: [{ rotate: isRtl ? '0deg' : '180deg' }] }} />
                   </TouchableOpacity>
                 </Link>
               )}
@@ -284,10 +321,7 @@ export default function UnitDetails() {
               <Text style={styles.waBtnText}>{t('contactWhatsApp')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
-              <Phone size={18} color={Colors.primary} />
-              <Text style={styles.callBtnText}>{t('callPhone')}</Text>
-            </TouchableOpacity>
+            
 
             <TouchableOpacity style={styles.shareActionBtn} onPress={handleShare}>
               <Share2 size={18} color={Colors.primary} />
@@ -296,7 +330,7 @@ export default function UnitDetails() {
           </View>
           
           {/* Specifications Grid */}
-          <View style={styles.featuresRow}>
+          <View style={[styles.featuresRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
             <View style={styles.featureBox}>
               <Text style={styles.featureLabel}>{t('area')}</Text>
               <Text style={styles.featureValue}>{unit.area} {t('sqm')}</Text>
@@ -318,102 +352,114 @@ export default function UnitDetails() {
           {/* ================= ROI & INVESTMENT ENGINE ================= */}
           {totalPrice > 0 && (
             <View style={styles.roiContainer}>
-              <View style={styles.roiHeader}>
-                <View style={styles.roiHeaderRight}>
+              <View style={[styles.roiHeader, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.roiHeaderRight, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <View style={styles.roiIconBg}>
                     <TrendingUp size={22} color="#065F46" />
                   </View>
                   <View>
-                    <Text style={styles.roiTitle}>الجدوى والعائد على الاستثمار (ROI)</Text>
-                    <Text style={styles.roiSub}>تقدير الإيجار (270 ليلة - إشغال 75%) + نمو القيمة</Text>
+                    <Text style={[styles.roiTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'الجدوى والعائد على الاستثمار (ROI)' : 'Feasibility & Return on Investment (ROI)'}</Text>
+                    <Text style={[styles.roiSub, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'تقدير الإيجار (270 ليلة - إشغال 75%) + نمو القيمة' : 'Rent Estimate (270 nights - 75% occupancy) + Capital Growth'}</Text>
                   </View>
                 </View>
                 <View style={[styles.roiTag, isSea ? styles.roiTagSea : styles.roiTagRes]}>
                   <Text style={[styles.roiTagText, isSea ? styles.roiTagTextSea : styles.roiTagTextRes]}>
-                    {isSea ? '🌊 سياحي بحري (+30%)' : '🏢 سكني (+10%)'}
+                    {isSea ? (isRtl ? '🌊 سياحي بحري (+30%)' : '🌊 Tourist Coastal (+30%)') : (isRtl ? '🏢 سكني (+10%)' : '🏢 Residential (+10%)')}
                   </Text>
                 </View>
               </View>
 
               {/* 4 Key Stat Cards */}
-              <View style={styles.roiGrid}>
+              <View style={[styles.roiGrid, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 {/* 1. الإيجار السنوي */}
-                <View style={styles.roiCard}>
-                  <Text style={styles.roiCardLabel}>🏡 الإيجار السنوي المتوقع</Text>
-                  <Text style={styles.roiCardValueGreen}>{annualRent.toLocaleString('ar-EG')} ج.م</Text>
-                  <Text style={styles.roiCardSubGreen}>عائد {rentalYield}% (~{nightlyRate.toLocaleString('ar-EG')} ج/ليلة)</Text>
+                <View style={[styles.roiCard, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.roiCardLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '🏡 الإيجار السنوي المتوقع' : '🏡 Expected Annual Rent'}</Text>
+                  <Text style={styles.roiCardValueGreen}>{annualRent.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
+                  <Text style={[styles.roiCardSubGreen, { textAlign: isRtl ? 'right' : 'left' }]}>
+                    {isRtl ? `عائد ${rentalYield}% (~${nightlyRate.toLocaleString('ar-EG')} ج/ليلة)` : `${rentalYield}% yield (~${nightlyRate.toLocaleString('en-US')} ${t('currency')}/night)`}
+                  </Text>
                 </View>
 
                 {/* 2. نمو ثمن العقار */}
-                <View style={styles.roiCard}>
-                  <Text style={styles.roiCardLabel}>📈 نمو قيمة العقار</Text>
-                  <Text style={styles.roiCardValueBlue}>+{appreciation}% سنوياً</Text>
-                  <Text style={styles.roiCardSubBlue}>+{annualAppreciationEgp.toLocaleString('ar-EG')} ج زيادة</Text>
+                <View style={[styles.roiCard, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.roiCardLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '📈 نمو قيمة العقار' : '📈 Property Value Growth'}</Text>
+                  <Text style={styles.roiCardValueBlue}>+{appreciation}% {isRtl ? 'سنوياً' : '/yr'}</Text>
+                  <Text style={[styles.roiCardSubBlue, { textAlign: isRtl ? 'right' : 'left' }]}>
+                    +{annualAppreciationEgp.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {isRtl ? 'ج زيادة' : `${t('currency')} gain`}
+                  </Text>
                 </View>
 
                 {/* 3. إجمالي العائد */}
-                <View style={styles.roiCardPrimary}>
-                  <Text style={styles.roiCardLabelWhite}>🚀 إجمالي العائد (Total ROI)</Text>
+                <View style={[styles.roiCardPrimary, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.roiCardLabelWhite, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '🚀 إجمالي العائد (Total ROI)' : '🚀 Total Return (Total ROI)'}</Text>
                   <Text style={styles.roiCardValueWhite}>{totalRoi}%</Text>
-                  <Text style={styles.roiCardSubWhite}>~{totalAnnualEgp.toLocaleString('ar-EG')} ج أرباح سنوية</Text>
+                  <Text style={[styles.roiCardSubWhite, { textAlign: isRtl ? 'right' : 'left' }]}>
+                    ~{totalAnnualEgp.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {isRtl ? 'ج أرباح سنوية' : `${t('currency')} annual gain`}
+                  </Text>
                 </View>
 
                 {/* 4. استرداد القيمة */}
-                <View style={styles.roiCard}>
-                  <Text style={styles.roiCardLabel}>⏳ استرداد ثمن العقار</Text>
-                  <Text style={styles.roiCardValueAmber}>{paybackYears ? `${paybackYears} سنوات` : '-'}</Text>
-                  <Text style={styles.roiCardSubAmber}>من الإيجار الكاش الصافي</Text>
+                <View style={[styles.roiCard, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.roiCardLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '⏳ استرداد ثمن العقار' : '⏳ Property Payback Period'}</Text>
+                  <Text style={styles.roiCardValueAmber}>{paybackYears ? `${paybackYears} ${isRtl ? 'سنوات' : 'years'}` : '-'}</Text>
+                  <Text style={[styles.roiCardSubAmber, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'من الإيجار الكاش الصافي' : 'From Pure Cash Rent'}</Text>
                 </View>
               </View>
 
               {/* Compound Capital Growth (Year 1, 3, 5) */}
               <View style={styles.compoundSection}>
-                <View style={styles.compoundHeader}>
+                <View style={[styles.compoundHeader, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <Sparkles size={16} color="#065F46" />
-                  <Text style={styles.compoundTitle}>توقعات نمو القيمة الرأسمالية التراكمية (العائد المركّب)</Text>
+                  <Text style={[styles.compoundTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'توقعات نمو القيمة الرأسمالية التراكمية (العائد المركّب)' : 'Cumulative Capital Growth Expectations (Compound Return)'}</Text>
                 </View>
 
                 <View style={styles.compoundGrid}>
                   <View style={styles.compoundCard}>
-                    <View style={styles.compoundCardTop}>
-                      <Text style={styles.compoundCardYear}>بعد سنة (Year 1)</Text>
+                    <View style={[styles.compoundCardTop, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                      <Text style={styles.compoundCardYear}>{isRtl ? 'بعد سنة (Year 1)' : 'After 1 Year (Year 1)'}</Text>
                       <Text style={styles.compoundGainBadge}>+{year1GainPercent}%</Text>
                     </View>
-                    <Text style={styles.compoundValue}>{year1Value.toLocaleString('ar-EG')} ج.م</Text>
-                    <Text style={styles.compoundRentSub}>+ إيجار: {annualRent.toLocaleString('ar-EG')} ج</Text>
+                    <Text style={[styles.compoundValue, { textAlign: isRtl ? 'right' : 'left' }]}>{year1Value.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
+                    <Text style={[styles.compoundRentSub, { textAlign: isRtl ? 'right' : 'left' }]}>
+                      {isRtl ? `+ إيجار: ${annualRent.toLocaleString('ar-EG')} ج` : `+ Rent: ${annualRent.toLocaleString('en-US')} ${t('currency')}`}
+                    </Text>
                   </View>
 
                   <View style={styles.compoundCard}>
-                    <View style={styles.compoundCardTop}>
-                      <Text style={styles.compoundCardYear}>بعد 3 سنوات (Year 3)</Text>
+                    <View style={[styles.compoundCardTop, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                      <Text style={styles.compoundCardYear}>{isRtl ? 'بعد 3 سنوات (Year 3)' : 'After 3 Years (Year 3)'}</Text>
                       <Text style={styles.compoundGainBadge}>+{year3GainPercent}%</Text>
                     </View>
-                    <Text style={styles.compoundValue}>{year3Value.toLocaleString('ar-EG')} ج.م</Text>
-                    <Text style={styles.compoundRentSub}>+ إيجار تراكمي: {year3TotalRent.toLocaleString('ar-EG')} ج</Text>
+                    <Text style={[styles.compoundValue, { textAlign: isRtl ? 'right' : 'left' }]}>{year3Value.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
+                    <Text style={[styles.compoundRentSub, { textAlign: isRtl ? 'right' : 'left' }]}>
+                      {isRtl ? `+ إيجار تراكمي: ${year3TotalRent.toLocaleString('ar-EG')} ج` : `+ Cum. Rent: ${year3TotalRent.toLocaleString('en-US')} ${t('currency')}`}
+                    </Text>
                   </View>
 
                   <View style={[styles.compoundCard, styles.compoundCard5]}>
-                    <View style={styles.compoundCardTop}>
-                      <Text style={[styles.compoundCardYear, { color: '#fff' }]}>بعد 5 سنوات (Year 5)</Text>
+                    <View style={[styles.compoundCardTop, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                      <Text style={[styles.compoundCardYear, { color: '#fff' }]}>{isRtl ? 'بعد 5 سنوات (Year 5)' : 'After 5 Years (Year 5)'}</Text>
                       <Text style={[styles.compoundGainBadge, { backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff' }]}>
                         +{year5GainPercent}%
                       </Text>
                     </View>
-                    <Text style={[styles.compoundValue, { color: '#fff' }]}>{year5Value.toLocaleString('ar-EG')} ج.م</Text>
-                    <Text style={[styles.compoundRentSub, { color: '#D1FAE5' }]}>+ إيجار تراكمي: {year5TotalRent.toLocaleString('ar-EG')} ج</Text>
+                    <Text style={[styles.compoundValue, { color: '#fff', textAlign: isRtl ? 'right' : 'left' }]}>{year5Value.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
+                    <Text style={[styles.compoundRentSub, { color: '#D1FAE5', textAlign: isRtl ? 'right' : 'left' }]}>
+                      {isRtl ? `+ إيجار تراكمي: ${year5TotalRent.toLocaleString('ar-EG')} ج` : `+ Cum. Rent: ${year5TotalRent.toLocaleString('en-US')} ${t('currency')}`}
+                    </Text>
                   </View>
                 </View>
               </View>
 
               {/* Payback Explanation */}
               {paybackYears && (
-                <View style={styles.paybackBox}>
-                  <Text style={styles.paybackTitle}>💡 رؤيتان ذكيتان لاسترداد رأس المال:</Text>
-                  <Text style={styles.paybackText}>
-                    1. <Text style={{ fontWeight: 'bold' }}>استرداد نقدي بحت:</Text> تسترد كامل ثمن الوحدة سيولة نقدية في جيبك خلال <Text style={{ fontWeight: 'bold', color: '#B45309' }}>{paybackYears} سنوات</Text> من أرباح الإيجار اليومي فقط، ويبقى أصل العقار ملكاً حراً لك مجاناً.
+                <View style={[styles.paybackBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.paybackTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '💡 رؤيتان ذكيتان لاسترداد رأس المال:' : '💡 Two Smart Capital Recovery Visions:'}</Text>
+                  <Text style={[styles.paybackText, { textAlign: isRtl ? 'right' : 'left' }]}>
+                    1. <Text style={{ fontWeight: 'bold' }}>{isRtl ? 'استرداد نقدي بحت:' : 'Pure Cash Recovery:'}</Text> {isRtl ? 'تسترد كامل ثمن الوحدة سيولة نقدية في جيبك خلال ' : 'You recover the full unit price in cash in your pocket within '}<Text style={{ fontWeight: 'bold', color: '#B45309' }}>{paybackYears} {isRtl ? 'سنوات' : 'years'}</Text> {isRtl ? 'من أرباح الإيجار اليومي فقط، ويبقى أصل العقار ملكاً حراً لك مجاناً.' : 'from daily rental yield only, leaving the unit as a completely free asset.'}
                   </Text>
-                  <Text style={[styles.paybackText, { marginTop: 6 }]}>
-                    2. <Text style={{ fontWeight: 'bold' }}>استرداد القيمة الشاملة:</Text> بدمج إيرادات الإيجار مع نمو قيمة العقار السنوي (+{appreciation}%)، يتجاوز إجمالي ما حققه استثمارك 100% من ثمن الشراء في غضون <Text style={{ fontWeight: 'bold', color: '#065F46' }}>{totalPaybackYears} سنة فقط</Text>!
+                  <Text style={[styles.paybackText, { marginTop: 6, textAlign: isRtl ? 'right' : 'left' }]}>
+                    2. <Text style={{ fontWeight: 'bold' }}>{isRtl ? 'استرداد القيمة الشاملة:' : 'Comprehensive Value Recovery:'}</Text> {isRtl ? `بدمج إيرادات الإيجار مع نمو قيمة العقار السنوي (+${appreciation}%)، يتجاوز إجمالي ما حققه استثمارك 100% من ثمن الشراء في غضون ` : `By combining rental revenues with annual capital appreciation (+${appreciation}%), total returns exceed 100% of purchase price within `}<Text style={{ fontWeight: 'bold', color: '#065F46' }}>{totalPaybackYears} {isRtl ? 'سنة فقط' : 'years only'}</Text>!
                   </Text>
                 </View>
               )}
@@ -423,50 +469,50 @@ export default function UnitDetails() {
           {/* Payment & Installment Breakdown */}
           {remainingInstallments > 0 ? (
             <View style={styles.installmentContainer}>
-              <Text style={styles.installmentTitle}>💳 تفاصيل نظام السداد والأقساط</Text>
-              <View style={styles.installmentGrid}>
-                <View style={styles.installmentBox}>
-                  <Text style={styles.installmentLabel}>المقدم المطلوب</Text>
-                  <Text style={styles.installmentValue}>{cashPaid.toLocaleString('ar-EG')} ج.م</Text>
+              <Text style={[styles.installmentTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '💳 تفاصيل نظام السداد والأقساط' : '💳 Payment Plan & Installments Details'}</Text>
+              <View style={[styles.installmentGrid, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.installmentBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.installmentLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'المقدم المطلوب' : 'Required Down Payment'}</Text>
+                  <Text style={[styles.installmentValue, { textAlign: isRtl ? 'right' : 'left' }]}>{cashPaid.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
                 </View>
-                <View style={styles.installmentBox}>
-                  <Text style={styles.installmentLabel}>إجمالي الأقساط المتبقية</Text>
-                  <Text style={styles.installmentValue}>{remainingInstallments.toLocaleString('ar-EG')} ج.م</Text>
+                <View style={[styles.installmentBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.installmentLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'إجمالي الأقساط المتبقية' : 'Total Remaining Installments'}</Text>
+                  <Text style={[styles.installmentValue, { textAlign: isRtl ? 'right' : 'left' }]}>{remainingInstallments.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {t('currency')}</Text>
                 </View>
-                <View style={styles.installmentBox}>
-                  <Text style={styles.installmentLabel}>القسط الشهري المعادل</Text>
-                  <Text style={styles.installmentValueOrange}>{monthlyInstallment.toLocaleString('ar-EG')} ج.م/شهر</Text>
+                <View style={[styles.installmentBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                  <Text style={[styles.installmentLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'القسط الشهري المعادل' : 'Equivalent Monthly Installment'}</Text>
+                  <Text style={[styles.installmentValueOrange, { textAlign: isRtl ? 'right' : 'left' }]}>{monthlyInstallment.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} {isRtl ? 'ج.م/شهر' : `${t('currency')}/mo`}</Text>
                 </View>
                 {unit.installmentsCount && (
-                  <View style={styles.installmentBox}>
-                    <Text style={styles.installmentLabel}>عدد الأقساط</Text>
-                    <Text style={styles.installmentValue}>{unit.installmentsCount} قسط</Text>
+                  <View style={[styles.installmentBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                    <Text style={[styles.installmentLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'عدد الأقساط' : 'Number of Installments'}</Text>
+                    <Text style={[styles.installmentValue, { textAlign: isRtl ? 'right' : 'left' }]}>{unit.installmentsCount} {isRtl ? 'قسط' : 'installments'}</Text>
                   </View>
                 )}
                 {unit.installmentFrequency && (
-                  <View style={styles.installmentBox}>
-                    <Text style={styles.installmentLabel}>دورية السداد</Text>
-                    <Text style={styles.installmentValue}>
-                      {unit.installmentFrequency === 'MONTHLY' ? 'شهري' :
-                       unit.installmentFrequency === 'QUARTERLY' ? 'ربع سنوي' :
-                       unit.installmentFrequency === 'SEMI_ANNUAL' ? 'نصف سنوي' : 'سنوي'}
+                  <View style={[styles.installmentBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                    <Text style={[styles.installmentLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'دورية السداد' : 'Payment Frequency'}</Text>
+                    <Text style={[styles.installmentValue, { textAlign: isRtl ? 'right' : 'left' }]}>
+                      {unit.installmentFrequency === 'MONTHLY' ? (isRtl ? 'شهري' : 'Monthly') :
+                       unit.installmentFrequency === 'QUARTERLY' ? (isRtl ? 'ربع سنوي' : 'Quarterly') :
+                       unit.installmentFrequency === 'SEMI_ANNUAL' ? (isRtl ? 'نصف سنوي' : 'Semi-Annual') : (isRtl ? 'سنوي' : 'Annual')}
                     </Text>
                   </View>
                 )}
                 {unit.cashDiscountPercentage && Number(unit.cashDiscountPercentage) > 0 && (
-                  <View style={styles.discountBox}>
-                    <Text style={styles.discountLabel}>خصم الدفع الكاش</Text>
-                    <Text style={styles.discountValue}>{unit.cashDiscountPercentage}% خصم</Text>
+                  <View style={[styles.discountBox, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+                    <Text style={[styles.discountLabel, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'خصم الدفع الكاش' : 'Cash Payment Discount'}</Text>
+                    <Text style={[styles.discountValue, { textAlign: isRtl ? 'right' : 'left' }]}>{unit.cashDiscountPercentage}% {isRtl ? 'خصم' : 'Discount'}</Text>
                   </View>
                 )}
               </View>
             </View>
           ) : unit.isCashOnly ? (
-            <View style={styles.cashOnlyContainer}>
-              <Text style={styles.cashOnlyTitle}>💵 نظام الدفع: كاش فقط</Text>
-              <Text style={styles.cashOnlySub}>هذا العقار معروض للبيع السريع نظام كاش بدون أقساط طويلة الأجل</Text>
+            <View style={[styles.cashOnlyContainer, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
+              <Text style={[styles.cashOnlyTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? '💵 نظام الدفع: كاش فقط' : '💵 Payment Plan: Cash Only'}</Text>
+              <Text style={[styles.cashOnlySub, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'هذا العقار معروض للبيع السريع نظام كاش بدون أقساط طويلة الأجل' : 'This property is offered for quick sale on a cash basis without long-term installments.'}</Text>
               {unit.cashDiscountPercentage && Number(unit.cashDiscountPercentage) > 0 && (
-                <Text style={styles.cashDiscountBadge}>خصم كاش مميز: {unit.cashDiscountPercentage}%</Text>
+                <Text style={styles.cashDiscountBadge}>{isRtl ? `خصم كاش مميز: ${unit.cashDiscountPercentage}%` : `Special Cash Discount: ${unit.cashDiscountPercentage}%`}</Text>
               )}
             </View>
           ) : null}
@@ -474,7 +520,9 @@ export default function UnitDetails() {
           {/* Photo Gallery */}
           {images.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>معرض الصور ({images.length})</Text>
+              <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+                {isRtl ? 'معرض الصور' : 'Photo Gallery'} ({images.length})
+              </Text>
               <FlatList
                 horizontal
                 data={images}
@@ -483,7 +531,7 @@ export default function UnitDetails() {
                   <Image source={{ uri: item }} contentFit="cover" style={styles.galleryImage} />
                 )}
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, flexDirection: 'row-reverse' }}
+                contentContainerStyle={{ gap: 8, flexDirection: isRtl ? 'row-reverse' : 'row' }}
               />
             </View>
           )}
@@ -491,12 +539,12 @@ export default function UnitDetails() {
           {/* Videos */}
           {videos.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>الفيديوهات</Text>
-              <View style={styles.videosContainer}>
+              <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'الفيديوهات' : 'Videos'}</Text>
+              <View style={[styles.videosContainer, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 {videos.map((vid: string, index: number) => (
-                  <Pressable key={index} style={styles.videoButton} onPress={() => openVideo(vid)}>
+                  <Pressable key={index} style={[styles.videoButton, { flexDirection: isRtl ? 'row-reverse' : 'row' }]} onPress={() => openVideo(vid)}>
                     <PlayCircle color={Colors.accent} size={30} />
-                    <Text style={styles.videoText}>مشاهدة الفيديو {index + 1}</Text>
+                    <Text style={styles.videoText}>{isRtl ? `مشاهدة الفيديو ${index + 1}` : `Watch Video ${index + 1}`}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -505,11 +553,11 @@ export default function UnitDetails() {
           
           {/* Description */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>الوصف والتفاصيل</Text>
-            <Text style={styles.description}>
+            <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'الوصف والتفاصيل' : 'Description & Details'}</Text>
+            <Text style={[styles.description, { textAlign: isRtl ? 'right' : 'left' }]}>
               {unit.description || (isSea
-                ? 'استوديو فاخر ومميز بإطلالة ساحرة وموقع استراتيجي راقٍ بالقرب من الخدمات والمارينا. الوحدة مشطبة بأعلى المعايير وجاهزة تماماً للاستثمار العقاري والإيجار الفندقي عبر منصات Airbnb و Booking بعائد إيجاري مرتفع ومضمون طوال العام.'
-                : 'وحدة مميزة بموقع استراتيجي متكامل الخدمات وتشطيب راقٍ، مناسبة جداً للسكن والاستثمار العقاري.')
+                ? (isRtl ? 'استوديو فاخر ومميز بإطلالة ساحرة وموقع استراتيجي راقٍ بالقرب من الخدمات والمارينا. الوحدة مشطبة بأعلى المعايير وجاهزة تماماً للاستثمار العقاري والإيجار الفندقي عبر منصات Airbnb و Booking بعائد إيجاري مرتفع ومضمون طوال العام.' : 'Luxurious and distinguished studio with a charming view and a sophisticated strategic location near services and the marina. The unit is finished to the highest standards and is fully ready for real estate investment and hotel rental via Airbnb and Booking platforms with a high and guaranteed rental yield throughout the year.')
+                : (isRtl ? 'وحدة مميزة بموقع استراتيجي متكامل الخدمات وتشطيب راقٍ، مناسبة جداً للسكن والاستثمار العقاري.' : 'A distinguished unit in a strategic location with integrated services and sophisticated finishing, highly suitable for living and real estate investment.'))
               }
             </Text>
           </View>
@@ -517,7 +565,7 @@ export default function UnitDetails() {
           {/* Lead Booking Form */}
           <UnitLeadForm unitId={unit.id} unitPrice={totalPrice} sellerType={unit.sellerType} />
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </>
   );
 }

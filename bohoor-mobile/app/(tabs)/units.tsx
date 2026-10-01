@@ -13,6 +13,7 @@ import {
   Modal,
   Dimensions
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Link } from 'expo-router';
 import { 
   Heart, 
@@ -31,6 +32,7 @@ import {
 import { Image } from 'expo-image';
 import Colors from '../../constants/Colors';
 import { useStore } from '../../store/useStore';
+import { getGovernorateLabel } from '../../constants/translations';
 import AiSearchModal from '../../components/AiSearchModal';
 
 const { height } = Dimensions.get('window');
@@ -76,18 +78,26 @@ export default function UnitsTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('ALL');
   const [refreshing, setRefreshing] = useState(false);
+  type SortOption = 'newest' | 'price_asc' | 'price_desc' | 'roi_desc' | 'installment_asc' | 'down_payment_asc';
+
   const [modalVisible, setModalVisible] = useState(false);
   const [aiModalVisible, setAiModalVisible] = useState(false);
 
   // Advanced Filter States
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedGov, setSelectedGov] = useState<string>('');
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [selectedUnitTypeId, setSelectedUnitTypeId] = useState<string>('');
   const [selectedDeveloperId, setSelectedDeveloperId] = useState<string>('');
   const [selectedBedrooms, setSelectedBedrooms] = useState<string>('');
+  const [selectedBathrooms, setSelectedBathrooms] = useState<string>('');
   const [seaViewOnly, setSeaViewOnly] = useState<boolean>(false);
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
+  const [minArea, setMinArea] = useState<string>('');
+  const [maxArea, setMaxArea] = useState<string>('');
+  const [minInstallment, setMinInstallment] = useState<string>('');
+  const [maxInstallment, setMaxInstallment] = useState<string>('');
 
   useEffect(() => {
     if (units.length === 0) fetchUnits();
@@ -122,10 +132,13 @@ export default function UnitsTab() {
     if (selectedUnitTypeId) count++;
     if (selectedDeveloperId) count++;
     if (selectedBedrooms) count++;
+    if (selectedBathrooms) count++;
     if (seaViewOnly) count++;
     if (minPrice || maxPrice) count++;
+    if (minArea || maxArea) count++;
+    if (minInstallment || maxInstallment) count++;
     return count;
-  }, [selectedGov, selectedLocationId, selectedUnitTypeId, selectedDeveloperId, selectedBedrooms, seaViewOnly, minPrice, maxPrice]);
+  }, [selectedGov, selectedLocationId, selectedUnitTypeId, selectedDeveloperId, selectedBedrooms, selectedBathrooms, seaViewOnly, minPrice, maxPrice, minArea, maxArea, minInstallment, maxInstallment]);
 
   const resetAdvancedFilters = () => {
     setSelectedGov('');
@@ -133,14 +146,20 @@ export default function UnitsTab() {
     setSelectedUnitTypeId('');
     setSelectedDeveloperId('');
     setSelectedBedrooms('');
+    setSelectedBathrooms('');
     setSeaViewOnly(false);
     setMinPrice('');
     setMaxPrice('');
+    setMinArea('');
+    setMaxArea('');
+    setMinInstallment('');
+    setMaxInstallment('');
+    setSortBy('newest');
   };
 
-  // Filter pipeline
+  // Filter pipeline & sorting
   const filteredUnits = useMemo(() => {
-    return units.filter((unit) => {
+    const list = units.filter((unit) => {
       // 1. Text Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -193,12 +212,55 @@ export default function UnitsTab() {
         }
       }
 
-      // 9. Price Range
+      // 9. Advanced: Bathrooms
+      if (selectedBathrooms) {
+        const targetBaths = parseInt(selectedBathrooms, 10);
+        if (selectedBathrooms === '3+') {
+          if ((unit.bathrooms || 0) < 3) return false;
+        } else {
+          if (unit.bathrooms !== targetBaths) return false;
+        }
+      }
+
+      // 10. Area Range
+      const effectiveArea = Number(unit.area || 0);
+      if (minArea && effectiveArea < Number(minArea)) return false;
+      if (maxArea && effectiveArea > Number(maxArea)) return false;
+
+      // 11. Price Range
       const effectivePrice = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
       if (minPrice && effectivePrice < Number(minPrice)) return false;
       if (maxPrice && effectivePrice > Number(maxPrice)) return false;
 
+      // 12. Monthly Installment Range
+      const effectiveInst = Number(unit.monthlyEquivalentInstallment || unit.monthlyInstallment || 0);
+      if (minInstallment && effectiveInst < Number(minInstallment)) return false;
+      if (maxInstallment && effectiveInst > Number(maxInstallment)) return false;
+
       return true;
+    });
+
+    // Sort
+    return [...list].sort((a, b) => {
+      const priceA = Number(a.totalPrice || a.originalContractPrice || a.cashPaidToSeller || 0);
+      const priceB = Number(b.totalPrice || b.originalContractPrice || b.cashPaidToSeller || 0);
+      const downA = Number(a.cashPaidToSeller || a.downPayment || 0);
+      const downB = Number(b.cashPaidToSeller || b.downPayment || 0);
+      const instA = Number(a.monthlyEquivalentInstallment || a.monthlyInstallment || 0);
+      const instB = Number(b.monthlyEquivalentInstallment || b.monthlyInstallment || 0);
+      const roiA = Number(a.expectedRentalRoi || 0);
+      const roiB = Number(b.expectedRentalRoi || 0);
+
+      switch (sortBy) {
+        case 'price_asc': return priceA - priceB;
+        case 'price_desc': return priceB - priceA;
+        case 'roi_desc': return roiB - roiA;
+        case 'installment_asc': return instA - instB;
+        case 'down_payment_asc': return downA - downB;
+        case 'newest':
+        default:
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      }
     });
   }, [
     units, 
@@ -209,9 +271,15 @@ export default function UnitsTab() {
     selectedUnitTypeId, 
     selectedDeveloperId, 
     selectedBedrooms, 
+    selectedBathrooms,
     seaViewOnly, 
     minPrice, 
-    maxPrice
+    maxPrice,
+    minArea,
+    maxArea,
+    minInstallment,
+    maxInstallment,
+    sortBy
   ]);
 
   const renderUnit = ({ item: unit }: { item: any }) => {
@@ -220,10 +288,9 @@ export default function UnitsTab() {
     const price = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
     const unitTitle = getLocalized(unit, 'title');
     const locName = getLocalized(unit, 'location') || getLocalized(unit.project, 'location') || '';
-    const govName = unit.location 
-      ? (isRtl ? (unit.location.governorateAr || unit.location.governorate) : (unit.location.governorateEn || unit.location.governorate)) 
-      : '';
-    const fullLoc = govName && locName ? `${govName}، ${locName}` : (govName || locName);
+    const rawGov = unit.location?.governorate || '';
+    const govName = getGovernorateLabel(rawGov, language as any);
+    const fullLoc = govName && locName ? (isRtl ? `${govName}، ${locName}` : `${locName}, ${govName}`) : (govName || locName);
     const unitTypeName = getLocalized(unit.unitType, 'name');
 
     const isSea = Boolean(
@@ -323,18 +390,22 @@ export default function UnitsTab() {
     <View style={styles.container}>
       {/* Search Bar & Advanced Filter Button */}
       <View style={styles.searchContainer}>
-        <View style={[styles.searchRow, { flexDirection: isRtl ? 'row' : 'row-reverse' }]}>
-          <TouchableOpacity 
-            style={styles.aiSearchBtn}
-            onPress={() => setAiModalVisible(true)}
-          >
-            <Sparkles size={16} color="#fff" />
-            <Text style={styles.aiSearchBtnText}>AI</Text>
-          </TouchableOpacity>
+        <View style={[styles.searchRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.searchBar, { flex: 1, flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+            <Search color={Colors.darkGray} size={20} style={{ marginHorizontal: 4 }} />
+            <TextInput 
+              style={[styles.searchInput, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'ابحث عن عقار، منطقة، مطور...' : 'Search property, area, developer...'}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor={Colors.darkGray}
+            />
+          </View>
 
           <TouchableOpacity 
             style={[styles.filterIconBtn, activeFiltersCount > 0 && styles.filterIconBtnActive]}
             onPress={() => setModalVisible(true)}
+            accessibilityLabel={t('advancedFilter')}
           >
             <SlidersHorizontal size={20} color={activeFiltersCount > 0 ? '#fff' : Colors.primary} />
             {activeFiltersCount > 0 && (
@@ -344,20 +415,18 @@ export default function UnitsTab() {
             )}
           </TouchableOpacity>
 
-          <View style={[styles.searchBar, { flexDirection: isRtl ? 'row' : 'row-reverse' }]}>
-            <TextInput 
-              style={[styles.searchInput, { textAlign: isRtl ? 'right' : 'left' }]}
-              placeholder={isRtl ? 'ابحث عن عقار، منطقة، مطور...' : 'Search property, area, developer...'}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor={Colors.darkGray}
-            />
-            <Search color={Colors.darkGray} size={20} style={{ marginHorizontal: 8 }} />
-          </View>
+          <TouchableOpacity 
+            style={styles.aiSearchBtn}
+            onPress={() => setAiModalVisible(true)}
+            accessibilityLabel={isRtl ? 'البحث بالذكاء الاصطناعي' : 'AI Search'}
+          >
+            <Sparkles size={16} color="#fff" />
+            <Text style={styles.aiSearchBtnText}>AI</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Filter Chips */}
-        <ScrollView 
+        <KeyboardAwareScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={[styles.filterChipsContainer, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
@@ -402,7 +471,41 @@ export default function UnitsTab() {
               👤 {isRtl ? 'إعادة بيع' : 'Resale'}
             </Text>
           </TouchableOpacity>
-        </ScrollView>
+        </KeyboardAwareScrollView>
+
+        {/* Sort Selector Bar */}
+        <View style={{ paddingHorizontal: 16, marginTop: 8, marginBottom: 4 }}>
+          <KeyboardAwareScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[{ gap: 6, alignItems: 'center' }, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.darkGray, marginEnd: 4 }}>
+              {t('sortByLabel')}:
+            </Text>
+            {[
+              { id: 'newest', label: t('sortNewest') },
+              { id: 'price_asc', label: t('sortPriceAsc') },
+              { id: 'price_desc', label: t('sortPriceDesc') },
+              { id: 'roi_desc', label: t('sortRoiDesc') },
+              { id: 'installment_asc', label: t('sortInstallmentAsc') },
+              { id: 'down_payment_asc', label: t('sortDownPaymentAsc') },
+            ].map((s) => (
+              <TouchableOpacity
+                key={s.id}
+                onPress={() => setSortBy(s.id as SortOption)}
+                style={[
+                  styles.sortChip,
+                  sortBy === s.id && styles.sortChipActive,
+                ]}
+              >
+                <Text style={[styles.sortChipText, sortBy === s.id && styles.sortChipTextActive]}>
+                  {s.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </KeyboardAwareScrollView>
+        </View>
       </View>
 
       {/* Results List */}
@@ -424,22 +527,22 @@ export default function UnitsTab() {
             activeFiltersCount > 0 ? (
               <View style={styles.activeFilterNotice}>
                 <TouchableOpacity onPress={resetAdvancedFilters} style={styles.clearFiltersBtn}>
-                  <Text style={styles.clearFiltersText}>إعادة ضبط</Text>
+                  <Text style={styles.clearFiltersText}>{t('resetFilters')}</Text>
                   <RotateCcw size={14} color="#EF4444" />
                 </TouchableOpacity>
                 <Text style={styles.activeFilterNoticeText}>
-                  تطبيق {activeFiltersCount} فلاتر مخصصة ({filteredUnits.length} نتيجة)
+                  {t('filtersAndResults').replace('{filters}', String(activeFiltersCount)).replace('{results}', String(filteredUnits.length))}
                 </Text>
               </View>
             ) : null
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>لم نجد وحدات مطابقة للبحث</Text>
-              <Text style={styles.emptySub}>جرب اختيار فلاتر أخرى أو مسح كلمات البحث لتوسيع النتائج</Text>
+              <Text style={styles.emptyTitle}>{t('noMatchingUnits')}</Text>
+              <Text style={styles.emptySub}>{t('tryAdjustFilters')}</Text>
               {activeFiltersCount > 0 && (
                 <TouchableOpacity onPress={resetAdvancedFilters} style={styles.resetBtn}>
-                  <Text style={styles.resetBtnText}>إلغاء جميع الفلاتر</Text>
+                  <Text style={styles.resetBtnText}>{t('clearAllFilters')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -461,15 +564,15 @@ export default function UnitsTab() {
               <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalCloseBtn}>
                 <X size={22} color={Colors.primary} />
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>تصفية متقدمة للعقارات 🎯</Text>
+              <Text style={styles.modalTitle}>{t('advancedFilter')}</Text>
               {activeFiltersCount > 0 ? (
                 <TouchableOpacity onPress={resetAdvancedFilters} style={styles.resetHeaderBtn}>
-                  <Text style={styles.resetHeaderText}>تفريغ</Text>
+                  <Text style={styles.resetHeaderText}>{t('clearAll')}</Text>
                 </TouchableOpacity>
               ) : <View style={{ width: 40 }} />}
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScroll}>
+            <KeyboardAwareScrollView showsVerticalScrollIndicator={false} style={styles.modalScroll}>
               
               {/* Sea view toggle */}
               <TouchableOpacity 
@@ -479,23 +582,23 @@ export default function UnitsTab() {
                 <View style={styles.checkbox}>
                   {seaViewOnly && <Check size={16} color="#fff" />}
                 </View>
-                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                <View style={{ flex: 1, alignItems: isRtl ? 'flex-end' : 'flex-start' }}>
                   <Text style={[styles.seaToggleTitle, seaViewOnly && { color: '#0284C7' }]}>
-                    🌊 إطلالة بحرية مباشرة فقط
+                    {t('seaViewDirectOnly')}
                   </Text>
-                  <Text style={styles.seaToggleSub}>عرض الشاليهات والوحدات ذات الإطلالة الساحلية</Text>
+                  <Text style={styles.seaToggleSub}>{t('seaViewDirectSub')}</Text>
                 </View>
               </TouchableOpacity>
 
               {/* Governorates */}
               <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>المحافظة</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('governorateFilter')}</Text>
+                <KeyboardAwareScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <TouchableOpacity 
                     style={[styles.filterPill, !selectedGov && styles.filterPillActive]}
                     onPress={() => { setSelectedGov(''); setSelectedLocationId(''); }}
                   >
-                    <Text style={[styles.filterPillText, !selectedGov && styles.filterPillTextActive]}>الكل</Text>
+                    <Text style={[styles.filterPillText, !selectedGov && styles.filterPillTextActive]}>{t('allGovernorates')}</Text>
                   </TouchableOpacity>
                   {allGovernorates.map((gov) => (
                     <TouchableOpacity 
@@ -506,22 +609,24 @@ export default function UnitsTab() {
                         setSelectedLocationId('');
                       }}
                     >
-                      <Text style={[styles.filterPillText, selectedGov === gov && styles.filterPillTextActive]}>{gov}</Text>
+                      <Text style={[styles.filterPillText, selectedGov === gov && styles.filterPillTextActive]}>
+                        {getGovernorateLabel(gov, language as any)}
+                      </Text>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </KeyboardAwareScrollView>
               </View>
 
               {/* Specific Location */}
               {filteredLocations.length > 0 && (
                 <View style={styles.filterSection}>
-                  <Text style={styles.filterSectionTitle}>المنطقة / المدينة</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                  <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('locationFilter')}</Text>
+                  <KeyboardAwareScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                     <TouchableOpacity 
                       style={[styles.filterPill, !selectedLocationId && styles.filterPillActive]}
                       onPress={() => setSelectedLocationId('')}
                     >
-                      <Text style={[styles.filterPillText, !selectedLocationId && styles.filterPillTextActive]}>الكل</Text>
+                      <Text style={[styles.filterPillText, !selectedLocationId && styles.filterPillTextActive]}>{t('allAreas')}</Text>
                     </TouchableOpacity>
                     {filteredLocations.map((loc: any) => (
                       <TouchableOpacity 
@@ -534,40 +639,40 @@ export default function UnitsTab() {
                         </Text>
                       </TouchableOpacity>
                     ))}
-                  </ScrollView>
+                  </KeyboardAwareScrollView>
                 </View>
               )}
 
               {/* Unit Type */}
               {unitTypes.length > 0 && (
                 <View style={styles.filterSection}>
-                  <Text style={styles.filterSectionTitle}>نوع الوحدة</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                  <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('unitTypeFilter')}</Text>
+                  <KeyboardAwareScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                     <TouchableOpacity 
                       style={[styles.filterPill, !selectedUnitTypeId && styles.filterPillActive]}
                       onPress={() => setSelectedUnitTypeId('')}
                     >
-                      <Text style={[styles.filterPillText, !selectedUnitTypeId && styles.filterPillTextActive]}>الكل</Text>
+                      <Text style={[styles.filterPillText, !selectedUnitTypeId && styles.filterPillTextActive]}>{t('allTypes')}</Text>
                     </TouchableOpacity>
-                    {unitTypes.map((t: any) => (
+                    {unitTypes.map((uType: any) => (
                       <TouchableOpacity 
-                        key={t.id}
-                        style={[styles.filterPill, selectedUnitTypeId === t.id && styles.filterPillActive]}
-                        onPress={() => setSelectedUnitTypeId(selectedUnitTypeId === t.id ? '' : t.id)}
+                        key={uType.id}
+                        style={[styles.filterPill, selectedUnitTypeId === uType.id && styles.filterPillActive]}
+                        onPress={() => setSelectedUnitTypeId(selectedUnitTypeId === uType.id ? '' : uType.id)}
                       >
-                        <Text style={[styles.filterPillText, selectedUnitTypeId === t.id && styles.filterPillTextActive]}>
-                          {t.name}
+                        <Text style={[styles.filterPillText, selectedUnitTypeId === uType.id && styles.filterPillTextActive]}>
+                          {uType.name}
                         </Text>
                       </TouchableOpacity>
                     ))}
-                  </ScrollView>
+                  </KeyboardAwareScrollView>
                 </View>
               )}
 
               {/* Bedrooms */}
               <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>عدد غرف النوم</Text>
-                <View style={styles.bedroomsRow}>
+                <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('bedroomsFilter')}</Text>
+                <View style={[styles.bedroomsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   {['', '1', '2', '3', '4+'].map((beds) => (
                     <TouchableOpacity 
                       key={beds || 'all'}
@@ -575,7 +680,25 @@ export default function UnitsTab() {
                       onPress={() => setSelectedBedrooms(beds)}
                     >
                       <Text style={[styles.bedroomBtnText, selectedBedrooms === beds && styles.bedroomBtnTextActive]}>
-                        {beds ? `${beds} غرف` : 'الكل'}
+                        {beds ? `${beds} ${t('beds')}` : t('all')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Bathrooms */}
+              <View style={styles.filterSection}>
+                <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('bathroomsFilter')}</Text>
+                <View style={[styles.bedroomsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                  {['', '1', '2', '3+'].map((baths) => (
+                    <TouchableOpacity 
+                      key={baths || 'all'}
+                      style={[styles.bedroomBtn, selectedBathrooms === baths && styles.bedroomBtnActive]}
+                      onPress={() => setSelectedBathrooms(baths)}
+                    >
+                      <Text style={[styles.bedroomBtnText, selectedBathrooms === baths && styles.bedroomBtnTextActive]}>
+                        {baths ? baths : t('all')}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -585,13 +708,13 @@ export default function UnitsTab() {
               {/* Developer */}
               {developers.length > 0 && (
                 <View style={styles.filterSection}>
-                  <Text style={styles.filterSectionTitle}>المطور العقاري</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+                  <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('developerFilter')}</Text>
+                  <KeyboardAwareScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                     <TouchableOpacity 
                       style={[styles.filterPill, !selectedDeveloperId && styles.filterPillActive]}
                       onPress={() => setSelectedDeveloperId('')}
                     >
-                      <Text style={[styles.filterPillText, !selectedDeveloperId && styles.filterPillTextActive]}>الكل</Text>
+                      <Text style={[styles.filterPillText, !selectedDeveloperId && styles.filterPillTextActive]}>{t('allDevelopers')}</Text>
                     </TouchableOpacity>
                     {developers.map((dev: any) => (
                       <TouchableOpacity 
@@ -604,27 +727,53 @@ export default function UnitsTab() {
                         </Text>
                       </TouchableOpacity>
                     ))}
-                  </ScrollView>
+                  </KeyboardAwareScrollView>
                 </View>
               )}
 
-              {/* Price Range */}
+              {/* Area Range */}
               <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>نطاق السعر / المقدم (ج.م)</Text>
-                <View style={styles.priceInputsRow}>
+                <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('areaRange')}</Text>
+                <View style={[styles.priceInputsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                   <TextInput 
                     style={styles.priceInput}
-                    placeholder="الحد الأقصى"
+                    placeholder={t('maxAreaPlaceholder')}
+                    placeholderTextColor={Colors.darkGray}
+                    keyboardType="numeric"
+                    value={maxArea}
+                    onChangeText={setMaxArea}
+                    textAlign="center"
+                  />
+                  <Text style={styles.priceInputDivider}>{t('to')}</Text>
+                  <TextInput 
+                    style={styles.priceInput}
+                    placeholder={t('minAreaPlaceholder')}
+                    placeholderTextColor={Colors.darkGray}
+                    keyboardType="numeric"
+                    value={minArea}
+                    onChangeText={setMinArea}
+                    textAlign="center"
+                  />
+                </View>
+              </View>
+
+              {/* Price / Down Payment Range */}
+              <View style={styles.filterSection}>
+                <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('cashOrDownRange')}</Text>
+                <View style={[styles.priceInputsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                  <TextInput 
+                    style={styles.priceInput}
+                    placeholder={t('rangeMax')}
                     placeholderTextColor={Colors.darkGray}
                     keyboardType="numeric"
                     value={maxPrice}
                     onChangeText={setMaxPrice}
                     textAlign="center"
                   />
-                  <Text style={styles.priceInputDivider}>إلى</Text>
+                  <Text style={styles.priceInputDivider}>{t('to')}</Text>
                   <TextInput 
                     style={styles.priceInput}
-                    placeholder="الحد الأدنى"
+                    placeholder={t('rangeMin')}
                     placeholderTextColor={Colors.darkGray}
                     keyboardType="numeric"
                     value={minPrice}
@@ -634,7 +783,33 @@ export default function UnitsTab() {
                 </View>
               </View>
 
-            </ScrollView>
+              {/* Monthly Installment Range */}
+              <View style={styles.filterSection}>
+                <Text style={[styles.filterSectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{t('monthlyInstallmentRange')}</Text>
+                <View style={[styles.priceInputsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                  <TextInput 
+                    style={styles.priceInput}
+                    placeholder={t('rangeMax')}
+                    placeholderTextColor={Colors.darkGray}
+                    keyboardType="numeric"
+                    value={maxInstallment}
+                    onChangeText={setMaxInstallment}
+                    textAlign="center"
+                  />
+                  <Text style={styles.priceInputDivider}>{t('to')}</Text>
+                  <TextInput 
+                    style={styles.priceInput}
+                    placeholder={t('rangeMin')}
+                    placeholderTextColor={Colors.darkGray}
+                    keyboardType="numeric"
+                    value={minInstallment}
+                    onChangeText={setMinInstallment}
+                    textAlign="center"
+                  />
+                </View>
+              </View>
+
+            </KeyboardAwareScrollView>
 
             {/* Modal Bottom Actions */}
             <View style={styles.modalBottomBar}>
@@ -643,7 +818,7 @@ export default function UnitsTab() {
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.applyBtnText}>
-                  تطبيق ({filteredUnits.length} وحدة مطابقة)
+                  {t('applyWithCount').replace('{count}', String(filteredUnits.length))}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -737,6 +912,27 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipText: { fontSize: 12, fontWeight: 'bold', color: Colors.darkGray },
   activeChipText: { color: Colors.background },
+  sortChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  sortChipActive: {
+    backgroundColor: '#0F294A',
+    borderColor: '#0F294A',
+  },
+  sortChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  sortChipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
   
   activeFilterNotice: {
     flexDirection: 'row-reverse',

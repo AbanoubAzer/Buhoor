@@ -5,13 +5,18 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(developerId?: string) {
-    let developerFilter: any = undefined;
+  async findAll(developerId?: string, includeHidden = false) {
+    let whereFilter: any = {};
+
+    if (!includeHidden) {
+      whereFilter.isActive = true;
+      whereFilter.developer = { isActive: true };
+    }
 
     if (developerId) {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(developerId);
       if (isUuid) {
-        developerFilter = { developerId };
+        whereFilter.developerId = developerId;
       } else {
         // It's a slug or name — find the developer first
         const dev = await this.prisma.developer.findFirst({
@@ -23,15 +28,15 @@ export class ProjectsService {
           },
           select: { id: true },
         });
-        developerFilter = dev ? { developerId: dev.id } : { developerId: '' };
+        whereFilter.developerId = dev ? dev.id : '';
       }
     }
 
     return this.prisma.project.findMany({
-      where: developerFilter,
+      where: whereFilter,
       orderBy: { createdAt: 'desc' },
       include: {
-        developer: { select: { id: true, name: true, logoUrl: true, slug: true } },
+        developer: { select: { id: true, name: true, logoUrl: true, slug: true, isActive: true } },
         units: {
           where: { deletedAt: null },
           select: { id: true, title: true, status: true, cashPaidToSeller: true, sellerType: true, coverImage: true }
@@ -82,12 +87,12 @@ export class ProjectsService {
       .replace(/[\s_-]+/g, '-');
   }
 
-  create(data: { name: string; developerId: string; location: string; description?: string; coverImage: string; slug?: string }) {
+  create(data: { name: string; developerId: string; location: string; description?: string; coverImage: string; slug?: string; isActive?: boolean }) {
     const slug = data.slug || this.generateSlug(data.name);
-    return this.prisma.project.create({ data: { ...data, slug } });
+    return this.prisma.project.create({ data: { ...data, slug, isActive: data.isActive ?? true } });
   }
 
-  update(id: string, data: Partial<{ name: string; location: string; description: string; coverImage: string; slug?: string }>) {
+  update(id: string, data: Partial<{ name: string; location: string; description: string; coverImage: string; slug?: string; isActive?: boolean }>) {
     if (data.name && !data.slug) {
       data.slug = this.generateSlug(data.name);
     }

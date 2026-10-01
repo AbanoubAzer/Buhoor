@@ -8,8 +8,10 @@ import {
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Link from "next/link";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function AddPropertyPage() {
+  const { t, isRTL } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -57,17 +59,17 @@ export default function AddPropertyPage() {
 
   const nextStep = () => {
     if (currentStep === 1) {
-      if (!penaltyAgreed) return alert("يرجى الموافقة على شرط غرامة الإلغاء للمتابعة.");
-      if (!formData.name || !formData.phone) return alert("يرجى إكمال بيانات التواصل أولاً.");
+      if (!penaltyAgreed) return alert(isRTL ? "يرجى الموافقة على شرط غرامة الإلغاء للمتابعة." : "Please agree to the cancellation penalty terms to proceed.");
+      if (!formData.name || !formData.phone) return alert(isRTL ? "يرجى إكمال بيانات التواصل أولاً." : "Please complete your contact details first.");
     }
     if (currentStep === 2) {
       if (!formData.title || !formData.unitTypeId || !formData.locationId || !formData.area) 
-        return alert("يرجى إكمال المعلومات الأساسية ذات العلامة الحمراء.");
+        return alert(isRTL ? "يرجى إكمال المعلومات الأساسية ذات العلامة الحمراء." : "Please complete the required basic property information.");
     }
     if (currentStep === 3) {
-      if (formData.paymentMethod === 'cash' && !formData.cashPaidToSeller) return alert("يرجى إدخال السعر المطلوب كاش.");
+      if (formData.paymentMethod === 'cash' && !formData.cashPaidToSeller) return alert(isRTL ? "يرجى إدخال السعر المطلوب كاش." : "Please enter the required cash price.");
       if (formData.paymentMethod === 'installment' && (!formData.cashPaidToSeller || !formData.originalContractPrice || !formData.installmentsCount)) 
-        return alert("يرجى إدخال إجمالي السعر، المقدم المدفوع، وعدد الأقساط.");
+        return alert(isRTL ? "يرجى إدخال إجمالي السعر، المقدم المدفوع، وعدد الأقساط." : "Please enter the total price, down payment, and number of installments.");
     }
     
     if (currentStep < totalSteps) {
@@ -164,7 +166,7 @@ export default function AddPropertyPage() {
       setCurrentStep(1);
     } catch (err) {
       console.error(err);
-      setError("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.");
+      setError(isRTL ? "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى." : "An error occurred while submitting data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -194,7 +196,7 @@ export default function AddPropertyPage() {
     ? (100 / totalRoiPercent).toFixed(1)
     : null;
 
-  const stepTitles = ["معلومات التواصل", "المعلومات الأساسية", "التفاصيل المالية", "الصور والملاحظات"];
+  const stepTitles = [t('stepContactInfo'), t('stepBasicInfo'), t('stepFinancials'), t('stepMedia')];
 
   return (
     <div className="bg-[#fcfcfd] min-h-screen pb-20 relative overflow-hidden">
@@ -208,10 +210,10 @@ export default function AddPropertyPage() {
         
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold font-cairo text-gray-900 mb-4 tracking-tight">
-            أضف <span className="text-primary">عقارك</span> مجاناً
+            {t('addPropertyTitle')}
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto font-cairo">
-            إن كنت تريد بيع عقارك، منصة بحور هي بوابتك للوصول لآلاف العملاء المهتمين. املأ النموذج في خطوات بسيطة.
+            {t('addPropertySub')}
           </p>
         </div>
 
@@ -222,19 +224,19 @@ export default function AddPropertyPage() {
               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckIcon className="w-12 h-12 text-green-500 stroke-2" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4 font-cairo">تم استلام طلبك بنجاح!</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4 font-cairo">{t('requestSuccessTitle')}</h2>
               <p className="text-gray-500 text-lg mb-8 max-w-lg mx-auto">
-                سيتواصل معك أحد مستشارينا العقاريين في أقرب وقت ممكن لمراجعة تفاصيل عقارك وعرضه على المنصة.
+                {t('requestSuccessSub')}
               </p>
               <div className="flex justify-center gap-4">
                 <button 
                   onClick={() => setSuccess(false)}
                   className="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-2xl transition shadow-lg shadow-primary/20"
                 >
-                  إضافة عقار آخر
+                  {t('addAnotherProperty')}
                 </button>
                 <Link href="/" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-2xl transition">
-                  العودة للرئيسية
+                  {t('backToHome')}
                 </Link>
               </div>
             </div>
@@ -276,37 +278,37 @@ export default function AddPropertyPage() {
               <div className="min-h-[400px]">
                 {/* Step 1: Contact Info */}
                 <div className={`transition-all duration-500 ${currentStep === 1 ? 'opacity-100 translate-x-0' : 'hidden opacity-0 translate-x-8'}`}>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">1. من الذي يتواصل معنا؟</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">{t('whoIsContacting')}</h3>
                   
                   <div className="bg-orange-50 border border-orange-200 p-5 rounded-2xl mb-8">
                     <label className="flex items-start gap-4 cursor-pointer">
                       <input type="checkbox" checked={penaltyAgreed} onChange={(e) => setPenaltyAgreed(e.target.checked)} className="mt-1 w-5 h-5 text-accent focus:ring-accent rounded flex-shrink-0" />
                       <span className="text-sm text-gray-800 leading-relaxed font-bold">
-                        أوافق وأقر بأنه في حال قيام المنصة بإحضار مشتري جاد وقيامي (كبائع) بالتراجع أو الإلغاء عن قرار البيع، فإنني ملزم بدفع غرامة وقدرها 5000 ج.م كتعويض عن وقت وجهد المنصة.
+                        {t('penaltyAgreementText')}
                       </span>
                     </label>
                   </div>
 
                   <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 transition-all duration-300 ${!penaltyAgreed ? 'opacity-40 pointer-events-none grayscale-[50%]' : ''}`}>
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">الاسم  <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-bold text-gray-700">{t('fullNameReq')}</label>
                       <div className="relative group">
-                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
+                        <div className={`absolute inset-y-0 ${isRTL ? 'right-0 pr-4' : 'left-0 pl-4'} flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors`}>
                           <UserIcon className="h-5 w-5" />
                         </div>
-                        <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="block w-full pl-4 pr-12 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 hover:bg-white focus:bg-white transition outline-none" placeholder="اكتب اسمك الكامل" />
+                        <input type="text" name="name" value={formData.name} onChange={handleInputChange} className={`block w-full py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 hover:bg-white focus:bg-white transition outline-none ${isRTL ? 'pr-12 pl-4' : 'pl-12 pr-4'}`} placeholder={t('fullNamePlaceholderInput')} />
                       </div>
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">رقم الواتساب <span className="text-red-500">*</span></label>
-                      <div dir="ltr" className="react-phone-input-container group">
+                      <label className="block text-sm font-bold text-gray-700">{t('whatsappReq')}</label>
+                      <div dir="ltr" className="react-phone-input-container group relative">
                         <PhoneInput
                           country={'eg'}
                           enableSearch={true}
                           value={formData.phone}
                           onChange={(p) => setFormData({...formData, phone: p})}
-                          inputStyle={{ width: '100%', height: '58px', borderRadius: '1rem', borderColor: '#e5e7eb', fontSize: '1rem', backgroundColor: '#f9fafb' }}
+                          inputStyle={{ width: '100%', height: '58px', borderRadius: '1rem', borderColor: '#e5e7eb', fontSize: '1rem', backgroundColor: '#f9fafb', paddingLeft: '58px' }}
                           buttonStyle={{ borderRadius: '1rem 0 0 1rem', borderColor: '#e5e7eb', backgroundColor: '#f9fafb', direction: 'ltr' }}
                         />
                       </div>
@@ -316,26 +318,26 @@ export default function AddPropertyPage() {
 
                 {/* Step 2: Basic Details */}
                 <div className={`transition-all duration-500 ${currentStep === 2 ? 'opacity-100 translate-x-0' : 'hidden opacity-0 translate-x-8'}`}>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">2. تفاصيل العقار</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">{t('step2Title')}</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="col-span-1 md:col-span-2 space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">عنوان الإعلان <span className="text-red-500">*</span></label>
-                      <input type="text" name="title" value={formData.title} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 outline-none" placeholder="مثال: شقة فاخرة للبيع في زايد" />
+                      <label className="block text-sm font-bold text-gray-700">{t('propertyTitleReq')}</label>
+                      <input type="text" name="title" value={formData.title} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 outline-none" placeholder={t('propertyTitlePlaceholder')} />
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">نوع الوحدة <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-bold text-gray-700">{t('unitTypeReq')}</label>
                       <select name="unitTypeId" value={formData.unitTypeId} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 appearance-none outline-none">
-                        <option value="">-- اختر النوع --</option>
-                        <option value="apartment">شقة</option>
-                        <option value="villa">فيلا</option>
-                        <option value="townhouse">تاون هاوس</option>
-                        <option value="chalet">شاليه</option>
-                        <option value="studio">استوديو</option>
-                        <option value="commercial">تجاري</option>
-                        <option value="land">أرض</option>
-                        <option value="other">آخر</option>
+                        <option value="">{t('selectTypeOption')}</option>
+                        <option value="apartment">{t('apartmentsCategory')}</option>
+                        <option value="villa">{t('villasCategory')}</option>
+                        <option value="townhouse">Townhouse</option>
+                        <option value="chalet">{t('chaletsCategory')}</option>
+                        <option value="studio">Studio</option>
+                        <option value="commercial">{t('commercialCategory')}</option>
+                        <option value="land">{t('landsCategory')}</option>
+                        <option value="other">Other</option>
                       </select>
 
                       {formData.unitTypeId === "other" && (
@@ -346,42 +348,42 @@ export default function AddPropertyPage() {
                             value={formData.customUnitType}
                             onChange={handleInputChange}
                             className="block w-full px-5 py-3.5 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-white outline-none text-sm transition-all"
-                            placeholder="حدد نوع الوحدة (مثال: بنتهاوس، دوبلكس، عيادة...)"
+                            placeholder={t('customUnitTypePlaceholder')}
                           />
                         </div>
                       )}
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">المنطقة / الموقع <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-bold text-gray-700">{t('locationReq')}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary">
                           <MapPinIcon className="h-5 w-5" />
                         </div>
-                        <input type="text" name="locationId" value={formData.locationId} onChange={handleInputChange} className="block w-full pl-5 pr-12 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 outline-none" placeholder="مثال: التجمع الخامس" />
+                        <input type="text" name="locationId" value={formData.locationId} onChange={handleInputChange} className="block w-full pl-5 pr-12 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 outline-none" placeholder={t('locationPlaceholderInput')} />
                       </div>
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">المساحة (م²) <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-bold text-gray-700">{t('areaReq')}</label>
                       <input type="number" min="1" name="area" value={formData.area} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 text-left outline-none" dir="ltr" placeholder="150" />
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">حالة الاستلام</label>
+                      <label className="block text-sm font-bold text-gray-700">{t('deliveryStatusLabel')}</label>
                       <select name="deliveryStatus" value={formData.deliveryStatus} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 appearance-none outline-none">
-                        <option value="READY">جاهزة (استلام فوري)</option>
-                        <option value="UNDER_CONSTRUCTION">تحت الإنشاء</option>
+                        <option value="READY">{t('readyToDeliver')}</option>
+                        <option value="UNDER_CONSTRUCTION">{t('underConstruction')}</option>
                       </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 md:col-span-2">
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700">غرف النوم</label>
+                        <label className="block text-sm font-bold text-gray-700">{t('bedrooms')}</label>
                         <input type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary text-center bg-gray-50/50 outline-none" />
                       </div>
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700">الحمامات</label>
+                        <label className="block text-sm font-bold text-gray-700">{t('bathrooms')}</label>
                         <input type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary text-center bg-gray-50/50 outline-none" />
                       </div>
                     </div>
@@ -396,7 +398,7 @@ export default function AddPropertyPage() {
                           className="w-5 h-5 text-primary rounded focus:ring-primary" 
                         />
                         <span className="text-sm font-bold text-blue-950 flex items-center gap-2">
-                          🌊 إطلالة بحرية / ع البحر مباشرة (Sea View)
+                          {t('seaViewDirect')}
                         </span>
                       </label>
                     </div>
@@ -405,43 +407,43 @@ export default function AddPropertyPage() {
 
                 {/* Step 3: Financials */}
                 <div className={`transition-all duration-500 ${currentStep === 3 ? 'opacity-100 translate-x-0' : 'hidden opacity-0 translate-x-8'}`}>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">3. التفاصيل المالية والعائد الإيجاري</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">{t('step3Title')}</h3>
                   
                   <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 space-y-6">
                     <div className="flex gap-4">
                       <label className={`flex-1 text-center py-4 rounded-2xl cursor-pointer border-2 transition-all font-bold ${formData.paymentMethod === 'cash' ? 'bg-primary text-white border-primary shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:border-primary/50'}`}>
                         <input type="radio" name="paymentMethod" value="cash" checked={formData.paymentMethod === 'cash'} onChange={handleInputChange} className="hidden" />
-                        دفع كاش
+                        {t('paymentCashRadio')}
                       </label>
                       <label className={`flex-1 text-center py-4 rounded-2xl cursor-pointer border-2 transition-all font-bold ${formData.paymentMethod === 'installment' ? 'bg-primary text-white border-primary shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:border-primary/50'}`}>
                         <input type="radio" name="paymentMethod" value="installment" checked={formData.paymentMethod === 'installment'} onChange={handleInputChange} className="hidden" />
-                        أقساط / تنازل
+                        {t('paymentInstallmentRadio')}
                       </label>
                     </div>
 
                     {formData.paymentMethod === 'cash' ? (
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700">السعر المطلوب كاش (المبلغ كامل) <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-gray-700">{t('cashPriceFullReq')}</label>
                         <div className="relative group">
-                          <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-accent">
+                          <div className={`absolute inset-y-0 ${isRTL ? 'right-0 pr-4' : 'left-0 pl-4'} flex items-center pointer-events-none text-gray-400 group-focus-within:text-accent`}>
                             <CurrencyDollarIcon className="h-6 w-6" />
                           </div>
-                          <input type="number" min="0" name="cashPaidToSeller" value={formData.cashPaidToSeller} onChange={handleInputChange} className="block w-full pl-5 pr-14 py-5 border border-primary/20 rounded-2xl focus:ring-2 focus:ring-primary focus:border-primary bg-white text-left font-bold text-2xl text-accent outline-none shadow-inner" dir="ltr" placeholder="0" />
+                          <input type="number" min="0" name="cashPaidToSeller" value={formData.cashPaidToSeller} onChange={handleInputChange} className={`block w-full py-5 border border-primary/20 rounded-2xl focus:ring-2 focus:ring-primary focus:border-primary bg-white font-bold text-2xl text-accent outline-none shadow-inner ${isRTL ? 'pr-14 pl-5 text-right' : 'pl-14 pr-5 text-left'}`} dir="ltr" placeholder="0" />
                         </div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3 md:col-span-2">
-                          <label className="block text-sm font-bold text-gray-700">السعر الإجمالي للعقار <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-bold text-gray-700">{t('totalPropertyPriceReq')}</label>
                           <input type="number" min="0" name="originalContractPrice" value={formData.originalContractPrice} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl bg-white text-left outline-none focus:ring-primary focus:border-primary font-bold text-lg text-primary" dir="ltr" placeholder="0" />
                         </div>
                         <div className="space-y-3">
-                          <label className="block text-sm font-bold text-gray-700">المقدم المطلوب الآن <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-bold text-gray-700">{t('downPaymentNowReq')}</label>
                           <input type="number" min="0" name="cashPaidToSeller" value={formData.cashPaidToSeller} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl bg-white text-left outline-none focus:ring-primary focus:border-primary font-bold text-lg text-accent" dir="ltr" placeholder="0" />
                         </div>
                         <div className="space-y-3">
-                          <label className="block text-sm font-bold text-gray-700">عدد الأقساط المتبقية <span className="text-red-500">*</span></label>
-                          <input type="number" min="0" name="installmentsCount" value={formData.installmentsCount} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl bg-white text-center outline-none focus:ring-primary focus:border-primary font-bold text-lg" dir="ltr" placeholder="مثال: 24" />
+                          <label className="block text-sm font-bold text-gray-700">{t('remainingInstCountReq')}</label>
+                          <input type="number" min="0" name="installmentsCount" value={formData.installmentsCount} onChange={handleInputChange} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl bg-white text-center outline-none focus:ring-primary focus:border-primary font-bold text-lg" dir="ltr" placeholder={t('remainingInstCountPlaceholder')} />
                         </div>
                       </div>
                     )}
@@ -456,10 +458,10 @@ export default function AddPropertyPage() {
                             </span>
                             <div>
                               <h4 className="text-base font-extrabold text-emerald-950 font-cairo">
-                                حاسبة العائد الاستثماري ونمو قيمة العقار
+                                {t('roiCalculatorTitle')}
                               </h4>
                               <p className="text-xs text-emerald-800/80 font-medium">
-                                محسوبة على إيجار 270 يوم سنوياً (إشغال 75%) + الارتفاع السنوي في ثمن العقار
+                                {t('roiCalculatorSub')}
                               </p>
                             </div>
                           </div>
@@ -468,14 +470,14 @@ export default function AddPropertyPage() {
                               ? 'bg-cyan-100/80 text-cyan-900 border-cyan-300' 
                               : 'bg-emerald-100/80 text-emerald-900 border-emerald-300'
                           }`}>
-                            {formData.isSeaView ? '🌊 مشروع سياحي بحري (+30% نمو سنوي)' : '🏢 مشروع عادي (+10% نمو سنوي)'}
+                            {formData.isSeaView ? t('seaProjectGrowth') : t('regularProjectGrowth')}
                           </span>
                         </div>
 
                         {/* إدخال سعر الليلة */}
                         <div className="bg-white/90 backdrop-blur p-4 rounded-2xl border border-emerald-200/60 shadow-2xs space-y-2">
                           <label className="block text-xs font-bold text-emerald-950">
-                            سعر الليلة المتوقع للإيجار اليومي (ج.م) <span className="text-red-500">*</span>
+                            {t('nightlyRateReq')}
                           </label>
                           <div className="relative">
                             <input 
@@ -497,16 +499,20 @@ export default function AddPropertyPage() {
                                 }
                                 setFormData({ ...formData, nightlyRate: val, expectedRentalRoi: calcYield });
                               }}
-                              placeholder="مثال: 3500 (أدخل سعر الليلة بالجنيه المصري)" 
-                              className="w-full bg-white border border-emerald-300/80 rounded-xl px-4 py-3 text-base font-extrabold text-emerald-900 outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                              placeholder={t('nightlyRatePlaceholder')}
+                              className={`w-full bg-white border border-emerald-300/80 rounded-xl py-3 text-base font-extrabold text-emerald-900 outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner ${
+                                isRTL ? 'pl-28 pr-4 text-right' : 'pr-28 pl-4 text-left'
+                              }`}
                               dir="ltr"
                             />
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
-                              ج.م / ليلة
+                            <span className={`absolute top-1/2 -translate-y-1/2 pointer-events-none text-xs font-bold text-emerald-700 bg-emerald-50/90 px-2.5 py-1.5 rounded-lg border border-emerald-200/80 ${
+                              isRTL ? 'left-3' : 'right-3'
+                            }`}>
+                              {t('perNightLabel')}
                             </span>
                           </div>
                           <p className="text-[11px] text-gray-500 font-medium">
-                            💡 متوسط استرشادي: الجونة والساحل الشمالي (3,500 - 8,000+ ج.م) | القاهرة والتجمع وزايد (1,500 - 4,500 ج.م)
+                            {t('nightlyRateTip')}
                           </p>
                         </div>
 
@@ -517,14 +523,16 @@ export default function AddPropertyPage() {
                               {/* 1. الدخل الإيجاري السنوي */}
                               <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-2xs flex flex-col justify-between">
                                 <span className="text-[11px] font-bold text-gray-500 block mb-1">
-                                  🏡 الدخل الإيجاري السنوي
+                                  {t('annualRentalIncomeLabel')}
                                 </span>
                                 <div>
                                   <span className="text-lg font-black text-emerald-800 block">
-                                    {(parseFloat(formData.nightlyRate) * 270).toLocaleString('ar-EG')} ج.م
+                                    {(parseFloat(formData.nightlyRate) * 270).toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currencyShort')}
                                   </span>
                                   <span className="text-[11px] font-bold text-emerald-600 block mt-0.5">
-                                    {propertyPrice > 0 && annualRentalIncome > 0 ? `عائد إيجاري ${rentalYieldPercent}% سنوياً` : '270 يوم إشغال (75%)'}
+                                    {propertyPrice > 0 && annualRentalIncome > 0 
+                                      ? (isRTL ? `عائد إيجاري ${rentalYieldPercent}% سنوياً` : `${rentalYieldPercent}% annual rental yield`)
+                                      : t('occupancyDaysNote')}
                                   </span>
                                 </div>
                               </div>
@@ -532,14 +540,16 @@ export default function AddPropertyPage() {
                               {/* 2. نمو وارتفاع قيمة العقار */}
                               <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-2xs flex flex-col justify-between">
                                 <span className="text-[11px] font-bold text-gray-500 block mb-1">
-                                  📈 ارتفاع قيمة العقار سنوياً
+                                  {t('annualAppreciationLabel')}
                                 </span>
                                 <div>
                                   <span className="text-lg font-black text-blue-800 block">
-                                    +{appreciationPercent}% سنوياً
+                                    +{appreciationPercent}%
                                   </span>
                                   <span className="text-[11px] font-bold text-blue-600 block mt-0.5">
-                                    {propertyPrice > 0 ? `+${annualAppreciationGain.toLocaleString('ar-EG')} ج.م سنوياً` : (formData.isSeaView ? 'مشاريع سياحية بحرية' : 'مشاريع سكنية')}
+                                    {propertyPrice > 0 
+                                      ? `+${annualAppreciationGain.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} ${t('currencyShort')}` 
+                                      : (formData.isSeaView ? t('coastalProjects') : t('residentialProjects'))}
                                   </span>
                                 </div>
                               </div>
@@ -547,7 +557,7 @@ export default function AddPropertyPage() {
                               {/* 3. إجمالي العائد على الاستثمار */}
                               <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between">
                                 <span className="text-[11px] font-bold text-emerald-100 block mb-1">
-                                  🚀 إجمالي العائد (Total ROI)
+                                  {t('totalRoiLabel')}
                                 </span>
                                 <div>
                                   <span className="text-xl font-black block">
@@ -555,8 +565,8 @@ export default function AddPropertyPage() {
                                   </span>
                                   <span className="text-[11px] font-semibold text-emerald-100 block mt-0.5">
                                     {propertyPrice > 0 && annualRentalIncome > 0
-                                      ? `~${totalAnnualReturnEgp.toLocaleString('ar-EG')} ج.م سنوياً`
-                                      : 'العائد الإيجاري + نمو القيمة'}
+                                      ? `~${totalAnnualReturnEgp.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} ${t('currencyShort')}`
+                                      : t('yieldAndGrowth')}
                                   </span>
                                 </div>
                               </div>
@@ -565,30 +575,30 @@ export default function AddPropertyPage() {
                               <div className="bg-white p-4 rounded-2xl border border-amber-200/90 shadow-2xs flex flex-col justify-between">
                                 <div className="flex justify-between items-center mb-1">
                                   <span className="text-[11px] font-bold text-amber-900 block">
-                                    ⏳ استرداد ثمن الوحدة
+                                    {t('unitPaybackLabel')}
                                   </span>
                                   <span className="text-[9px] font-extrabold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
-                                    رؤيتان
+                                    {t('viewsBadge')}
                                   </span>
                                 </div>
                                 {paybackYears ? (
                                   <div className="space-y-1.5">
                                     <div className="flex justify-between items-center bg-amber-50/90 px-2 py-1 rounded-lg border border-amber-200/60">
-                                      <span className="text-[10px] font-bold text-amber-900">💵 إيجار كاش:</span>
-                                      <span className="text-xs font-black text-amber-800">{paybackYears} سنة</span>
+                                      <span className="text-[10px] font-bold text-amber-900">{t('cashRentalLabel')}</span>
+                                      <span className="text-xs font-black text-amber-800">{paybackYears} {t('yearsCount')}</span>
                                     </div>
                                     <div className="flex justify-between items-center bg-emerald-50/90 px-2 py-1 rounded-lg border border-emerald-200/60">
-                                      <span className="text-[10px] font-bold text-emerald-950">🚀 إجمالي العائد:</span>
-                                      <span className="text-xs font-black text-emerald-700">{totalPaybackYears} سنة</span>
+                                      <span className="text-[10px] font-bold text-emerald-950">{t('totalReturnLabel')}</span>
+                                      <span className="text-xs font-black text-emerald-700">{totalPaybackYears} {t('yearsCount')}</span>
                                     </div>
                                   </div>
                                 ) : (
                                   <span className="text-xs font-semibold text-gray-400 block py-1">
-                                    أدخل سعر العقار لاحتساب المدة
+                                    {t('enterPriceForPayback')}
                                   </span>
                                 )}
                                 <span className="text-[10px] text-gray-400 font-medium block mt-1">
-                                  استرداد كاش صافٍ أو إجمالي الأصل
+                                  {t('cashOrTotalPaybackSub')}
                                 </span>
                               </div>
                             </div>
@@ -607,24 +617,24 @@ export default function AddPropertyPage() {
                                 <div className="bg-white/80 backdrop-blur border border-emerald-200/80 p-3.5 rounded-2xl space-y-2">
                                   <div className="flex justify-between items-center text-xs">
                                     <span className="font-extrabold text-emerald-950 flex items-center gap-1.5">
-                                      <span>📈</span> نمو القيمة التراكمي (العائد المركّب {appreciationPercent}% سنوياً):
+                                      <span>📈</span> {t('compoundGrowthTitle')} ({t('compoundGrowthSub')} {appreciationPercent}%):
                                     </span>
                                     <span className="text-[10px] text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded font-bold">
-                                      تراكمي
+                                      {t('compoundedBadge')}
                                     </span>
                                   </div>
                                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                                     <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100">
-                                      <span className="text-[10px] text-gray-500 block">بعد سنة (+{y1G}%)</span>
-                                      <span className="font-black text-emerald-900 text-xs block">{y1Val.toLocaleString('ar-EG')} ج</span>
+                                      <span className="text-[10px] text-gray-500 block">{t('afterYear')} (+{y1G}%)</span>
+                                      <span className="font-black text-emerald-900 text-xs block">{y1Val.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currencyShort')}</span>
                                     </div>
                                     <div className="bg-blue-50/70 p-2 rounded-xl border border-blue-100">
-                                      <span className="text-[10px] text-blue-700 font-bold block">بعد 3 سنوات (+{y3G}%)</span>
-                                      <span className="font-black text-blue-950 text-xs block">{y3Val.toLocaleString('ar-EG')} ج</span>
+                                      <span className="text-[10px] text-blue-700 font-bold block">{t('after3Years')} (+{y3G}%)</span>
+                                      <span className="font-black text-blue-950 text-xs block">{y3Val.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currencyShort')}</span>
                                     </div>
                                     <div className="bg-emerald-600 text-white p-2 rounded-xl shadow-2xs">
-                                      <span className="text-[10px] text-emerald-100 block">بعد 5 سنوات (+{y5G}%)</span>
-                                      <span className="font-black text-white text-xs block">{y5Val.toLocaleString('ar-EG')} ج</span>
+                                      <span className="text-[10px] text-emerald-100 block">{t('after5Years')} (+{y5G}%)</span>
+                                      <span className="font-black text-white text-xs block">{y5Val.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currencyShort')}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -635,16 +645,24 @@ export default function AddPropertyPage() {
                               <div className="bg-emerald-100/60 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-2xl text-xs space-y-2">
                                 <div className="flex items-center gap-1.5 font-bold">
                                   <span>🎯</span>
-                                  <span>المعادلة الاستثمارية لاسترداد قيمة الوحدة:</span>
+                                  <span>{t('roiFormulaTitle')}</span>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                                   <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                                    <span className="font-bold text-amber-900 block mb-0.5">1. كاش إيجار فقط:</span>
-                                    <span>تسترد ثمن الوحدة بالكامل نقدياً في <strong>{paybackYears} سنة</strong> من التأجير اليومي لـ 270 ليلة، مع بقاء العقار كأصل مجاني لك.</span>
+                                    <span className="font-bold text-amber-900 block mb-0.5">{t('cashOnlyPaybackTitle')}</span>
+                                    <span>
+                                      {isRTL 
+                                        ? `تسترد ثمن الوحدة بالكامل نقدياً في ${paybackYears} سنة من التأجير اليومي لـ 270 ليلة، مع بقاء العقار كأصل مجاني لك.`
+                                        : `Recovers the full unit price in cash within ${paybackYears} years of 270 nightly rentals per year.`}
+                                    </span>
                                   </div>
                                   <div className="bg-white/90 p-2.5 rounded-xl border border-emerald-200 shadow-2xs">
-                                    <span className="font-bold text-emerald-900 block mb-0.5">2. إجمالي العائد (الأصل + الإيجار):</span>
-                                    <span>مع نمو قيمة العقار بنسبة <strong>{appreciationPercent}%</strong> سنوياً، يتضاعف رأس مالك المستثمر خلال <strong>{totalPaybackYears} سنة فقط</strong>!</span>
+                                    <span className="font-bold text-emerald-900 block mb-0.5">{t('totalReturnPaybackTitle')}</span>
+                                    <span>
+                                      {isRTL 
+                                        ? `مع نمو قيمة العقار بنسبة ${appreciationPercent}% سنوياً، يتضاعف رأس مالك المستثمر خلال ${totalPaybackYears} سنة فقط!`
+                                        : `With property appreciation of ${appreciationPercent}%/year, your invested capital doubles in just ${totalPaybackYears} years!`}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -652,7 +670,7 @@ export default function AddPropertyPage() {
                           </div>
                         ) : (
                           <div className="text-center py-2 text-xs text-emerald-700/80 font-medium">
-                            👆 أدخل سعر الليلة المتوقع لتظهر لك فوراً دراسة الجدوى والعائد وفترة استرداد ثمن العقار.
+                            {t('enterNightlyRatePrompt')}
                           </div>
                         )}
                       </div>
@@ -663,11 +681,11 @@ export default function AddPropertyPage() {
 
                 {/* Step 4: Media & Submission */}
                 <div className={`transition-all duration-500 ${currentStep === 4 ? 'opacity-100 translate-x-0' : 'hidden opacity-0 translate-x-8'}`}>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">4. الصور والملاحظات النهائية</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 font-cairo">{t('step4Title')}</h3>
                   
                   <div className="space-y-8">
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">صور العقار <span className="text-gray-400 font-normal text-xs mx-2">(الحد الأقصى 10 صور، مساحة الصورة بحد أقصى 5MB)</span> <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-bold text-gray-700">{t('propertyImagesLabel')} <span className="text-gray-400 font-normal text-xs mx-2">{t('imageUploadLimitNote')}</span> <span className="text-red-500">*</span></label>
                       <div className="flex justify-center px-6 pt-10 pb-12 border-2 border-gray-200 border-dashed rounded-3xl hover:border-primary hover:bg-primary/5 transition-all cursor-pointer relative group">
                         <div className="space-y-2 text-center">
                           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm group-hover:scale-110 transition-transform">
@@ -675,16 +693,16 @@ export default function AddPropertyPage() {
                           </div>
                           <div className="flex text-sm text-gray-600 justify-center font-medium mt-4">
                             <span className="cursor-pointer text-primary hover:text-accent">
-                              <span>اختر الصور من جهازك</span>
+                              <span>{t('choosePhotos')}</span>
                               <input id="imageFiles" type="file" multiple accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={(e) => {
                                 if (!e.target.files) return;
                                 const newFiles = Array.from(e.target.files);
                                 const validSizeFiles = newFiles.filter(f => f.size <= 5 * 1024 * 1024);
-                                if (validSizeFiles.length < newFiles.length) alert("بعض الصور تتجاوز الحجم المسموح (5MB) وتم استبعادها.");
+                                if (validSizeFiles.length < newFiles.length) alert(isRTL ? "بعض الصور تتجاوز الحجم المسموح (5MB) وتم استبعادها." : "Some images exceed the allowed size (5MB) and were excluded.");
                                 setImages(prev => {
                                   const total = [...prev, ...validSizeFiles];
                                   if (total.length > 10) {
-                                    alert("عذراً، الحد الأقصى هو 10 صور فقط.");
+                                    alert(isRTL ? "عذراً، الحد الأقصى هو 10 صور فقط." : "Sorry, the maximum is 10 photos only.");
                                     return total.slice(0, 10);
                                   }
                                   return total;
@@ -710,7 +728,7 @@ export default function AddPropertyPage() {
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">فيديو العقار (اختياري) <span className="text-gray-400 font-normal text-xs mx-2">(الحد الأقصى فيديو واحد، الحجم بحد أقصى 20MB)</span></label>
+                      <label className="block text-sm font-bold text-gray-700">{t('propertyVideoLabel')} <span className="text-gray-400 font-normal text-xs mx-2">{t('videoUploadLimitNote')}</span></label>
                       <div className="flex justify-center px-6 pt-10 pb-12 border-2 border-gray-200 border-dashed rounded-3xl hover:border-primary hover:bg-primary/5 transition-all cursor-pointer relative group">
                         <div className="space-y-2 text-center">
                           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm group-hover:scale-110 transition-transform">
@@ -718,13 +736,13 @@ export default function AddPropertyPage() {
                           </div>
                           <div className="flex text-sm text-gray-600 justify-center font-medium mt-4">
                             <span className="cursor-pointer text-primary hover:text-accent">
-                              <span>اختر فيديو من جهازك</span>
+                              <span>{t('chooseVideo')}</span>
                               <input id="videoFiles" type="file" accept="video/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={(e) => {
                                 if (!e.target.files) return;
                                 const file = e.target.files[0];
                                 if (!file) return;
                                 if (file.size > 20 * 1024 * 1024) {
-                                  alert("حجم الفيديو كبير جداً. الحد الأقصى المسموح هو 20MB.");
+                                  alert(isRTL ? "حجم الفيديو كبير جداً. الحد الأقصى المسموح هو 20MB." : "Video size is too large. Maximum allowed size is 20MB.");
                                   return;
                                 }
                                 setVideos([file]); // Always replace with the new single video
@@ -750,8 +768,8 @@ export default function AddPropertyPage() {
                     </div>
 
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700">ملاحظات إضافية (اختياري)</label>
-                      <textarea name="description" value={formData.description} onChange={handleInputChange} rows={4} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 outline-none" placeholder="أي تفاصيل أخرى مميزة عن العقار..." />
+                      <label className="block text-sm font-bold text-gray-700">{t('notes')}</label>
+                      <textarea name="description" value={formData.description} onChange={handleInputChange} rows={4} className="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary bg-gray-50/50 outline-none" placeholder={t('notesPlaceholderInput')} />
                     </div>
                   </div>
                 </div>
@@ -761,13 +779,13 @@ export default function AddPropertyPage() {
               <div className="mt-12 flex items-center justify-between pt-8 border-t border-gray-100">
                 {currentStep > 1 ? (
                   <button type="button" onClick={prevStep} className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-gray-600 hover:bg-gray-100 transition">
-                    <ChevronRightIcon className="w-5 h-5" /> السابق
+                    <ChevronRightIcon className="w-5 h-5" /> {t('prevStep')}
                   </button>
                 ) : <div></div>}
 
                 {currentStep < totalSteps ? (
                   <button type="button" onClick={nextStep} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-bold transition shadow-lg">
-                    الخطوة التالية <ChevronLeftIcon className="w-5 h-5" />
+                    {t('nextStep')} <ChevronLeftIcon className="w-5 h-5" />
                   </button>
                 ) : (
                   <button type="button" onClick={handleSubmit} disabled={loading} className={`flex items-center gap-2 ${loading ? 'bg-primary/70' : 'bg-primary hover:bg-accent'} text-white px-10 py-4 rounded-2xl font-bold transition shadow-xl shadow-primary/30`}>
@@ -777,10 +795,10 @@ export default function AddPropertyPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        جاري الإرسال...
+                        {t('submitting')}
                       </span>
                     ) : (
-                      <>إرسال العقار الآن <CheckIcon className="w-5 h-5 stroke-2" /></>
+                      <>{t('confirmAddProperty')} <CheckIcon className="w-5 h-5 stroke-2" /></>
                     )}
                   </button>
                 )}

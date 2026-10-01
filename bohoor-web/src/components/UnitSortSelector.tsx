@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function UnitSortSelector({ currentSort }: { currentSort?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   const handleSortChange = (newSort: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -26,15 +28,15 @@ export default function UnitSortSelector({ currentSort }: { currentSort?: string
       onChange={(e) => handleSortChange(e.target.value)}
       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-primary outline-none cursor-pointer"
     >
-      <option value="default">الترتيب الافتراضي للمنصة ⭐</option>
-      <option value="highest_roi">أعلى عائد استثماري إيجاري 💰</option>
-      <option value="newest">الأحدث مدرجاً 🆕</option>
-      <option value="price_asc">المقدم/الكاش: من الأقل للأعلى 📉</option>
-      <option value="price_desc">المقدم/الكاش: من الأعلى للأقل 📈</option>
-      <option value="total_price_asc">إجمالي السعر: من الأقل للأعلى 🏷️</option>
-      <option value="total_price_desc">إجمالي السعر: من الأعلى للأقل 🏷️</option>
-      <option value="sea_view_first">إطلالة بحرية أولاً 🌊</option>
-      <option value="verified_first">عقارات موثقة أولاً 🛡️</option>
+      <option value="default">{t('sortDefault')}</option>
+      <option value="highest_roi">{t('sortHighestRoi')}</option>
+      <option value="newest">{t('sortNewestListed')}</option>
+      <option value="price_asc">{t('sortCashAsc')}</option>
+      <option value="price_desc">{t('sortCashDesc')}</option>
+      <option value="total_price_asc">{t('sortTotalPriceAsc')}</option>
+      <option value="total_price_desc">{t('sortTotalPriceDesc')}</option>
+      <option value="sea_view_first">{t('sortSeaViewFirst')}</option>
+      <option value="verified_first">{t('sortVerifiedFirst')}</option>
     </select>
   );
 }

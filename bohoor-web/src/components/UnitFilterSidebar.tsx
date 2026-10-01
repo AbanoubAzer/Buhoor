@@ -10,6 +10,8 @@ import {
   XMarkIcon,
   CheckIcon
 } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext';
+import { GOVERNORATE_NAMES } from '../translations';
 
 interface UnitFilterSidebarProps {
   locations: any[];
@@ -58,6 +60,8 @@ export default function UnitFilterSidebar({
   governorates,
   currentParams,
 }: UnitFilterSidebarProps) {
+  const { t, getLocalized, isRTL, language } = useLanguage();
+  const isEn = language === 'en';
   const router = useRouter();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
@@ -207,13 +211,13 @@ export default function UnitFilterSidebar({
     <>
       {/* Search Term */}
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2">كلمة البحث</label>
+        <label className="block text-sm font-bold text-gray-700 mb-2">{t('searchKeyword')}</label>
         <div className="relative">
           <input 
             type="text" 
             name="q"
             defaultValue={currentParams.q || ''}
-            placeholder="عنوان العقار، اسم المنطقة..." 
+            placeholder={t('searchKeywordPlaceholder')}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 pl-10 text-sm focus:ring-2 focus:ring-primary outline-none"
           />
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
@@ -222,56 +226,56 @@ export default function UnitFilterSidebar({
 
       {/* 1. Seller Type Tabs */}
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2">جهة العرض (المطور أم أفراد)</label>
+        <label className="block text-sm font-bold text-gray-700 mb-2">{t('listingProvider')}</label>
         <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl text-center text-xs font-bold">
           <button
             type="button"
             onClick={() => setSellerType('ALL')}
             className={`py-2 rounded-lg transition ${sellerType === 'ALL' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            الكل
+            {t('any')}
           </button>
           <button
             type="button"
             onClick={() => setSellerType('DEVELOPER')}
             className={`py-2 rounded-lg transition ${sellerType === 'DEVELOPER' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            🏢 مطور
+            🏢 {t('developerTag')}
           </button>
           <button
             type="button"
             onClick={() => setSellerType('INDIVIDUAL')}
             className={`py-2 rounded-lg transition ${sellerType === 'INDIVIDUAL' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            👤 أفراد
+            👤 {t('resaleTag')}
           </button>
         </div>
       </div>
 
       {/* 2. Payment Method Tabs */}
       <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2">نظام السداد</label>
+        <label className="block text-sm font-bold text-gray-700 mb-2">{t('paymentSystem')}</label>
         <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl text-center text-xs font-bold">
           <button
             type="button"
             onClick={() => setIsCashOnly('all')}
             className={`py-2 rounded-lg transition ${isCashOnly === 'all' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            الكل
+            {t('all')}
           </button>
           <button
             type="button"
             onClick={() => setIsCashOnly('true')}
             className={`py-2 rounded-lg transition ${isCashOnly === 'true' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            💵 كاش فقط
+            {t('cashOnlyOption')}
           </button>
           <button
             type="button"
             onClick={() => setIsCashOnly('false')}
             className={`py-2 rounded-lg transition ${isCashOnly === 'false' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            📅 تقسيط
+            {t('installmentsOption')}
           </button>
         </div>
       </div>
@@ -279,13 +283,13 @@ export default function UnitFilterSidebar({
       {/* Dynamic Financial Ranges based on Payment System */}
       {isCashOnly === 'true' && (
         <div className="space-y-2 bg-green-50/60 p-3 rounded-2xl border border-green-100 transition-all">
-          <label className="block text-sm font-bold text-green-900">💵 إجمالي سعر الشقة الكاش (ج.م)</label>
+          <label className="block text-sm font-bold text-green-900">{t('totalCashPriceEgp')}</label>
           <div className="grid grid-cols-2 gap-2">
             <input 
               type="number" 
               name="minCashRequired"
               defaultValue={currentParams.minCashRequired || ''}
-              placeholder="أدنى سعر" 
+              placeholder={t('minPrice')} 
               className="w-full bg-white border border-green-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
               dir="ltr"
             />
@@ -293,7 +297,7 @@ export default function UnitFilterSidebar({
               type="number" 
               name="maxCashRequired"
               defaultValue={currentParams.maxCashRequired || ''}
-              placeholder="أقصى سعر" 
+              placeholder={t('maxPrice')} 
               className="w-full bg-white border border-green-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
               dir="ltr"
             />
@@ -304,13 +308,13 @@ export default function UnitFilterSidebar({
       {isCashOnly === 'false' && (
         <div className="space-y-3 bg-blue-50/60 p-3 rounded-2xl border border-blue-100 transition-all">
           <div className="space-y-2">
-            <label className="block text-sm font-bold text-blue-900">💰 المقدم المطلوب (ج.م)</label>
+            <label className="block text-sm font-bold text-blue-900">{t('downPaymentRequiredEgp')}</label>
             <div className="grid grid-cols-2 gap-2">
               <input 
                 type="number" 
                 name="minCashRequired"
                 defaultValue={currentParams.minCashRequired || ''}
-                placeholder="أدنى مقدم" 
+                placeholder={t('minDownPayment')} 
                 className="w-full bg-white border border-blue-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -318,7 +322,7 @@ export default function UnitFilterSidebar({
                 type="number" 
                 name="maxCashRequired"
                 defaultValue={currentParams.maxCashRequired || ''}
-                placeholder="أقصى مقدم" 
+                placeholder={t('maxDownPayment')} 
                 className="w-full bg-white border border-blue-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -326,13 +330,13 @@ export default function UnitFilterSidebar({
           </div>
 
           <div className="space-y-2 pt-2 border-t border-blue-100">
-            <label className="block text-sm font-bold text-blue-900">📅 القسط الشهري (ج.م/شهر)</label>
+            <label className="block text-sm font-bold text-blue-900">{t('monthlyInstallmentEgpMo')}</label>
             <div className="grid grid-cols-2 gap-2">
               <input 
                 type="number" 
                 name="minMonthlyInstallment"
                 defaultValue={currentParams.minMonthlyInstallment || ''}
-                placeholder="أدنى قسط" 
+                placeholder={t('minInstallment')} 
                 className="w-full bg-white border border-blue-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -340,7 +344,7 @@ export default function UnitFilterSidebar({
                 type="number" 
                 name="maxMonthlyInstallment"
                 defaultValue={currentParams.maxMonthlyInstallment || ''}
-                placeholder="أقصى قسط" 
+                placeholder={t('maxInstallment')} 
                 className="w-full bg-white border border-blue-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -352,13 +356,13 @@ export default function UnitFilterSidebar({
       {(isCashOnly === 'all' || !isCashOnly) && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-bold text-gray-700">المبلغ الكاش / المقدم (ج.م)</label>
+            <label className="block text-sm font-bold text-gray-700">{t('cashOrDownPaymentEgp')}</label>
             <div className="grid grid-cols-2 gap-2">
               <input 
                 type="number" 
                 name="minCashRequired"
                 defaultValue={currentParams.minCashRequired || ''}
-                placeholder="من" 
+                placeholder={t('from')} 
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -366,7 +370,7 @@ export default function UnitFilterSidebar({
                 type="number" 
                 name="maxCashRequired"
                 defaultValue={currentParams.maxCashRequired || ''}
-                placeholder="إلى" 
+                placeholder={t('to')} 
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -374,13 +378,13 @@ export default function UnitFilterSidebar({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-bold text-gray-700">القسط الشهري (ج.م)</label>
+            <label className="block text-sm font-bold text-gray-700">{t('monthlyInstallmentEgp')}</label>
             <div className="grid grid-cols-2 gap-2">
               <input 
                 type="number" 
                 name="minMonthlyInstallment"
                 defaultValue={currentParams.minMonthlyInstallment || ''}
-                placeholder="من" 
+                placeholder={t('from')} 
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -388,7 +392,7 @@ export default function UnitFilterSidebar({
                 type="number" 
                 name="maxMonthlyInstallment"
                 defaultValue={currentParams.maxMonthlyInstallment || ''}
-                placeholder="إلى" 
+                placeholder={t('to')} 
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
                 dir="ltr"
               />
@@ -400,7 +404,7 @@ export default function UnitFilterSidebar({
       {/* Governorate & Location */}
       <div className="space-y-3 pt-2 border-t border-gray-100">
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">المحافظة</label>
+          <label className="block text-sm font-bold text-gray-700 mb-1">{t('governorate')}</label>
           <select 
             value={selectedGov} 
             onChange={(e) => {
@@ -409,39 +413,44 @@ export default function UnitFilterSidebar({
             }}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
           >
-            <option value="">جميع المحافظات</option>
-            {allGovernorates.map((gov) => (
-              <option key={gov} value={gov}>{gov}</option>
-            ))}
+            <option value="">{t('allGovernorates')}</option>
+            {allGovernorates.map((gov) => {
+              const govLabel = isEn ? (GOVERNORATE_NAMES[gov]?.en || gov) : (GOVERNORATE_NAMES[gov]?.ar || gov);
+              return <option key={gov} value={gov}>{govLabel}</option>;
+            })}
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-1">المنطقة</label>
+          <label className="block text-sm font-bold text-gray-700 mb-1">{t('areas')}</label>
           <select 
             value={selectedLoc} 
             onChange={(e) => setSelectedLoc(e.target.value)}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
           >
-            <option value="">جميع المناطق</option>
-            {filteredLocations.map((loc: any) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name} {loc.governorate ? `(${loc.governorate})` : ''}
-              </option>
-            ))}
+            <option value="">{t('allAreasOption')}</option>
+            {filteredLocations.map((loc: any) => {
+              const locName = getLocalized(loc, 'name');
+              const govName = loc.governorate ? (isEn ? (GOVERNORATE_NAMES[loc.governorate]?.en || loc.governorate) : loc.governorate) : '';
+              return (
+                <option key={loc.id} value={loc.id}>
+                  {locName} {govName ? `(${govName})` : ''}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>
 
       {/* Area Range */}
       <div className="space-y-2 pt-2 border-t border-gray-100">
-        <label className="block text-sm font-bold text-gray-700">المساحة (م²)</label>
+        <label className="block text-sm font-bold text-gray-700">{t('areaSqmLabel')}</label>
         <div className="grid grid-cols-2 gap-2">
           <input 
             type="number" 
             name="minArea"
             defaultValue={currentParams.minArea || ''}
-            placeholder="الأدنى م²" 
+            placeholder={t('minAreaPlaceholder')} 
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none"
             dir="ltr"
           />
@@ -449,7 +458,7 @@ export default function UnitFilterSidebar({
             type="number" 
             name="maxArea"
             defaultValue={currentParams.maxArea || ''}
-            placeholder="الأقصى م²" 
+            placeholder={t('maxAreaPlaceholder')} 
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs focus:ring-2 focus:ring-primary outline-none"
             dir="ltr"
           />
@@ -459,33 +468,33 @@ export default function UnitFilterSidebar({
       {/* Bedrooms & Bathrooms */}
       <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">عدد الغرف</label>
+          <label className="block text-xs font-bold text-gray-700 mb-1">{t('roomsCount')}</label>
           <select 
             name="bedrooms" 
             defaultValue={currentParams.bedrooms || ""} 
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-2 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
           >
-            <option value="">الكل</option>
-            <option value="1">غرفة واحدة</option>
-            <option value="2">غرفتان (2)</option>
-            <option value="3">3 غرف</option>
-            <option value="4">4 غرف</option>
-            <option value="5">5+ غرف</option>
+            <option value="">{t('all')}</option>
+            <option value="1">{t('oneRoom')}</option>
+            <option value="2">{t('twoRooms')}</option>
+            <option value="3">{t('threeRooms')}</option>
+            <option value="4">{t('fourRooms')}</option>
+            <option value="5">{t('fivePlusRooms')}</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">عدد الحمامات</label>
+          <label className="block text-xs font-bold text-gray-700 mb-1">{t('bathsCount')}</label>
           <select 
             name="bathrooms" 
             defaultValue={currentParams.bathrooms || ""} 
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-2 text-xs focus:ring-2 focus:ring-primary outline-none font-semibold"
           >
-            <option value="">الكل</option>
-            <option value="1">حمام (1)</option>
-            <option value="2">حمامان (2)</option>
-            <option value="3">3 حمامات</option>
-            <option value="4">4+ حمامات</option>
+            <option value="">{t('all')}</option>
+            <option value="1">{t('oneBath')}</option>
+            <option value="2">{t('twoBaths')}</option>
+            <option value="3">{t('threeBaths')}</option>
+            <option value="4">{t('fourPlusBaths')}</option>
           </select>
         </div>
       </div>
@@ -501,7 +510,7 @@ export default function UnitFilterSidebar({
               : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
           }`}
         >
-          <span>🌊 إطلالة بحرية فقط</span>
+          <span>{t('seaViewOnlyOption')}</span>
           <span className={`w-5 h-5 rounded-full border flex items-center justify-center ${seaView ? 'bg-primary border-primary text-white' : 'border-gray-400'}`}>
             {seaView && <CheckIcon className="w-3 h-3 stroke-[3]" />}
           </span>
@@ -511,22 +520,22 @@ export default function UnitFilterSidebar({
       {/* Property Type & Developer */}
       <div className="space-y-3 pt-2 border-t border-gray-100">
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">نوع العقار</label>
+          <label className="block text-xs font-bold text-gray-700 mb-1">{t('propertyType')}</label>
           <select 
             value={selectedUnitType} 
             onChange={(e) => setSelectedUnitType(e.target.value)}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-xs font-semibold focus:ring-2 focus:ring-primary outline-none"
           >
-            <option value="">كل الأنواع</option>
+            <option value="">{t('allPropertyTypes')}</option>
             {unitTypes.map((type: any) => (
-              <option key={type.id} value={type.id}>{type.name}</option>
+              <option key={type.id} value={type.id}>{getLocalized(type, 'name') || type.name}</option>
             ))}
           </select>
         </div>
 
         <div>
           <label className="block text-xs font-bold text-gray-700 mb-1">
-            المطور العقاري {sellerType === 'INDIVIDUAL' && <span className="text-gray-400 font-normal">(للمطورين فقط)</span>}
+            {t('developer')} {sellerType === 'INDIVIDUAL' && <span className="text-gray-400 font-normal">({t('forDevelopersOnly')})</span>}
           </label>
           <select 
             value={selectedDev} 
@@ -536,9 +545,9 @@ export default function UnitFilterSidebar({
               sellerType === 'INDIVIDUAL' ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-gray-50 border-gray-200'
             }`}
           >
-            <option value="">جميع المطورين</option>
+            <option value="">{t('allDevelopersOption')}</option>
             {developers.map((dev: any) => (
-              <option key={dev.id} value={dev.id}>{dev.name}</option>
+              <option key={dev.id} value={dev.id}>{getLocalized(dev, 'name') || dev.name}</option>
             ))}
           </select>
         </div>
@@ -558,14 +567,14 @@ export default function UnitFilterSidebar({
           >
             <div className="flex items-center gap-2 text-sm">
               <FunnelIcon className="w-5 h-5 text-primary" />
-              <span>تصفية وفلاتر متقدمة</span>
+              <span>{t('advancedFiltersTitle')}</span>
             </div>
             {activeCount > 0 ? (
               <span className="bg-primary text-white text-xs px-2.5 py-0.5 rounded-full font-bold">
-                {activeCount} نشط
+                {activeCount} {t('activeFilter')}
               </span>
             ) : (
-              <span className="text-xs text-gray-400 font-normal">تحديد الخيارات</span>
+              <span className="text-xs text-gray-400 font-normal">{t('selectOptions')}</span>
             )}
           </button>
 
@@ -574,7 +583,7 @@ export default function UnitFilterSidebar({
               href="/units"
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-3 rounded-2xl whitespace-nowrap transition"
             >
-              إلغاء الفلاتر
+              {t('clearFiltersBtn')}
             </Link>
           )}
         </div>
@@ -592,7 +601,7 @@ export default function UnitFilterSidebar({
             className="whitespace-nowrap px-3.5 py-1.5 rounded-full font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white shadow-md shadow-indigo-500/20 flex items-center gap-1.5 active:scale-95 transition border border-indigo-400/30"
           >
             <SparklesIcon className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
-            <span>البحث الذكي بالـ AI</span>
+            <span>{t('aiSmartSearchBtn')}</span>
           </button>
           <button
             type="button"
@@ -603,7 +612,7 @@ export default function UnitFilterSidebar({
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            💵 كاش فقط
+            {t('cashOnlyOption')}
           </button>
           <button
             type="button"
@@ -614,7 +623,7 @@ export default function UnitFilterSidebar({
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            📅 تقسيط
+            {t('installmentsOption')}
           </button>
           <button
             type="button"
@@ -625,7 +634,7 @@ export default function UnitFilterSidebar({
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            🏢 مطورين
+            🏢 {t('developers')}
           </button>
           <button
             type="button"
@@ -636,7 +645,7 @@ export default function UnitFilterSidebar({
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            👤 إعادة بيع
+            👤 {t('resale')}
           </button>
           <button
             type="button"
@@ -647,7 +656,7 @@ export default function UnitFilterSidebar({
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            🌊 إطلالة بحر
+            {t('seaViewPill')}
           </button>
         </div>
       </div>
@@ -657,14 +666,14 @@ export default function UnitFilterSidebar({
         <div className="lg:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
           <div 
             className="bg-white w-full rounded-t-[2.5rem] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-slide-up"
-            dir="rtl"
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-white shrink-0">
                 <div className="flex items-center gap-2">
                   <FunnelIcon className="w-5 h-5 text-primary" />
-                  <h2 className="text-lg font-bold text-gray-900">فلاتر البحث الذكية</h2>
+                  <h2 className="text-lg font-bold text-gray-900">{t('smartSearchFilters')}</h2>
                   {activeCount > 0 && (
                     <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-bold">
                       {activeCount}
@@ -677,7 +686,7 @@ export default function UnitFilterSidebar({
                     onClick={() => setMobileDrawerOpen(false)}
                     className="text-xs text-primary font-bold hover:underline"
                   >
-                    إعادة ضبط
+                    {t('resetFilters')}
                   </Link>
                   <button
                     type="button"
@@ -701,7 +710,7 @@ export default function UnitFilterSidebar({
                   className="w-full bg-primary hover:bg-accent text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2 text-base"
                 >
                   <SparklesIcon className="w-5 h-5" />
-                  تطبيق الفلاتر وعرض النتائج
+                  {t('smartFiltersBtn')}
                 </button>
               </div>
             </form>
@@ -717,10 +726,10 @@ export default function UnitFilterSidebar({
           <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0 bg-white">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <FunnelIcon className="w-5 h-5 text-primary" />
-              فلاتر البحث الذكية
+              {t('smartSearchFilters')}
             </h2>
             <Link href="/units" className="text-xs text-primary font-bold hover:underline">
-              إعادة ضبط
+              {t('resetFilters')}
             </Link>
           </div>
 
@@ -736,7 +745,7 @@ export default function UnitFilterSidebar({
               className="w-full bg-primary hover:bg-accent text-white font-bold py-3 rounded-xl transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
             >
               <SparklesIcon className="w-5 h-5" />
-              تطبيق فلاتر البحث
+              {t('smartFiltersBtn')}
             </button>
           </div>
         </form>

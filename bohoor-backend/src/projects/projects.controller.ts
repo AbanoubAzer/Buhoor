@@ -7,8 +7,13 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  findAll(@Query('developerId') developerId?: string) {
-    return this.projectsService.findAll(developerId);
+  findAll(
+    @Query('developerId') developerId?: string,
+    @Query('all') all?: string,
+    @Query('includeHidden') includeHidden?: string,
+  ) {
+    const isIncludeHidden = all === 'true' || includeHidden === 'true';
+    return this.projectsService.findAll(developerId, isIncludeHidden);
   }
 
   @Get('count')
@@ -23,7 +28,7 @@ export class ProjectsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() body: { name: string; developerId: string; location: string; description?: string; coverImage: string }) {
+  create(@Body() body: any) {
     return this.projectsService.create(body);
   }
 

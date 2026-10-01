@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Switch, Image as RNImage } from 'react-native';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import { ChevronRight, Camera, Trash } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Camera, Trash } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import { useStore } from '../../store/useStore';
 
@@ -11,7 +11,8 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwm4j0_E7QODiADgwGLiUMP
 export default function AddPropertyTab() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const { locations, unitTypes, fetchMetadata } = useStore();
+  const { locations, unitTypes, fetchMetadata, language, t } = useStore();
+  const isRtl = language === 'ar';
 
   useEffect(() => {
     if (locations.length === 0 || unitTypes.length === 0) {
@@ -65,15 +66,15 @@ export default function AddPropertyTab() {
 
   const nextStep = () => {
     if (step === 1 && (!formData.clientName || !formData.phone || !formData.penaltyAgreed)) {
-      Alert.alert('تنبيه', 'يرجى إكمال البيانات والموافقة على الشرط الجزائي');
+      Alert.alert(isRtl ? 'تنبيه' : 'Notice', isRtl ? 'يرجى إكمال البيانات والموافقة على الشرط الجزائي' : 'Please fill all fields and agree to the penalty clause');
       return;
     }
     if (step === 2 && (!formData.projectLocation || !formData.unitType || !formData.area)) {
-      Alert.alert('تنبيه', 'يرجى إكمال بيانات الوحدة الأساسية');
+      Alert.alert(isRtl ? 'تنبيه' : 'Notice', isRtl ? 'يرجى إكمال بيانات الوحدة الأساسية' : 'Please fill in basic unit info');
       return;
     }
     if (step === 3 && !formData.cashRequired) {
-      Alert.alert('تنبيه', 'يرجى تحديد المبلغ المطلوب');
+      Alert.alert(isRtl ? 'تنبيه' : 'Notice', isRtl ? 'يرجى تحديد المبلغ المطلوب' : 'Please specify required amount');
       return;
     }
     setStep(prev => prev + 1);
@@ -107,7 +108,10 @@ export default function AddPropertyTab() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' }
       });
 
-      Alert.alert('تم بنجاح!', 'تم إرسال طلبك بنجاح وسيتواصل معك فريق المنصة لمراجعة العقار وتفعيله.');
+      Alert.alert(
+        isRtl ? 'تم بنجاح!' : 'Success!',
+        isRtl ? 'تم إرسال طلبك بنجاح وسيتواصل معك فريق المنصة لمراجعة العقار وتفعيله.' : 'Request sent successfully! Our team will contact you to review and publish the unit.'
+      );
       setFormData({
         clientName: '',
         phone: '',
@@ -123,7 +127,7 @@ export default function AddPropertyTab() {
       setStep(1);
     } catch (error) {
       console.error(error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء رفع البيانات. حاول مرة أخرى.');
+      Alert.alert(isRtl ? 'خطأ' : 'Error', isRtl ? 'حدث خطأ أثناء رفع البيانات. حاول مرة أخرى.' : 'Error uploading data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -131,13 +135,17 @@ export default function AddPropertyTab() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
         {step > 1 && (
-          <TouchableOpacity onPress={prevStep} style={styles.backBtn}>
-            <ChevronRight color={Colors.primary} size={28} />
+          <TouchableOpacity onPress={prevStep} style={styles.backBtn} accessibilityLabel={t('back')}>
+            {isRtl ? (
+              <ChevronRight color={Colors.primary} size={28} />
+            ) : (
+              <ChevronLeft color={Colors.primary} size={28} />
+            )}
           </TouchableOpacity>
         )}
-        <Text style={styles.title}>أضف عقارك (الخطوة {step}/4)</Text>
+        <Text style={styles.title}>{t('addProperty')} ({isRtl ? `الخطوة ${step}/4` : `Step ${step}/4`})</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -145,20 +153,37 @@ export default function AddPropertyTab() {
         {/* Step 1: Contact Info */}
         {step === 1 && (
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>البيانات الشخصية والاتفاقية</Text>
+            <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+              {isRtl ? 'البيانات الشخصية والاتفاقية' : 'Personal Info & Agreement'}
+            </Text>
             
-            <Text style={styles.label}>الاسم بالكامل</Text>
-            <TextInput style={styles.input} placeholder="اكتب اسمك" value={formData.clientName} onChangeText={t => updateForm('clientName', t)} textAlign="right" />
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('fullName')}</Text>
+            <TextInput
+              style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'اكتب اسمك' : 'Enter your name'}
+              value={formData.clientName}
+              onChangeText={val => updateForm('clientName', val)}
+              placeholderTextColor={Colors.darkGray}
+            />
 
-            <Text style={styles.label}>رقم الواتساب</Text>
-            <TextInput style={styles.input} placeholder="مثال: +201012345678" value={formData.phone} onChangeText={t => updateForm('phone', t)} keyboardType="phone-pad" textAlign="right" />
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'رقم الواتساب' : 'WhatsApp Number'}</Text>
+            <TextInput
+              style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'مثال: +201012345678' : 'e.g. +201012345678'}
+              value={formData.phone}
+              onChangeText={val => updateForm('phone', val)}
+              keyboardType="phone-pad"
+              placeholderTextColor={Colors.darkGray}
+            />
 
             <View style={styles.penaltyBox}>
-              <Text style={styles.penaltyText}>
-                الشرط الجزائي: في حال أتمت المنصة بيع الوحدة وقررت أنت التراجع عن البيع، توافق على دفع شرط جزائي بقيمة 5000 جنيه مصري لإدارة المنصة تعويضاً عن وقت ومجهود الفريق.
+              <Text style={[styles.penaltyText, { textAlign: isRtl ? 'right' : 'left' }]}>
+                {isRtl
+                  ? 'الشرط الجزائي: في حال أتمت المنصة بيع الوحدة وقررت أنت التراجع عن البيع، توافق على دفع شرط جزائي بقيمة 5000 جنيه مصري لإدارة المنصة تعويضاً عن وقت ومجهود الفريق.'
+                  : 'Penalty Clause: If the platform successfully closes the deal and you withdraw, you agree to pay a 5,000 EGP penalty to platform management compensation.'}
               </Text>
-              <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>أوافق على الشرط الجزائي</Text>
+              <View style={[styles.switchRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                <Text style={styles.switchLabel}>{isRtl ? 'أوافق على الشرط الجزائي' : 'I agree to the penalty clause'}</Text>
                 <Switch 
                   value={formData.penaltyAgreed} 
                   onValueChange={v => updateForm('penaltyAgreed', v)} 
@@ -173,11 +198,11 @@ export default function AddPropertyTab() {
         {/* Step 2: Unit Details */}
         {step === 2 && (
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>تفاصيل الوحدة</Text>
+            <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'تفاصيل الوحدة' : 'Unit Details'}</Text>
             
-            <Text style={styles.label}>الموقع / اسم المنطقة</Text>
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'الموقع / اسم المنطقة' : 'Location / Area'}</Text>
             {locations.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                 {locations.slice(0, 8).map((loc: any) => (
                   <TouchableOpacity 
                     key={loc.id} 
@@ -189,51 +214,88 @@ export default function AddPropertyTab() {
                 ))}
               </ScrollView>
             )}
-            <TextInput style={styles.input} placeholder="مثال: مدينتي، التجمع الخامس، الساحل الشمالي" value={formData.projectLocation} onChangeText={t => updateForm('projectLocation', t)} textAlign="right" />
+            <TextInput
+              style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'مثال: مدينتي، التجمع الخامس، الساحل الشمالي' : 'e.g. Madinaty, 5th Settlement, North Coast'}
+              value={formData.projectLocation}
+              onChangeText={val => updateForm('projectLocation', val)}
+              placeholderTextColor={Colors.darkGray}
+            />
 
-            <Text style={styles.label}>نوع الوحدة</Text>
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'نوع الوحدة' : 'Unit Type'}</Text>
             {unitTypes.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-                {unitTypes.map((t: any) => (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chipsRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+                {unitTypes.map((tItem: any) => (
                   <TouchableOpacity 
-                    key={t.id} 
-                    style={[styles.smallChip, formData.unitType === t.name && styles.smallChipActive]}
-                    onPress={() => updateForm('unitType', t.name)}
+                    key={tItem.id} 
+                    style={[styles.smallChip, formData.unitType === tItem.name && styles.smallChipActive]}
+                    onPress={() => updateForm('unitType', tItem.name)}
                   >
-                    <Text style={[styles.smallChipText, formData.unitType === t.name && styles.smallChipTextActive]}>{t.name}</Text>
+                    <Text style={[styles.smallChipText, formData.unitType === tItem.name && styles.smallChipTextActive]}>{tItem.name}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
             )}
-            <TextInput style={styles.input} placeholder="مثال: شقة، فيلا، شاليه، استوديو" value={formData.unitType} onChangeText={t => updateForm('unitType', t)} textAlign="right" />
+            <TextInput
+              style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'مثال: شقة، فيلا، شاليه، استوديو' : 'e.g. Apartment, Villa, Chalet, Studio'}
+              value={formData.unitType}
+              onChangeText={val => updateForm('unitType', val)}
+              placeholderTextColor={Colors.darkGray}
+            />
 
-            <Text style={styles.label}>المساحة (م²)</Text>
-            <TextInput style={styles.input} placeholder="مثال: 120" value={formData.area} onChangeText={t => updateForm('area', t)} keyboardType="numeric" textAlign="right" />
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{t('area')} ({t('sqm')})</Text>
+            <TextInput
+              style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'مثال: 120' : 'e.g. 120'}
+              value={formData.area}
+              onChangeText={val => updateForm('area', val)}
+              keyboardType="numeric"
+              placeholderTextColor={Colors.darkGray}
+            />
           </View>
         )}
 
         {/* Step 3: Financials */}
         {step === 3 && (
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>التفاصيل المالية</Text>
+            <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'التفاصيل المالية' : 'Financial Details'}</Text>
             
-            <Text style={styles.label}>طريقة الدفع</Text>
-            <View style={styles.row}>
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'طريقة الدفع' : 'Payment Method'}</Text>
+            <View style={[styles.row, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               <TouchableOpacity style={[styles.choiceBtn, formData.paymentMethod === 'installment' && styles.choiceBtnActive]} onPress={() => updateForm('paymentMethod', 'installment')}>
-                <Text style={[styles.choiceText, formData.paymentMethod === 'installment' && styles.choiceTextActive]}>تقسيط</Text>
+                <Text style={[styles.choiceText, formData.paymentMethod === 'installment' && styles.choiceTextActive]}>{t('installments')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.choiceBtn, formData.paymentMethod === 'cash' && styles.choiceBtnActive]} onPress={() => updateForm('paymentMethod', 'cash')}>
-                <Text style={[styles.choiceText, formData.paymentMethod === 'cash' && styles.choiceTextActive]}>كاش</Text>
+                <Text style={[styles.choiceText, formData.paymentMethod === 'cash' && styles.choiceTextActive]}>{t('cashOnly')}</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>{formData.paymentMethod === 'cash' ? 'السعر المطلوب كاش' : 'المقدم المطلوب منك كبائع (الأوفر + المدفوع)'}</Text>
-            <TextInput style={styles.input} placeholder="المبلغ بالجنيه المصري" value={formData.cashRequired} onChangeText={t => updateForm('cashRequired', t)} keyboardType="numeric" textAlign="right" />
+            <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>
+              {formData.paymentMethod === 'cash' 
+                ? (isRtl ? 'السعر المطلوب كاش' : 'Required Cash Price') 
+                : (isRtl ? 'المقدم المطلوب منك كبائع (الأوفر + المدفوع)' : 'Required Down Payment (Over + Paid)')}
+            </Text>
+            <TextInput
+              style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+              placeholder={isRtl ? 'المبلغ بالجنيه المصري' : 'Amount in EGP'}
+              value={formData.cashRequired}
+              onChangeText={val => updateForm('cashRequired', val)}
+              keyboardType="numeric"
+              placeholderTextColor={Colors.darkGray}
+            />
 
             {formData.paymentMethod === 'installment' && (
               <>
-                <Text style={styles.label}>عدد الأقساط المتبقية للمطور</Text>
-                <TextInput style={styles.input} placeholder="مثال: 12" value={formData.installmentsCount} onChangeText={t => updateForm('installmentsCount', t)} keyboardType="numeric" textAlign="right" />
+                <Text style={[styles.label, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'عدد الأقساط المتبقية للمطور' : 'Remaining Installments to Developer'}</Text>
+                <TextInput
+                  style={[styles.input, { textAlign: isRtl ? 'right' : 'left' }]}
+                  placeholder={isRtl ? 'مثال: 12' : 'e.g. 12'}
+                  value={formData.installmentsCount}
+                  onChangeText={val => updateForm('installmentsCount', val)}
+                  keyboardType="numeric"
+                  placeholderTextColor={Colors.darkGray}
+                />
               </>
             )}
           </View>
@@ -242,15 +304,17 @@ export default function AddPropertyTab() {
         {/* Step 4: Images */}
         {step === 4 && (
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>صور العقار</Text>
-            <Text style={styles.subtitle}>الصور الجيدة تسرّع من عملية البيع بشكل كبير.</Text>
+            <Text style={[styles.sectionTitle, { textAlign: isRtl ? 'right' : 'left' }]}>{isRtl ? 'صور العقار' : 'Property Photos'}</Text>
+            <Text style={[styles.subtitle, { textAlign: isRtl ? 'right' : 'left' }]}>
+              {isRtl ? 'الصور الجيدة تسرّع من عملية البيع بشكل كبير.' : 'High quality photos significantly accelerate the sale process.'}
+            </Text>
             
             <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
               <Camera color={Colors.accent} size={32} style={{ marginBottom: 8 }} />
-              <Text style={styles.uploadBtnText}>اختر الصور من الهاتف</Text>
+              <Text style={styles.uploadBtnText}>{isRtl ? 'اختر الصور من الهاتف' : 'Select Photos from Phone'}</Text>
             </TouchableOpacity>
 
-            <View style={styles.imagesGrid}>
+            <View style={[styles.imagesGrid, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
               {formData.images.map((img, index) => (
                 <View key={index} style={styles.imageWrapper}>
                   <RNImage source={{ uri: img.uri }} style={styles.previewImage} />
@@ -266,11 +330,11 @@ export default function AddPropertyTab() {
         <View style={styles.footer}>
           {step < 4 ? (
             <TouchableOpacity style={styles.primaryBtn} onPress={nextStep}>
-              <Text style={styles.primaryBtnText}>التالي</Text>
+              <Text style={styles.primaryBtnText}>{isRtl ? 'التالي' : 'Next'}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={[styles.primaryBtn, loading && styles.disabledBtn]} onPress={handleSubmit} disabled={loading}>
-              <Text style={styles.primaryBtnText}>{loading ? 'جاري الرفع...' : 'تأكيد وإرسال'}</Text>
+              <Text style={styles.primaryBtnText}>{loading ? (isRtl ? 'جاري الرفع...' : 'Uploading...') : (isRtl ? 'تأكيد وإرسال' : 'Confirm & Submit')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -281,38 +345,107 @@ export default function AddPropertyTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.gray },
-  header: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: Colors.background, padding: 20, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  backBtn: { marginLeft: 16 },
-  title: { fontSize: 20, fontWeight: 'bold', color: Colors.primary },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: {
+    alignItems: 'center',
+    backgroundColor: Colors.cardBackground,
+    padding: 20,
+    paddingTop: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  backBtn: { marginHorizontal: 8 },
+  title: { fontSize: 20, fontWeight: '800', color: Colors.primary },
   content: { padding: 20, paddingBottom: 100 },
-  formSection: { backgroundColor: Colors.background, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 20 },
-  sectionTitle: { fontSize: 22, fontWeight: 'bold', color: Colors.primary, marginBottom: 20, textAlign: 'right' },
-  subtitle: { fontSize: 14, color: Colors.darkGray, marginBottom: 16, textAlign: 'right' },
-  label: { fontSize: 14, fontWeight: 'bold', color: Colors.primary, marginBottom: 8, textAlign: 'right' },
-  input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, marginBottom: 20, backgroundColor: Colors.gray, fontSize: 16, color: Colors.text },
-  chipsRow: { flexDirection: 'row-reverse', gap: 6, marginBottom: 10 },
-  smallChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.gray, borderWidth: 1, borderColor: '#E5E7EB' },
+  formSection: {
+    backgroundColor: Colors.cardBackground,
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 20,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  sectionTitle: { fontSize: 22, fontWeight: '800', color: Colors.primary, marginBottom: 18 },
+  subtitle: { fontSize: 13, color: Colors.textMuted, marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '700', color: Colors.text, marginBottom: 8 },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 20,
+    backgroundColor: Colors.surface,
+    fontSize: 15,
+    color: Colors.text,
+  },
+  chipsRow: { flexDirection: 'row-reverse', gap: 8, marginBottom: 12 },
+  smallChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   smallChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  smallChipText: { fontSize: 12, color: Colors.darkGray, fontWeight: '600' },
-  smallChipTextActive: { color: Colors.background },
-  penaltyBox: { backgroundColor: '#FEF2F2', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FCA5A5' },
-  penaltyText: { color: '#991B1B', fontSize: 13, lineHeight: 22, textAlign: 'right', marginBottom: 12, fontWeight: 'bold' },
+  smallChipText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
+  smallChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  penaltyBox: {
+    backgroundColor: Colors.dangerLight,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(244, 63, 94, 0.2)',
+  },
+  penaltyText: { color: Colors.danger, fontSize: 13, lineHeight: 22, textAlign: 'right', marginBottom: 12, fontWeight: '700' },
   switchRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
-  switchLabel: { fontSize: 14, fontWeight: 'bold', color: '#991B1B' },
+  switchLabel: { fontSize: 14, fontWeight: '800', color: Colors.danger },
   row: { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 20 },
-  choiceBtn: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', marginHorizontal: 4, alignItems: 'center' },
+  choiceBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+  },
   choiceBtnActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  choiceText: { fontSize: 16, color: Colors.text, fontWeight: 'bold' },
-  choiceTextActive: { color: Colors.background },
-  uploadBtn: { backgroundColor: Colors.gray, borderWidth: 2, borderColor: Colors.accent, borderStyle: 'dashed', borderRadius: 16, padding: 30, alignItems: 'center', marginBottom: 20 },
-  uploadBtnText: { color: Colors.accent, fontSize: 16, fontWeight: 'bold' },
+  choiceText: { fontSize: 15, color: Colors.text, fontWeight: '700' },
+  choiceTextActive: { color: '#FFFFFF', fontWeight: '800' },
+  uploadBtn: {
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.accent,
+    borderStyle: 'dashed',
+    borderRadius: 18,
+    padding: 28,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  uploadBtnText: { color: Colors.accent, fontSize: 15, fontWeight: '800' },
   imagesGrid: { flexDirection: 'row-reverse', flexWrap: 'wrap' },
   imageWrapper: { width: '30%', aspectRatio: 1, margin: '1.5%', position: 'relative' },
-  previewImage: { width: '100%', height: '100%', borderRadius: 12 },
-  removeImageBtn: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.6)', padding: 6, borderRadius: 12 },
+  previewImage: { width: '100%', height: '100%', borderRadius: 14 },
+  removeImageBtn: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.65)', padding: 6, borderRadius: 12 },
   footer: { marginTop: 10 },
-  primaryBtn: { backgroundColor: Colors.accent, padding: 16, borderRadius: 12, alignItems: 'center', shadowColor: Colors.accent, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
-  disabledBtn: { opacity: 0.7 },
-  primaryBtnText: { color: Colors.background, fontSize: 18, fontWeight: 'bold' }
+  primaryBtn: {
+    backgroundColor: Colors.accent,
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  disabledBtn: { opacity: 0.6 },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
 });

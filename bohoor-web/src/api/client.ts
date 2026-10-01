@@ -74,7 +74,13 @@ export const api = {
       return request('/developers', { next: { revalidate: 60 } });
     },
     getOne: async (id: string) => {
-      return request(`/developers/${id}`, { next: { revalidate: 60 } });
+      let cleanId = id;
+      try {
+        cleanId = encodeURIComponent(decodeURIComponent(id).trim());
+      } catch {
+        cleanId = encodeURIComponent(id);
+      }
+      return request(`/developers/${cleanId}`, { cache: 'no-store' });
     },
   },
   units: {
@@ -149,6 +155,27 @@ export const api = {
     getExportUrl: () => {
       return `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3333'}/leads/export-excel`;
     },
+  },
+  getLocations: async () => request('/locations', { next: { revalidate: 3600 } }),
+  getUnitTypes: async () => request('/unit-types', { next: { revalidate: 3600 } }),
+  getProjects: async (developerId?: string) => {
+    const url = developerId ? `/projects?developerId=${developerId}` : '/projects';
+    return request(url, { next: { revalidate: 60 } });
+  },
+  getDevelopers: async () => request('/developers', { next: { revalidate: 60 } }),
+  getUnits: async (params?: Record<string, any>) => {
+    let path = '/units';
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          searchParams.append(key, String(val));
+        }
+      });
+      const qs = searchParams.toString();
+      if (qs) path += `?${qs}`;
+    }
+    return request(path, { cache: 'no-store' });
   },
 };
 

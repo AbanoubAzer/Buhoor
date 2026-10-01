@@ -53,3 +53,52 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
 }
+
+/* Fix react-phone-input-2 in RTL & LTR layouts */
+.react-tel-input {
+  direction: ltr !important;
+  font-family: inherit !important;
+  width: 100% !important;
+}
+
+.react-tel-input .form-control {
+  width: 100% !important;
+  height: 58px !important;
+  border-radius: 1rem !important;
+  border: 1px solid #e5e7eb !important;
+  font-size: 1rem !important;
+  background-color: #f9fafb !important;
+  padding-left: 64px !important;
+  padding-right: 16px !important;
+  direction: ltr !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+
+.react-tel-input .form-control:focus {
+  border-color: #152D5B !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(21, 45, 91, 0.2) !important;
+}
+
+.react-tel-input .flag-dropdown {
+  border-radius: 1rem 0 0 1rem !important;
+  border: 1px solid #e5e7eb !important;
+  border-right: none !important;
+  background-color: #f9fafb !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+.react-tel-input .selected-flag {
+  border-radius: 1rem 0 0 1rem !important;
+  padding: 0 0 0 12px !important;
+  background: transparent !important;
+  width: 52px !important;
+}
+
+.react-tel-input .selected-flag:hover,
+.react-tel-input .selected-flag:focus {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+

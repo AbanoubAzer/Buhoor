@@ -90,18 +90,18 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
   const handleSearch = async () => {
     // Mandatory Validations: Name, Phone, Budget
     if (!customerName.trim()) {
-      setError('يرجى إدخال اسمك الكريم (مطلوب).');
+      setError(t('nameRequiredError'));
       return;
     }
     
     const cleanPhone = customerPhone.trim().replace(/[^0-9+]/g, '');
     if (!cleanPhone || cleanPhone.length < 8) {
-      setError('يرجى إدخال رقم هاتف صحيح للتواصل (مطلوب).');
+      setError(t('phoneRequiredError'));
       return;
     }
 
     if (!budget.trim()) {
-      setError('يرجى إدخال الميزانية القصوى أو اختيار إحدى الميزانيات السريعة (مطلوب).');
+      setError(t('budgetRequiredError'));
       return;
     }
 
@@ -110,15 +110,16 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
     const parts: string[] = [];
 
     if (selectedType) parts.push(selectedType);
-    if (selectedBedrooms) parts.push(`${selectedBedrooms} غرف`);
-    if (selectedLocation) parts.push(`في ${selectedLocation}`);
-    if (isSeaView) parts.push('إطلالة بحرية مباشرة صف أول');
-    parts.push(`ميزانية أقصاها ${budget} ج.م`);
+    if (selectedBedrooms) parts.push(`${selectedBedrooms} ${isRTL ? 'غرف' : 'Bedrooms'}`);
+    if (selectedLocation) parts.push(isRTL ? `في ${selectedLocation}` : `in ${selectedLocation}`);
+    if (isSeaView) parts.push(isRTL ? 'إطلالة بحرية مباشرة صف أول' : 'direct sea view beachfront');
+    parts.push(isRTL ? `ميزانية أقصاها ${budget} ج.م` : `budget up to ${budget} EGP`);
 
+    const separator = isRTL ? '، ' : ', ';
     if (combinedQuery) {
-      combinedQuery = `${combinedQuery} (${parts.join('، ')})`;
+      combinedQuery = `${combinedQuery} (${parts.join(separator)})`;
     } else {
-      combinedQuery = parts.join('، ');
+      combinedQuery = parts.join(separator);
     }
 
     const fullPhone = customerPhone.startsWith('+') ? customerPhone : `+${customerPhone}`;
@@ -152,7 +153,7 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
       router.push('/matches');
     } catch (err: any) {
       console.error('AI Search Error:', err);
-      setError(err?.message || 'حدث خطأ أثناء معالجة البحث، يرجى المحاولة ثانية.');
+      setError(err?.message || t('searchError'));
     } finally {
       setLoading(false);
     }
@@ -168,11 +169,11 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
           setIsOpen(true);
         }}
         className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-primary text-white px-2.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all duration-300 shrink-0 border border-indigo-400/30 ring-2 ring-indigo-400/20"
-        title={isRTL ? 'البحث الذكي بالـ AI' : 'AI Smart Search'}
+        title={t('aiSmartSearchBtn')}
       >
         <SparklesIcon className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
         <span className="font-extrabold whitespace-nowrap">
-          {isRTL ? 'البحث الذكي' : 'AI Search'}
+          {t('aiSmartSearchBtn')}
         </span>
       </button>
 
@@ -198,32 +199,32 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition shrink-0"
-                aria-label="إغلاق"
+                aria-label={isRTL ? 'إغلاق' : 'Close'}
               >
                 <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               
-              <div className="text-right flex-1 mr-2 sm:mr-3">
-                <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-wrap">
+              <div className={`${isRTL ? 'text-right mr-2 sm:mr-3' : 'text-left ml-2 sm:ml-3'} flex-1`}>
+                <div className={`flex items-center ${isRTL ? 'justify-end' : 'justify-start'} gap-1.5 sm:gap-2 flex-wrap`}>
                   <span className="text-[10px] sm:text-xs bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full shrink-0">
                     Matching Engine
                   </span>
                   <h3 className="text-sm sm:text-lg font-extrabold text-indigo-950">
-                    البحث الذكي ومطابقة العقارات (AI) 🎯
+                    {t('aiModalTitle')}
                   </h3>
                 </div>
                 <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 line-clamp-1 sm:line-clamp-none">
-                  أدخل بياناتك وميزانيتك، ثم اكتب طلبك أو اختر من الخيارات
+                  {t('aiModalSub')}
                 </p>
               </div>
             </div>
 
             {/* Scrollable Content */}
-            <div className="p-3.5 sm:p-6 overflow-y-auto space-y-4 flex-1 text-right overscroll-contain">
+            <div className={`p-3.5 sm:p-6 overflow-y-auto space-y-4 flex-1 ${isRTL ? 'text-right' : 'text-left'} overscroll-contain`}>
               
               {/* Error Banner */}
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm rounded-xl flex items-center gap-2 justify-end">
+                <div className={`p-3 bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm rounded-xl flex items-center gap-2 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                   <span>{error}</span>
                   <ExclamationCircleIcon className="w-5 h-5 text-red-500 shrink-0" />
                 </div>
@@ -233,34 +234,34 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
               <div className="bg-indigo-50/70 p-3.5 sm:p-5 rounded-2xl border border-indigo-100 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] sm:text-xs bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-md">
-                    الخطوة 1 (مطلوبة)
+                    {t('step1Required')}
                   </span>
                   <h4 className="text-xs sm:text-sm font-extrabold text-indigo-950">
-                    بياناتك والميزانية <span className="text-red-500">*</span>
+                    {t('yourDetailsAndBudget')} <span className="text-red-500">*</span>
                   </h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   <div>
                     <label className="text-xs font-bold text-gray-700 block mb-1">
-                      الاسم الكريم <span className="text-red-500 font-bold">*</span>
+                      {t('fullNameRequired')} <span className="text-red-500 font-bold">*</span>
                     </label>
                     <div className="relative">
                       <input
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="مثال: أحمد محمد"
-                        className="w-full py-2 sm:py-2.5 px-3 pl-8 text-right rounded-xl border border-gray-200 bg-white focus:border-indigo-500 outline-none text-xs sm:text-sm text-gray-800"
+                        placeholder={t('nameExample')}
+                        className={`w-full py-2 sm:py-2.5 px-3 ${isRTL ? 'pl-8 text-right' : 'pr-8 text-left'} rounded-xl border border-gray-200 bg-white focus:border-indigo-500 outline-none text-xs sm:text-sm text-gray-800`}
                         required
                       />
-                      <UserIcon className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5 sm:top-3" />
+                      <UserIcon className={`w-4 h-4 text-gray-400 absolute ${isRTL ? 'left-2.5' : 'right-2.5'} top-2.5 sm:top-3`} />
                     </div>
                   </div>
 
                   <div>
                     <label className="text-xs font-bold text-gray-700 block mb-1">
-                      {isRTL ? "رقم الهاتف / واتساب" : "Phone / WhatsApp"} <span className="text-red-500 font-bold">*</span>
+                      {t('phoneOrWhatsApp')} <span className="text-red-500 font-bold">*</span>
                     </label>
                     <div dir="ltr" className="react-phone-input-container">
                       <PhoneInput
@@ -278,22 +279,22 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
 
                 <div>
                   <label className="text-xs font-bold text-gray-700 block mb-1">
-                    الميزانية القصوى (ج.م) <span className="text-red-500 font-bold">*</span>
+                    {t('maxBudgetEgp')} <span className="text-red-500 font-bold">*</span>
                   </label>
                   <div className="relative mb-2">
                     <input
                       type="text"
                       value={budget}
                       onChange={(e) => setBudget(e.target.value)}
-                      placeholder="مثال: 5000000 أو اختر من الميزانيات أدناه"
-                      className="w-full py-2 sm:py-2.5 px-3 pl-8 text-right rounded-xl border border-gray-200 bg-white focus:border-indigo-500 outline-none text-xs sm:text-sm text-gray-800 font-sans font-bold"
+                      placeholder={t('budgetPlaceholder')}
+                      className={`w-full py-2 sm:py-2.5 px-3 ${isRTL ? 'pl-8 text-right' : 'pr-8 text-left'} rounded-xl border border-gray-200 bg-white focus:border-indigo-500 outline-none text-xs sm:text-sm text-gray-800 font-sans font-bold`}
                       required
                     />
-                    <CurrencyDollarIcon className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5 sm:top-3" />
+                    <CurrencyDollarIcon className={`w-4 h-4 text-gray-400 absolute ${isRTL ? 'left-2.5' : 'right-2.5'} top-2.5 sm:top-3`} />
                   </div>
 
                   {/* Quick Budget Chips */}
-                  <div className="flex flex-wrap gap-1.5 justify-end">
+                  <div className={`flex flex-wrap gap-1.5 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                     {budgetOptions.map((b) => (
                       <button
                         key={b}
@@ -305,7 +306,7 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                             : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'
                         }`}
                       >
-                        {b} ج
+                        {b} {t('currency')}
                       </button>
                     ))}
                   </div>
@@ -316,10 +317,10 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] sm:text-xs bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-md">
-                    الخطوة 2
+                    {t('aiStep2Title')}
                   </span>
                   <h4 className="text-xs sm:text-sm font-extrabold text-gray-900">
-                    اكتب طلبك أو اختر المواصفات
+                    {t('writeOrPickSpecs')}
                   </h4>
                 </div>
 
@@ -329,12 +330,12 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                     rows={2}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="اكتب بحرية، مثال: محتاج شقة غرفتين في سهل حشيش تشطيب الترا سوبر لوكس وإطلالة بحر..."
-                    className="w-full p-2.5 sm:p-3 text-right rounded-xl sm:rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-gray-800 placeholder-gray-400 text-xs sm:text-sm leading-relaxed"
+                    placeholder={t('aiFreeTextPlaceholder')}
+                    className={`w-full p-2.5 sm:p-3 ${isRTL ? 'text-right' : 'text-left'} rounded-xl sm:rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-gray-800 placeholder-gray-400 text-xs sm:text-sm leading-relaxed`}
                   />
                   {/* Quick prompt suggestions */}
-                  <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 justify-end mt-1.5">
-                    <span className="text-[10px] text-gray-400">أمثلة سريعة:</span>
+                  <div className={`flex flex-wrap items-center gap-1 sm:gap-1.5 ${isRTL ? 'justify-end' : 'justify-start'} mt-1.5`}>
+                    <span className="text-[10px] text-gray-400">{t('quickExamples')}</span>
                     {quickPrompts.map((p, i) => (
                       <button
                         key={i}
@@ -350,12 +351,12 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
 
                 {/* Quick Pick Options Grid */}
                 <div className="bg-gray-50/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-200/80 space-y-2.5">
-                  <span className="text-xs font-bold text-gray-600 block">أو اختر المواصفات بنقرة واحدة:</span>
+                  <span className="text-xs font-bold text-gray-600 block">{t('pickOneClick')}</span>
 
                   {/* Locations */}
                   <div>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 block mb-1">المنطقة المطلوبة:</span>
-                    <div className="flex flex-wrap gap-1.5 justify-end">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 block mb-1">{t('requestedLocation')}</span>
+                    <div className={`flex flex-wrap gap-1.5 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                       {locationOptions.map((loc) => (
                         <button
                           key={loc}
@@ -376,28 +377,28 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                   {/* Unit Types & Bedrooms */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     <div>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 block mb-1">نوع العقار:</span>
-                      <div className="flex flex-wrap gap-1.5 justify-end">
-                        {typeOptions.map((t) => (
+                      <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 block mb-1">{t('requestedType')}</span>
+                      <div className={`flex flex-wrap gap-1.5 ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                        {typeOptions.map((typ) => (
                           <button
-                            key={t}
+                            key={typ}
                             type="button"
-                            onClick={() => setSelectedType(selectedType === t ? '' : t)}
+                            onClick={() => setSelectedType(selectedType === typ ? '' : typ)}
                             className={`text-[11px] sm:text-xs px-2 py-1 rounded-lg border font-semibold transition ${
-                              selectedType === t
+                              selectedType === typ
                                 ? 'bg-primary text-white border-primary'
                                 : 'bg-white text-gray-700 border-gray-200'
                             }`}
                           >
-                            {t}
+                            {typ}
                           </button>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 block mb-1">غرف النوم:</span>
-                      <div className="flex flex-wrap gap-1.5 justify-end">
+                      <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 block mb-1">{t('requestedBedrooms')}</span>
+                      <div className={`flex flex-wrap gap-1.5 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                         {bedroomOptions.map((b) => (
                           <button
                             key={b}
@@ -409,7 +410,7 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                                 : 'bg-white text-gray-700 border-gray-200'
                             }`}
                           >
-                            {b} غرف
+                            {b} {isRTL ? 'غرف' : (b === '1' ? 'Bed' : 'Beds')}
                           </button>
                         ))}
                       </div>
@@ -426,9 +427,9 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                         : 'bg-white border-gray-200 text-gray-600'
                     }`}
                   >
-                    <span className="text-xs">🌊 إطلالة بحرية مباشرة على الشاطئ</span>
+                    <span className="text-xs">{t('directSeaViewOption')}</span>
                     <span className={`text-[11px] px-2 py-0.5 rounded-md ${isSeaView ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                      {isSeaView ? 'مفعلة ✓' : 'تفعيل'}
+                      {isSeaView ? t('activated') : t('activate')}
                     </span>
                   </button>
                 </div>
@@ -442,37 +443,37 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                     <div className="bg-indigo-50/70 p-3 sm:p-3.5 rounded-2xl border border-indigo-100 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] bg-indigo-200/80 text-indigo-900 font-bold px-2 py-0.5 rounded-md">
-                          الفلاتر المستخرجة بالـ AI
+                          {t('extractedAiFilters')}
                         </span>
                         <h4 className="text-xs font-bold text-indigo-950">
-                          فهم النظام لاحتياجاتك:
+                          {t('understandingNeeds')}
                         </h4>
                       </div>
 
-                      <div className="flex flex-wrap gap-1.5 justify-end">
+                      <div className={`flex flex-wrap gap-1.5 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                         {result.extractedFilters.location && (
                           <span className="text-xs bg-white text-indigo-900 px-2 py-0.5 rounded-lg border border-indigo-200 font-semibold">
-                            📍 الموقع: {result.extractedFilters.location}
+                            📍 {t('requestedLocation')} {result.extractedFilters.location}
                           </span>
                         )}
                         {result.extractedFilters.maxPrice && (
                           <span className="text-xs bg-white text-emerald-800 px-2 py-0.5 rounded-lg border border-emerald-200 font-semibold">
-                            💰 ميزانية: {result.extractedFilters.maxPrice.toLocaleString('ar-EG')} ج.م
+                            💰 {t('maxBudgetEgp')}: {Number(result.extractedFilters.maxPrice).toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currency')}
                           </span>
                         )}
                         {result.extractedFilters.bedrooms && (
                           <span className="text-xs bg-white text-blue-800 px-2 py-0.5 rounded-lg border border-blue-200 font-semibold">
-                            🛏️ غرف: {result.extractedFilters.bedrooms}
+                            🛏️ {t('requestedBedrooms')} {result.extractedFilters.bedrooms}
                           </span>
                         )}
                         {result.extractedFilters.propertyType && (
                           <span className="text-xs bg-white text-purple-800 px-2 py-0.5 rounded-lg border border-purple-200 font-semibold">
-                            🏢 نوع: {result.extractedFilters.propertyType}
+                            🏢 {t('requestedType')} {result.extractedFilters.propertyType}
                           </span>
                         )}
                         {result.extractedFilters.seaView && (
                           <span className="text-xs bg-white text-cyan-800 px-2 py-0.5 rounded-lg border border-cyan-200 font-semibold">
-                            🌊 إطلالة بحر
+                            🌊 {t('seaView')}
                           </span>
                         )}
                       </div>
@@ -483,10 +484,10 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
-                        {result.matches?.length || 0} عقارات متطابقة
+                        {result.matches?.length || 0} {t('matchedProperties')}
                       </span>
                       <h4 className="text-sm sm:text-base font-extrabold text-gray-900">
-                        أفضل العقارات المتطابقة
+                        {t('bestMatchedProperties')}
                       </h4>
                     </div>
 
@@ -496,12 +497,12 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition"
                     >
                       <SparklesIcon className="w-4 h-4 text-amber-300" />
-                      <span>عرض النتائج في صفحة مخصصة كاملة (Listed View) &larr;</span>
+                      <span>{t('viewDedicatedPage')}</span>
                     </Link>
 
                     {result.matches?.length === 0 ? (
                       <div className="text-center py-6 text-gray-500 text-xs">
-                        لم نجد عقارات متطابقة مع هذا البحث، جرب تعديل الميزانية أو خيارات البحث.
+                        {t('noAiMatchesFound')}
                       </div>
                     ) : (
                       <div className="space-y-2.5">
@@ -511,23 +512,23 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                           const price = Number(unit.cashPaidToSeller || unit.totalPrice || unit.originalContractPrice || 0);
 
                           let badgeColor = 'bg-emerald-500 text-white';
-                          let matchText = 'تطابق استثنائي';
+                          let matchText = t('exceptionalMatch');
                           if (score < 80) {
                             badgeColor = 'bg-blue-600 text-white';
-                            matchText = 'تطابق ممتاز';
+                            matchText = t('greatMatch');
                           }
                           if (score < 60) {
                             badgeColor = 'bg-amber-600 text-white';
-                            matchText = 'تطابق تقريبي';
+                            matchText = t('goodMatch');
                           }
 
                           return (
                             <div 
                               key={unit.id || idx}
-                              className="bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition flex flex-col sm:flex-row-reverse justify-between items-stretch sm:items-center gap-2.5 sm:gap-3"
+                              className={`bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition flex flex-col ${isRTL ? 'sm:flex-row-reverse' : 'sm:flex-row'} justify-between items-stretch sm:items-center gap-2.5 sm:gap-3`}
                             >
-                              <div className="text-right flex-1">
-                                <div className="flex items-center justify-end gap-2 mb-1 flex-wrap">
+                              <div className={`${isRTL ? 'text-right' : 'text-left'} flex-1`}>
+                                <div className={`flex items-center ${isRTL ? 'justify-end' : 'justify-start'} gap-2 mb-1 flex-wrap`}>
                                   <Link 
                                     href={`/units/${unit.code || unit.id}`}
                                     onClick={() => setIsOpen(false)}
@@ -540,35 +541,35 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                                   </span>
                                 </div>
 
-                                <div className="flex flex-wrap items-center justify-end gap-2 text-[11px] text-gray-500">
+                                <div className={`flex flex-wrap items-center ${isRTL ? 'justify-end' : 'justify-start'} gap-2 text-[11px] text-gray-500`}>
                                   <span className="font-bold text-accent text-xs sm:text-sm">
-                                    {price.toLocaleString('ar-EG')} ج.م
+                                    {price.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currency')}
                                   </span>
                                   <span>•</span>
                                   <span>{unit.location?.name || unit.location?.governorate || '-'}</span>
                                   <span>•</span>
-                                  <span>{unit.bedrooms} غرف</span>
+                                  <span>{unit.bedrooms} {isRTL ? 'غرف' : 'Beds'}</span>
                                   <span>•</span>
-                                  <span>{unit.area} م²</span>
+                                  <span>{unit.area} {t('sqm')}</span>
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2 justify-end sm:justify-start pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
+                              <div className={`flex items-center gap-2 ${isRTL ? 'justify-end sm:justify-start' : 'justify-start sm:justify-end'} pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0`}>
                                 <Link 
                                   href={`/units/${unit.code || unit.id}`}
                                   onClick={() => setIsOpen(false)}
                                   className="text-xs font-bold bg-gray-100 hover:bg-primary hover:text-white text-gray-700 px-3 py-1.5 rounded-xl transition flex items-center gap-1"
                                 >
-                                  <span>تفاصيل</span>
+                                  <span>{t('detailsBtn')}</span>
                                   <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                                 </Link>
                                 <a
-                                  href={`https://wa.me/201000000000?text=${encodeURI(`مرحباً بُحور، أستفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})`)}`}
+                                  href={`https://wa.me/201000000000?text=${encodeURI(isRTL ? `مرحباً بُحور، أستفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})` : `Hello Bohoor, I am inquiring about matched unit: ${unit.title} (Code: ${unit.code || unit.id})`)}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl transition flex items-center gap-1"
                                 >
-                                  <span>واتساب</span>
+                                  <span>{t('whatsAppBtn')}</span>
                                   <PhoneIcon className="w-3.5 h-3.5" />
                                 </a>
                               </div>
@@ -592,11 +593,11 @@ export default function AiSearchModal({ isOpen: controlledIsOpen, setIsOpen: con
                 className="w-full bg-gradient-to-r from-indigo-600 via-primary to-indigo-700 hover:opacity-95 text-white py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50"
               >
                 {loading ? (
-                  <span>جاري تحليل الطلب واستخراج الفلاتر ومطابقة العقارات... ⏳</span>
+                  <span>{t('aiAnalyzingAndMatching')}</span>
                 ) : (
                   <>
                     <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
-                    <span>بدء البحث والمطابقة الذكية (AI Matching)</span>
+                    <span>{t('startAiSearchBtn')}</span>
                   </>
                 )}
               </button>

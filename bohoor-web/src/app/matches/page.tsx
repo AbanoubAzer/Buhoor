@@ -19,8 +19,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { api } from '@/api/client';
 import AiSearchModal from '@/components/AiSearchModal';
+import { useLanguage } from '@/context/LanguageContext';
 
 function MatchesContent() {
+  const { t, isRTL } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -100,7 +102,7 @@ function MatchesContent() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-20 font-cairo" dir="rtl">
+    <div className="min-h-screen bg-gray-50/50 pb-20 font-cairo" dir={isRTL ? 'rtl' : 'ltr'}>
       
       {/* Top Hero Banner */}
       <div className="bg-gradient-to-r from-[#0a192f] via-primary to-indigo-900 text-white py-10 px-4 sm:px-6 lg:px-8 border-b border-indigo-900/40">
@@ -112,10 +114,10 @@ function MatchesContent() {
                 <span>AI Property Matching Engine</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-                نتائج مطابقة العقارات بالذكاء الاصطناعي 🎯
+                {t('aiMatchingResultsTitle')}
               </h1>
               <p className="text-gray-300 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
-                قائمة العقارات المتطابقة بدقة مع ميزانيتك ومواصفاتك المطلوبة، مرتبة بنسب التوافق المئوية.
+                {t('aiMatchingResultsSub')}
               </p>
             </div>
 
@@ -124,9 +126,10 @@ function MatchesContent() {
               <AiSearchModal />
               <Link
                 href="/units"
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm border border-white/20 transition"
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm border border-white/20 transition flex items-center gap-1.5"
               >
-                تصفح كل العقارات &larr;
+                <span>{t('browseAllUnits')}</span>
+                <span>{isRTL ? '←' : '→'}</span>
               </Link>
             </div>
           </div>
@@ -136,42 +139,42 @@ function MatchesContent() {
             <div className="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-3 mb-3">
                 <div className="flex items-center gap-2 text-xs text-indigo-100 font-bold">
-                  <span>طلب البحث المسجل:</span>
+                  <span>{t('recordedQuery')}</span>
                   <span className="text-white font-normal bg-black/30 px-3 py-1 rounded-lg">
-                    &quot;{matchData.query || urlQuery || 'بحث مخصص'}&quot;
+                    &quot;{matchData.query || urlQuery || t('customSearch')}&quot;
                   </span>
                 </div>
                 <div className="text-xs text-amber-300 font-bold">
-                  تم العثور على {matches.length} عقار متطابق
+                  {t('foundMatchedCount').replace('{count}', String(matches.length))}
                 </div>
               </div>
 
               {/* Extracted Criteria Badges */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-indigo-200 font-bold">المواصفات المستخرجة:</span>
+                <span className="text-xs text-indigo-200 font-bold">{t('extractedSpecs')}</span>
                 {filters.location && (
                   <span className="text-xs bg-indigo-600/80 text-white px-3 py-1 rounded-lg border border-indigo-400/30 font-semibold">
-                    📍 المنطقة: {filters.location}
+                    📍 {t('requestedLocation')} {filters.location}
                   </span>
                 )}
                 {filters.maxPrice && (
                   <span className="text-xs bg-emerald-600/80 text-white px-3 py-1 rounded-lg border border-emerald-400/30 font-semibold">
-                    💰 الميزانية: {Number(filters.maxPrice).toLocaleString('ar-EG')} ج.م
+                    💰 {t('maxBudgetEgp')}: {Number(filters.maxPrice).toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currency')}
                   </span>
                 )}
                 {filters.bedrooms && (
                   <span className="text-xs bg-blue-600/80 text-white px-3 py-1 rounded-lg border border-blue-400/30 font-semibold">
-                    🛏️ غرف النوم: {filters.bedrooms}
+                    🛏️ {t('requestedBedrooms')} {filters.bedrooms}
                   </span>
                 )}
                 {filters.propertyType && (
                   <span className="text-xs bg-purple-600/80 text-white px-3 py-1 rounded-lg border border-purple-400/30 font-semibold">
-                    🏢 النوع: {filters.propertyType}
+                    🏢 {t('requestedType')} {filters.propertyType}
                   </span>
                 )}
                 {filters.seaView && (
                   <span className="text-xs bg-cyan-600/80 text-white px-3 py-1 rounded-lg border border-cyan-400/30 font-semibold">
-                    🌊 إطلالة بحرية
+                    🌊 {t('seaView')}
                   </span>
                 )}
               </div>
@@ -188,7 +191,7 @@ function MatchesContent() {
           
           {/* Quick Score Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-gray-500">نسبة التطابق:</span>
+            <span className="text-xs font-bold text-gray-500">{t('matchPercentageFilter')}</span>
             <button
               onClick={() => setMinScoreFilter(0)}
               className={`text-xs px-3 py-1.5 rounded-xl font-bold transition ${
@@ -197,7 +200,7 @@ function MatchesContent() {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
-              الكل ({matches.length})
+              {isRTL ? `الكل (${matches.length})` : `All (${matches.length})`}
             </button>
             <button
               onClick={() => setMinScoreFilter(85)}
@@ -207,7 +210,7 @@ function MatchesContent() {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
-              استثنائي (85%+)
+              {t('exceptionalFilter')}
             </button>
             <button
               onClick={() => setMinScoreFilter(70)}
@@ -217,23 +220,23 @@ function MatchesContent() {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
-              ممتاز (70%+)
+              {t('greatFilter')}
             </button>
           </div>
 
           {/* Right Controls: Sort & View Mode */}
           <div className="flex items-center gap-3 justify-between md:justify-end">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-500">الترتيب:</span>
+              <span className="text-xs font-bold text-gray-500">{t('sortBy')}:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 outline-none focus:border-primary"
               >
-                <option value="score">أعلى نسبة تطابق أولاً 🎯</option>
-                <option value="price_asc">الأقل سعراً أولاً</option>
-                <option value="price_desc">الأعلى سعراً أولاً</option>
-                <option value="area_desc">الأكبر مساحة أولاً</option>
+                <option value="score">{t('sortMatchScore')}</option>
+                <option value="price_asc">{t('sortPriceAsc')}</option>
+                <option value="price_desc">{t('sortPriceDesc')}</option>
+                <option value="area_desc">{t('sortAreaDesc')}</option>
               </select>
             </div>
 
@@ -242,14 +245,14 @@ function MatchesContent() {
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-white shadow-xs text-primary' : 'text-gray-500'}`}
-                title="عرض شبكي (Grid)"
+                title={t('gridViewTooltip')}
               >
                 <Squares2X2Icon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
                 className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-white shadow-xs text-primary' : 'text-gray-500'}`}
-                title="عرض كقائمة (List)"
+                title={t('listViewTooltip')}
               >
                 <Bars3Icon className="w-4 h-4" />
               </button>
@@ -261,8 +264,8 @@ function MatchesContent() {
         {loading && (
           <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-sm space-y-4">
             <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
-            <h3 className="text-lg font-bold text-gray-800">جاري تحليل الطلب واستخراج أفضل التطابقات...</h3>
-            <p className="text-xs text-gray-500">نقوم بمقارنة مواصفاتك مع كافة عقارات ومشاريع المنصة</p>
+            <h3 className="text-lg font-bold text-gray-800">{t('analyzingRequests')}</h3>
+            <p className="text-xs text-gray-500">{t('comparingSpecsAcrossPlatform')}</p>
           </div>
         )}
 
@@ -273,12 +276,12 @@ function MatchesContent() {
               <SparklesIcon className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-extrabold text-gray-900">
-              {matchData ? 'لم يتم العثور على عقارات مطابقة بهذا الفلتر' : 'لم يتم تنفيذ بحث ذكي بعد'}
+              {matchData ? t('noMatchesWithFilter') : t('noAiSearchYet')}
             </h3>
             <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
               {matchData 
-                ? 'جرب تقليل نسبة التطابق المطلوبة أو توسيع حدود الميزانية والمناطق في البحث الذكي.'
-                : 'اضغط على زر البحث الذكي بالـ AI وأدخل ميزانيتك ومواصفاتك لنقوم باستخراج وتطابق أفضل العقارات لك فوراً.'}
+                ? t('expandSearchTip')
+                : t('startAiSearchPrompt')}
             </p>
             <div className="pt-2">
               <AiSearchModal />
@@ -298,14 +301,14 @@ function MatchesContent() {
               const isDev = unit.sellerType === 'DEVELOPER';
 
               let badgeBg = 'bg-emerald-600 text-white';
-              let matchLabel = 'تطابق استثنائي';
+              let matchLabel = t('exceptionalMatch');
               if (score < 85) {
                 badgeBg = 'bg-blue-600 text-white';
-                matchLabel = 'تطابق ممتاز';
+                matchLabel = t('greatMatch');
               }
               if (score < 70) {
                 badgeBg = 'bg-amber-600 text-white';
-                matchLabel = 'تطابق تقريبي';
+                matchLabel = t('goodMatch');
               }
 
               // GRID VIEW CARD
@@ -324,18 +327,18 @@ function MatchesContent() {
                       />
                       
                       {/* Match Score Badge (Prominent) */}
-                      <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
+                      <div className={`absolute top-3 ${isRTL ? 'right-3 items-end' : 'left-3 items-start'} flex flex-col gap-1`}>
                         <span className={`px-3 py-1 rounded-full text-xs font-black shadow-md flex items-center gap-1 ${badgeBg}`}>
                           <span>{score}%</span>
                           <span>{matchLabel}</span>
                         </span>
                         <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-xs ${isDev ? 'bg-blue-600 text-white' : 'bg-amber-500 text-white'}`}>
-                          {isDev ? '🏢 مباشر من المطور (0% عمولة)' : '👤 إعادة بيع (أفراد)'}
+                          {isDev ? t('directDevCommissionFree') : t('resaleIndividual')}
                         </span>
                       </div>
 
                       {unit.location?.governorate && (
-                        <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[11px] font-bold">
+                        <span className={`absolute bottom-3 ${isRTL ? 'right-3' : 'left-3'} bg-black/60 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[11px] font-bold`}>
                           📍 {unit.location.name || unit.location.governorate}
                         </span>
                       )}
@@ -351,16 +354,16 @@ function MatchesContent() {
                           </h3>
                         </Link>
                         {unit.project?.name && (
-                          <p className="text-xs text-primary font-bold mt-1">مشروع {unit.project.name}</p>
+                          <p className="text-xs text-primary font-bold mt-1">{t('projectWord')} {unit.project.name}</p>
                         )}
 
                         {/* Specs Chips */}
                         <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-gray-500">
-                          <span className="bg-gray-100 px-2 py-1 rounded-lg">🛏️ {unit.bedrooms || 0} غرف</span>
-                          <span className="bg-gray-100 px-2 py-1 rounded-lg">🚿 {unit.bathrooms || 0} حمام</span>
-                          <span className="bg-gray-100 px-2 py-1 rounded-lg">📐 {unit.area} م²</span>
+                          <span className="bg-gray-100 px-2 py-1 rounded-lg">🛏️ {unit.bedrooms || 0} {isRTL ? 'غرف' : 'Beds'}</span>
+                          <span className="bg-gray-100 px-2 py-1 rounded-lg">🚿 {unit.bathrooms || 0} {t('bathsSuffix')}</span>
+                          <span className="bg-gray-100 px-2 py-1 rounded-lg">📐 {unit.area} {t('sqm')}</span>
                           {unit.isSeaView && (
-                            <span className="bg-cyan-50 text-cyan-800 font-bold px-2 py-1 rounded-lg">🌊 إطلالة بحر</span>
+                            <span className="bg-cyan-50 text-cyan-800 font-bold px-2 py-1 rounded-lg">🌊 {t('seaView')}</span>
                           )}
                         </div>
 
@@ -369,25 +372,25 @@ function MatchesContent() {
                           {criteria.locationMatch && (
                             <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                               <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
-                              <span>المنطقة المطلوبة</span>
+                              <span>{t('targetAreaMatched')}</span>
                             </span>
                           )}
                           {criteria.priceMatch && (
                             <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                               <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
-                              <span>ضمن الميزانية</span>
+                              <span>{t('budgetMatched')}</span>
                             </span>
                           )}
                           {criteria.bedroomsMatch && (
                             <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                               <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
-                              <span>عدد الغرف</span>
+                              <span>{t('bedroomsMatched')}</span>
                             </span>
                           )}
                           {criteria.seaViewMatch && (
                             <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                               <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
-                              <span>إطلالة البحر</span>
+                              <span>{t('seaViewMatched')}</span>
                             </span>
                           )}
                         </div>
@@ -396,9 +399,9 @@ function MatchesContent() {
                       {/* Price & Actions */}
                       <div className="pt-3 border-t border-gray-100">
                         <div className="flex items-baseline justify-between mb-3">
-                          <span className="text-xs text-gray-500 font-medium">السعر المطلوب:</span>
+                          <span className="text-xs text-gray-500 font-medium">{t('requiredPrice')}</span>
                           <span className="text-lg font-black text-accent">
-                            {price.toLocaleString('ar-EG')} ج.م
+                            {price.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currency')}
                           </span>
                         </div>
 
@@ -407,16 +410,16 @@ function MatchesContent() {
                             href={`/units/${unit.code || unit.id}`}
                             className="bg-gray-100 hover:bg-primary hover:text-white text-gray-800 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition"
                           >
-                            <span>التفاصيل</span>
+                            <span>{t('detailsBtn')}</span>
                             <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                           </Link>
                           <a
-                            href={`https://wa.me/201000000000?text=${encodeURI(`مرحباً منصة بحور، استفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})`)}`}
+                            href={`https://wa.me/201000000000?text=${encodeURI(isRTL ? `مرحباً منصة بحور، استفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})` : `Hello Bohoor, I am inquiring about matched unit: ${unit.title} (Code: ${unit.code || unit.id})`)}`}
                             target="_blank"
                             rel="noreferrer"
                             className="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition"
                           >
-                            <span>واتساب</span>
+                            <span>{t('whatsAppBtn')}</span>
                             <PhoneIcon className="w-3.5 h-3.5" />
                           </a>
                         </div>
@@ -452,30 +455,30 @@ function MatchesContent() {
                       <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                         <span>📍 {unit.location?.name || unit.location?.governorate || '-'}</span>
                         <span>•</span>
-                        <span>🛏️ {unit.bedrooms || 0} غرف</span>
+                        <span>🛏️ {unit.bedrooms || 0} {isRTL ? 'غرف' : 'Beds'}</span>
                         <span>•</span>
-                        <span>🚿 {unit.bathrooms || 0} حمام</span>
+                        <span>🚿 {unit.bathrooms || 0} {t('bathsSuffix')}</span>
                         <span>•</span>
-                        <span>📐 {unit.area} م²</span>
-                        {isDev && <span className="text-blue-600 font-bold">• 0% عمولة</span>}
+                        <span>📐 {unit.area} {t('sqm')}</span>
+                        {isDev && <span className="text-blue-600 font-bold">• {t('zeroCommission')}</span>}
                       </div>
 
                       {/* Criteria */}
                       <div className="flex flex-wrap gap-1.5 pt-1">
-                        {criteria.locationMatch && <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-bold">✓ المنطقة</span>}
-                        {criteria.priceMatch && <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-bold">✓ الميزانية</span>}
-                        {criteria.bedroomsMatch && <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-bold">✓ الغرف</span>}
-                        {criteria.seaViewMatch && <span className="text-[10px] bg-cyan-50 text-cyan-800 px-2 py-0.5 rounded-md font-bold">✓ إطلالة بحر</span>}
+                        {criteria.locationMatch && <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-bold">✓ {t('targetAreaMatched')}</span>}
+                        {criteria.priceMatch && <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-bold">✓ {t('budgetMatched')}</span>}
+                        {criteria.bedroomsMatch && <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-bold">✓ {t('bedroomsMatched')}</span>}
+                        {criteria.seaViewMatch && <span className="text-[10px] bg-cyan-50 text-cyan-800 px-2 py-0.5 rounded-md font-bold">✓ {t('seaViewMatched')}</span>}
                       </div>
                     </div>
                   </div>
 
                   {/* Actions & Price */}
-                  <div className="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100 shrink-0">
-                    <div className="text-right">
-                      <span className="text-xs text-gray-400 block md:mb-0.5">السعر المطلوب:</span>
+                  <div className={`flex md:flex-col items-center ${isRTL ? 'md:items-end' : 'md:items-start'} justify-between w-full md:w-auto gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100 shrink-0`}>
+                    <div className={isRTL ? 'text-right' : 'text-left'}>
+                      <span className="text-xs text-gray-400 block md:mb-0.5">{t('requiredPrice')}</span>
                       <span className="text-base sm:text-lg font-black text-accent font-cairo">
-                        {price.toLocaleString('ar-EG')} ج.م
+                        {price.toLocaleString(isRTL ? 'ar-EG' : 'en-US')} {t('currency')}
                       </span>
                     </div>
 
@@ -484,16 +487,16 @@ function MatchesContent() {
                         href={`/units/${unit.code || unit.id}`}
                         className="bg-gray-100 hover:bg-primary hover:text-white text-gray-800 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition"
                       >
-                        <span>التفاصيل</span>
+                        <span>{t('detailsBtn')}</span>
                         <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                       </Link>
                       <a
-                        href={`https://wa.me/201000000000?text=${encodeURI(`مرحباً منصة بحور، استفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})`)}`}
+                        href={`https://wa.me/201000000000?text=${encodeURI(isRTL ? `مرحباً منصة بحور، استفسر عن العقار المتطابق: ${unit.title} (كود: ${unit.code || unit.id})` : `Hello Bohoor, I am inquiring about matched unit: ${unit.title} (Code: ${unit.code || unit.id})`)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition"
                       >
-                        <span>واتساب</span>
+                        <span>{t('whatsAppBtn')}</span>
                         <PhoneIcon className="w-3.5 h-3.5" />
                       </a>
                     </div>
@@ -510,12 +513,13 @@ function MatchesContent() {
 }
 
 export default function MatchesPage() {
+  const { isRTL } = useLanguage();
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center font-cairo">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm font-bold text-gray-600">جاري تحميل نتائج المطابقة الذكية...</p>
+          <p className="text-sm font-bold text-gray-600">{isRTL ? 'جاري تحميل نتائج المطابقة الذكية...' : 'Loading AI match results...'}</p>
         </div>
       </div>
     }>

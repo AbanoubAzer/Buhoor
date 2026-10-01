@@ -238,8 +238,13 @@ export default function UnitDetailsView({ unit }: UnitDetailsViewProps) {
                     {unit.developer && (
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-indigo-600 font-bold uppercase tracking-wider">{t('developer')}:</span>
-                        <Link href={`/developers/${unit.developer.slug || unit.developer.id}`} className="text-base font-bold text-indigo-950 hover:text-primary transition underline decoration-indigo-300">
-                          🏢 {getLocalized(unit.developer, 'name') || unit.developer.name}
+                        <Link href={`/developers/${unit.developer.slug || unit.developer.id}`} className="text-base font-bold text-indigo-950 hover:text-primary transition underline decoration-indigo-300 flex items-center gap-1.5">
+                          {unit.developer.logoUrl ? (
+                            <img src={unit.developer.logoUrl} alt="" className="w-5 h-5 rounded-full object-contain bg-white border border-gray-200 p-0.5" />
+                          ) : (
+                            <span>🏢</span>
+                          )}
+                          <span>{getLocalized(unit.developer, 'name') || unit.developer.name}</span>
                         </Link>
                       </div>
                     )}
